@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# CUDA_VISIBLE_DEVICES="5" python -m torch.distributed.launch --nproc_per_node=1 --master_port 28301 main.py --arch swin_base --batch_size_per_gpu 8
+# CUDA_VISIBLE_DEVICES="0" python -m torch.distributed.launch --nproc_per_node=1 --master_port 28301 main.py --arch swin_base --batch_size_per_gpu 8
 
 
 import argparse
@@ -351,47 +351,33 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
     # triplet_loss =barlow_loss.cuda()
     local_loss = TripletLoss()
     #torch.autograd.set_detect_anomaly(True)
-    for it, ((images,locations,randperms,flag,orig_images,s2lmapping,l2smapping), _) in enumerate(metric_logger.log_every(data_loader, 50, header, log_writer)):
-        # print(mask.shape)
+    for it, ((images,locations,s2lmapping,l2smapping), _) in enumerate(metric_logger.log_every(data_loader, 50, header, log_writer)):
+        # locations:the overlap mask of two crops(14*14), s2lmapping:matrix matching target(196*196)
+
         # update weight decay and learning rate according to their schedule
         it = len(data_loader) * epoch + it  # global training iteration
         for i, param_group in enumerate(optimizer.param_groups):
             param_group["lr"] = lr_schedule[it]
             if i == 0:  # only the first group is regularized
                 param_group["weight_decay"] = wd_schedule[it]
-        #print("flag:",flag)
-        # move images to gpu
-        images = [im.cuda(non_blocking=True).float() for im in images]#.half()
-        orig_images = [im.cuda(non_blocking=True).float()  for im in orig_images]#.half()
 
-        randperms =[randperm.cuda(non_blocking=True).long() for randperm in randperms] 
-        #print('before',flag)
-        flag = flag.cuda(non_blocking=True).bool()
-        #print('after',flag)
+        # move images to gpu
+        images = [im.cuda(non_blocking=True).float() for im in images]
+
+
         locations=[location.cuda(non_blocking=True) for location in locations]
         # teacher and student forward passes + compute dino loss
         with torch.cuda.amp.autocast(fp16_scaler is not None):
             # with autograd.detect_anomaly():
-            teacher_cls, teacher_spatial = teacher(orig_images[:2],randperms, flag)  # only the 2 global views pass through the teacher
-            student_cls, student_spatial, student_spatial_pred = student(images,randperms,flag)
+            teacher_cls, teacher_spatial = teacher(images)  
+            student_cls, student_spatial, student_spatial_pred = student(images) # global embedding of student, local embeddings of teacher, local embeddings of student
 
             student_spatials_pred = student_spatial_pred.chunk(2)
             student_spatials = student_spatial.chunk(2)
-            #teacher_spatials = teacher_spatial.detach().chunk(2)
-            #print(teacher_output.shape,student_output.shape)
-            # randperm = torch.cat(randperms).reshape(-1)
-            # gt_whole = torch.cat(orig_images[:2]).reshape(pred_restor.shape)
 
-            # order_loss = ce_loss(pred_order, randperm)
-            # restor_loss = mse_loss(pred_restor,gt_whole)
-            # loss_dino = dino_loss(student_output, teacher_output, epoch)
 
             loss_vic=0
             loss_local=0
-            #print(locations[0].shape, spatial_features_student[0].shape )
-
-
-            # loss_vic =  triplet_loss(spatial_features_student, spatial_features_teacher, epoch, locations,flag)
             
             global_loss = dino_loss(student_cls, teacher_cls, epoch)
             loss1, loss2 = barlow_loss(student_spatials,student_spatials_pred,locations[0],locations[1],s2lmapping.cuda(),l2smapping.cuda())
@@ -494,7 +480,7 @@ def recall_manual(y_true, y_pred):
     return TP / (TP + FN) if TP + FN > 0 else 0
 
 
-class AttentionMLPModel(nn.Module):
+class AttentionMLPModel(nn.Module): # compute matrix matching loss
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(AttentionMLPModel, self).__init__()
       
@@ -515,18 +501,7 @@ class AttentionMLPModel(nn.Module):
 
         
     def forward(self, student_out, student_out_proj, locations0,locations1,s2lmapping,l2smapping):
-        # labels_view1to2 = torch.zeros(locations0.shape[0], locations0.shape[1]).cuda(non_blocking=True).long()
-        # labels_view2to1 = torch.zeros(locations0.shape[0], locations0.shape[1]).cuda(non_blocking=True).long()
-        # #print(A.shape,B.shape)
-        # # 遍历每一个 batch
-        # for b in range(locations0.shape[0]):
-        #     # 找到 A 和 B 中 True 值的索引
-        #     A_indices = torch.nonzero(locations0[b, :]).squeeze()
 
-        #     B_indices = torch.nonzero(locations1[b, :]).squeeze()
-
-        #     labels_view1to2[b, A_indices] = B_indices
-        #     labels_view2to1[b, B_indices] = A_indices
 
         ZA,ZB = student_out
         PA,PB =  student_out_proj
@@ -543,20 +518,7 @@ class AttentionMLPModel(nn.Module):
         # predicted_A = (torch.sigmoid(logits_A) >= 0.5).float()
         # predicted_B = (torch.sigmoid(logits_B) >= 0.5).float()
 
-        # # Convert to NumPy arrays for sklearn
-        # predicted_A_np = predicted_A.cpu().numpy()
-        # predicted_B_np = predicted_B.cpu().numpy()
-        # l2smapping_np = l2smapping.cpu().numpy()
-        # s2lmapping_np = s2lmapping.cpu().numpy()
 
-        # recall_A = recall_manual(l2smapping_np, predicted_A_np)
-        # recall_B = recall_manual(s2lmapping_np, predicted_B_np)
-
-        # # Calculate average recall
-        # average_recall = (recall_A + recall_B) / 2
-
-        # print(f"Recall for A: {recall_A}, Recall for B: {recall_B}")
-        # print(f"Average Recall: {average_recall}")
 
 
 
@@ -596,10 +558,17 @@ class TripletLoss(nn.Module):
         self.triplet_loss = InfoNCE(temperature=0.2,negative_mode='unpaired')  # nn.TripletMarginLoss(margin=2, p=2)
 
     def compute_loss(self, crop1, crop2, bce_labelsl2s, bce_labelss2l):
+        """
+        input:
+         crop1:local embeddings of teacher [B,196,512]
+         crop2:local embeddings of student [B,196,512]
+         bce_labelsl2s:matrix matching target of large crop to  small crop [B,196,196]
+         bce_labelss2l:matrix matching target of small crop to  large crop [B,196,196]
+        """
         total_loss = 0
 
         # Summing over the last dimension
-        crop1_index = bce_labelsl2s.sum(dim=2)
+        crop1_index = bce_labelsl2s.sum(dim=2) # [B,196]
         crop2_index = bce_labelss2l.sum(dim=2)
 
         # Normalizing to get the average
@@ -609,9 +578,9 @@ class TripletLoss(nn.Module):
         norm_factor_expanded = norm_factor.squeeze(1).unsqueeze(-1)  # Change shape from (b, 196) to (b, 196, 1)
         # Calculating average feature
         ##print(norm_factor_expanded.shape)
-        average_feature_2_match_1 = torch.bmm(bce_labelsl2s, crop2) / norm_factor_expanded 
+        average_feature_2_match_1 = torch.bmm(bce_labelsl2s, crop2) / norm_factor_expanded # [B,196,512]
 
-        # Thresholding
+        # Thresholding, find positives
         crop1_index[crop1_index >= 1] = 1
         crop2_index[crop2_index >= 1] = 1
         crop1_index = crop1_index.bool()
@@ -629,16 +598,6 @@ class TripletLoss(nn.Module):
             if len(negative_indices1[0]) == 0 or len(negative_indices2[0]) == 0 or  crop1[i][crop1_index[i]].shape[0]==0:
                 continue
             
-            #print(f"crop1_index[{i}].shape: {crop1_index[i].shape}, norm_factor_ori[{i}].squeeze(0).shape: {norm_factor_ori[i].squeeze(0).shape}, crop2_index[{i}].shape: {crop2_index[i].shape}")
-            # print(torch.isnan(crop1[i][crop1_index[i]]).any(),"crop1")
-            # print(torch.isnan(average_feature_2_match_1[i][crop1_index[i]]).any(),"crop2")
-            # print(torch.isnan(torch.cat(
-            #         (crop1[i][negative_indices1[1][negative_indices1[0] == i]], 
-            #          crop2[i][negative_indices2[1][negative_indices2[0] == i]]), 
-            #         dim=0
-            #     )).any(),"crop3")
-            # if crop1[i][crop1_index[i]].shape[0] == 0:
-            #     continue
             loss = self.triplet_loss(
                 crop1[i][crop1_index[i]],  # query
                 average_feature_2_match_1[i][crop1_index[i]],  # positive keys
@@ -701,7 +660,7 @@ class DINOLoss(nn.Module):
         total_loss /= n_loss_terms
         self.update_center(teacher_output)
 
-        # 如果total_loss是float类型，将其转换为torch.tensor
+        # if total_loss is float, change it to torch.tensor
         if isinstance(total_loss, float):
             total_loss = torch.tensor(total_loss, device=student_output.device)
         return total_loss

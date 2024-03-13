@@ -116,12 +116,9 @@ class NIHchest_dataset(Dataset):
 
 
 def img_transforms():
-    # if config.DATA.IMG_SIZE == 448:
     size = 1024
-    # elif config.DATA.IMG_SIZE == 224:
-    #     size = 304
     img_transforms = transforms.Compose([
-                        KeepRatioResize(size),
+                        # KeepRatioResize(size),
                         # CenterCrop(size),
                         # GridRandomCrop(size),
                         PatchCrop(size)
@@ -179,6 +176,14 @@ def build_md_transform(mode, dataset = "chexray"):
 def get_index(a, b, c): 
 # 输入：a为crop1左上角grid的index，b为patch2左上角grid的index
 # 输出：随机挑选出的crop1和crop2对应patch的索引
+    """
+    get the overlap mask of crop1 and crop2
+    input:
+      a: crop1's top left corner index, 
+      b: crop2's top left corner index,
+      c: the h, w rate of crop1, (14*k)*(14*l)
+    output: the overlap mask of crop1 and crop2, and the shape of overlap masks are all 14*14
+    """
     (idx_x1, idx_y1), (idx_x2, idx_y2), (k, l) = a, b, c
 
     # 重合部分index范围
@@ -202,22 +207,35 @@ def get_index(a, b, c):
     return overlap_mask_1.bool(), overlap_mask_2.bool()
 
 def get_corresponding_indices(overlap_mask_1, overlap_mask_2, idx1_pair, idx2_pair, kl):
+    """
+    input: 
+     overlap_mask_1: overlap index of crop1 (bool, 14*14)
+     overlap_mask_2: overlap index of crop2 (bool, 14*14)
+     idx1_pair: top left grid index of crop1
+     idx2_pair: top left grid index of crop2
+     kl: the size rate of crop1
+    output: two target matrices of matrix matching, size 196*196
+
+    """
     idx_x1, idx_y1 = idx1_pair
     idx_x2, idx_y2 = idx2_pair
     k, l = kl
     
-    # 初始化两个映射数组为 -1
-    mapping_array_2_to_1 = np.full(overlap_mask_2.numel(), -1, dtype=int)
+    # initialize the mapping array as -1
+    mapping_array_2_to_1 = np.full(overlap_mask_2.numel(), -1, dtype=int) # shape: (196,)
     mapping_array_1_to_2 = np.full(overlap_mask_1.numel(), -1, dtype=int)
 
-    # 计算偏移量
+    # compute the offsets
     offset_x = idx_x2 - idx_x1
     offset_y = idx_y2 - idx_y1
 
-    # 找出 overlap_mask_2 中为 True 的位置
+    # find True in overlap_mask_2
     true_indices_2 = torch.nonzero(overlap_mask_2).squeeze()
+
+    # initialize the target of matching matrix
     bce_labelsl2s = torch.zeros(196, 196)
     bce_labelss2l = torch.zeros(196, 196)
+
     if true_indices_2.dim() != 0:
     # 如果是0维张量（标量），则跳过循环
         for idx in true_indices_2:
@@ -238,14 +256,6 @@ def get_corresponding_indices(overlap_mask_1, overlap_mask_2, idx1_pair, idx2_pa
     else:
         pass
     
-
-    # 假设 mapping_array_1_to_2 是从 get_corresponding_indices 函数返回的数组
-    # 这里只是一个示例，你应该使用实际的 mapping_array_1_to_2
-
-    # 遍历 mapping_array_1_to_2，设置 bce_labels 的相应位置
-    # for i, idx in enumerate(mapping_array_1_to_2):
-    #     if idx != -1:
-    #         bce_labels[:, i, idx] = 1
     return  bce_labelss2l, bce_labelsl2s
 
 
@@ -300,6 +310,15 @@ class GridRandomCrop(): # 608*608 -> 576*576 / 304*304 -> 288*288
         return image
 
 class PatchCrop():
+    """
+    get grid-wise cropping
+    input: the whole image with size 1024*1024, the image is grided to 32*32 patches and each potch size is 32*32
+    output: [image,(x1, y1), (x2, y2), (k, l)]
+    image: two concated crops which are resized to 448*448, the size of crop2 is fixed with 14*14 patches (imgsize 448*448), and the size of crop1 is (14*k)*(14*l)
+    (x1, y1): the grid index of crop1's top left corner
+    (x2, y2): the grid index of crop2's top left corner
+    (k,l): the h, w rate of crop1
+    """
     def __init__(self, size):
         self.size = size
     def __call__(self, image):

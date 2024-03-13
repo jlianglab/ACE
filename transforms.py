@@ -410,7 +410,7 @@ class DataAugmentationDINO(object):
         self.input_size = input_size
 
         #region consistency part
-        self.overlap_initial_crop=transforms.RandomResizedCrop(1024, scale=(0.85,0.95),interpolation=Image.BICUBIC)
+        self.overlap_initial_crop=transforms.RandomResizedCrop(1024, scale=(0.85,1.0),interpolation=Image.BICUBIC)
 
         # transformation for the local small crops
         self.local_crops_number = local_crops_number
@@ -487,100 +487,35 @@ class DataAugmentationDINO(object):
             )
 
 
-    def generate_dense_pixel(self, global_crop):
-        a =random.sample(range(self.standard_patchsize),1)[0]
-        b =random.sample(range(self.standard_patchsize),1)[0]
-        crop_dense = FT.resized_crop(global_crop,a,b,self.standard_grid_select_inital*self.standard_patchsize,self.standard_grid_select_inital*self.standard_patchsize,self.standard_grid_select_inital*self.standard_patchsize)
-        return crop_dense
 
-    def generate_overlap(self, global_overlap):
-
-        self.a_1=random.sample(range(self.standard_grid_factor-self.grid_num), 1)[0]
-        self.b_1=random.sample(range(self.standard_grid_factor-self.grid_num), 1)[0]
-        self.a_2=random.sample(range(self.standard_grid_factor-self.grid_num), 1)[0]
-        self.b_2=random.sample(range(self.standard_grid_factor-self.grid_num), 1)[0]
-
-        self.grid_crop1 = torch.zeros(self.standard_grid_factor, self.standard_grid_factor)
-        self.grid_crop2 = torch.zeros(self.standard_grid_factor, self.standard_grid_factor)
-
-        self.grid_crop1[self.a_1:self.a_1+self.grid_num,self.b_1:self.b_1+self.grid_num]=1
-        self.grid_crop2[self.a_2:self.a_2+self.grid_num,self.b_2:self.b_2+self.grid_num]=1
-
-        self.overlap_area=self.grid_crop1*self.grid_crop2
-        self.grid_view1=self.overlap_area[self.a_1:self.a_1+self.grid_num,self.b_1:self.b_1+self.grid_num]
-        self.grid_view2=self.overlap_area[self.a_2:self.a_2+self.grid_num,self.b_2:self.b_2+self.grid_num]
-        cropped_2_1=FT.resized_crop(global_overlap, self.a_1*(self.standard_patchsize), self.b_1*(self.standard_patchsize), self.grid_num*(self.standard_patchsize), self.grid_num*(self.standard_patchsize), size=(self.input_size,self.input_size))
-        cropped_2_2=FT.resized_crop(global_overlap, self.a_2*(self.standard_patchsize), self.b_2*(self.standard_patchsize), self.grid_num*(self.standard_patchsize), self.grid_num*(self.standard_patchsize), size=(self.input_size,self.input_size))
-        
-
-        cropped_view1=cropped_2_1
-        cropped_view2=cropped_2_2
-        # print(self.grid_crop1_overlap)
-        # print(self.grid_crop2_overlap)
-        #print('overlap_shape',self.grid_crop1_overlap.shape[0])
-        #print('overlap_shape',cropped_2_1.shape)
-        # for i in range(self.grid_crop1_overlap.shape[0]):
-        #     for j in range(self.grid_crop1_overlap.shape[1]):
-        #         if self.grid_crop1_overlap[i][j]==0:
-        #             cropped_2_1[:,i*self.patch_size:(i+1)*self.patch_size,j*self.patch_size:(j+1)*self.patch_size]=0
-        #
-        # for i in range(self.grid_crop2_overlap.shape[0]):
-        #     for j in range(self.grid_crop2_overlap.shape[1]):
-        #         if self.grid_crop2_overlap[i][j]==0:
-        #             cropped_2_2[:,i*self.patch_size:(i+1)*self.patch_size,j*self.patch_size:(j+1)*self.patch_size]=0
-
-        # #grid=选连续14*14
-        # overlap_view2= self.local_transfo(global_overlap)
-        return cropped_view1, cropped_view2, self.grid_view1,self.grid_view2
 
     def __call__(self, image):
         crops = []
-        origin_crops = []
         grids=[]
         randperms=[]
         
         # global embedding consistency data
-        #image = np.transpose(np.asarray(image), (1, 2,0))
-        image = self.overlap_initial_crop(image)
+        image = self.overlap_initial_crop(image) # random resize and crop, (0.85,1) of initial image
         image = np.asarray(image)
 
-        patch, (idx_x1, idx_y1), (idx_x2, idx_y2), (k, l) = self.img_transforms(image)
-        sample_index1, sample_index2 = get_index((idx_x1, idx_y1), (idx_x2, idx_y2), (k, l))
+        patch, (idx_x1, idx_y1), (idx_x2, idx_y2), (k, l) = self.img_transforms(image) # get the two crops, the top left corner indexed of two crops, the size rate of the bigger crop1
+        sample_index1, sample_index2 = get_index((idx_x1, idx_y1), (idx_x2, idx_y2), (k, l)) # the overlap mask of two crops (all 14*14)
         # print(patch.shape)
         patch1 = patch[:,:,0:3]
         patch2 = patch[:,:,3:6]
     
         grids.append(sample_index1)
         grids.append(sample_index2)
-        s2lmapping,l2smapping = get_corresponding_indices(sample_index1, sample_index2,(idx_x1, idx_y1), (idx_x2, idx_y2),(k, l))
+        s2lmapping,l2smapping = get_corresponding_indices(sample_index1, sample_index2,(idx_x1, idx_y1), (idx_x2, idx_y2),(k, l)) # two target matrices of matrix matching, size 196*196
 
 
-        # if random.random()<0.5:
-        #randperm = torch.arange(0,(self.image_size//self.patch_size)**2, dtype=torch.long)
-        randperms.append(torch.arange(0,(448//32)**2, dtype=torch.long)) #image_size, patch_size
-        randperms.append(torch.arange(0,(448//32)**2, dtype=torch.long))
+
         #aug_whole = self.augment[0](imageData)
         patch1 = self.augmentations_albu[0](image=patch1)['image']
         patch2 = self.augmentations_albu[1](image=patch2)['image']
 
         crops.append(self.augmentations_glo[0](patch1))
         crops.append(self.augmentations_glo[1](patch2))
-        # origin_crops.append(self.augmentations_glo[0](patch1))
-        # origin_crops.append(self.augmentations_glo[1](patch2))#add a same crop   
-        flag = 1 
-
-        # else:
-        #     #aug_whole = gt_whole
-        #     randperms.append(torch.randperm((224//32)**2, dtype=torch.long)) #image_size, patch_size
-        #     randperms.append(torch.randperm((224//32)**2, dtype=torch.long))
-        #     crops.append(self.augmentations_glo[0](patch1))
-        #     crops.append(self.augmentations_glo[1](patch2))#add a same crop   
-        #     origin_crops.append(self.augmentations_glo[0](patch1))
-        #     origin_crops.append(self.augmentations_glo[1](patch2))#add a same crop   
-        #     flag = 0 
-
-        # for index in range(self.local_crops_number):
-        #     crops.append(self.augmentations[index](self.random_resized_crops[index](Image.fromarray(image))))
 
 
-        return crops,grids, randperms, flag, crops, s2lmapping,l2smapping
+        return crops,grids, s2lmapping,l2smapping

@@ -652,7 +652,7 @@ class MultiCropWrapper(nn.Module):
                                 nn.LayerNorm(512),
                                 nn.ReLU(inplace=True), # hidden layer
                                 nn.Linear(512, 512)) # output layer
-    def forward(self, x, perm,flag):
+    def forward(self, x):
         spatial_features = []
         # convert to list
         if not isinstance(x, list):
@@ -664,29 +664,17 @@ class MultiCropWrapper(nn.Module):
         start_idx, output = 0, torch.empty(0).to(x[0].device)
         loss_mask=0
 
-        for end_idx in idx_crops:
+        for end_idx in idx_crops: # idx_crops=[2]
             image_origin_input=torch.cat(x[start_idx: end_idx])
-            if end_idx==2:
+            if end_idx==2: # will go to this branch
                 #print(perm[0].shape,perm[1].shape)
-                _out,_middle_features = self.backbone( image_origin_input)#这里有硬编码，记得删除
+                _out,_middle_features = self.backbone( image_origin_input)
                 spatial_features = self.DenseHead(_middle_features)#)
-
-
-
-                #perm_sorted = perm.argsort()
-                # B, L, C = _middle_features.shape
-                # H = W = int(L ** 0.5)
-
-                # matching_feature = _middle_features.reshape(B, C, H, W)
-                # matching_feature = rearrange(matching_feature, 'b c h w-> b (h w) c')
-                # # Rearrange the patches according to the inverse of the permutation
-                # for i in range(B):
-                #     matching_feature[i] = matching_feature[i,perm_sorted[i], :]
 
 
             else:
 
-                _out,_middle_features = self.backbone( image_origin_input)#这里有硬编码，记得删除
+                _out,_middle_features = self.backbone( image_origin_input)
                 spatial_features+= self.DenseHead(_middle_features).chunk(self.args.local_crops_number)
             # The output is a tuple with XCiT model. See:
             # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
@@ -698,7 +686,7 @@ class MultiCropWrapper(nn.Module):
             # if mask_turn:
             #     loss_mask=self.head2( image_origin_input,_middle_features,mask_origin_input)
         # Run the head forward on the concatenated features.
-        return self.head(output),spatial_features.detach(),self.predictor_(spatial_features)#, pred_order, restore_features, self.head(output),
+        return self.head(output),spatial_features.detach(),self.predictor_(spatial_features)# global embedding, local embeddings of teacher, local embeddings of student
 
 
 class MultiCropWrapper_teacher(nn.Module):
@@ -718,7 +706,7 @@ class MultiCropWrapper_teacher(nn.Module):
         self.head = head
         self.DenseHead = DenseHead
 
-    def forward(self, x, mask, flag):
+    def forward(self, x):
         # convert to list
         spatial_features = []
         if not isinstance(x, list):
