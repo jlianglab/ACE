@@ -17,6 +17,7 @@ from .registry import register_model
 from einops import rearrange, repeat
 import numpy as np
 from math import sqrt
+import ipdb
 
 class Mlp(nn.Module):
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
@@ -995,6 +996,7 @@ class SwinTransformerForSimMIM(SwinTransformer):
         trunc_normal_(tensor, mean=mean, std=std, a=-std, b=std)
 
     def forward(self, x, perm=None):
+        ipdb.set_trace()
         B, nc, w, h = x.shape
         if perm is not None:
             
