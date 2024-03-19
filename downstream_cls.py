@@ -1,10 +1,15 @@
+import os
+from PIL import Image
+import numpy as np
+from random import random
+import copy
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms, datasets
 import timm
-
+from ..BenchmarkArk.dataloader import ChestXray14, build_transform_classification
 # Define the device to be used (GPU if available, else CPU)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -16,14 +21,49 @@ transform = transforms.Compose([
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  # Normalize images
 ])
 
-train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+dataset_train = ChestXray14(
+            images_path="/anvil/scratch/x-ssiingh/JLiangLab/datasets/nih_xray14/nih_xray14/images/images",
+            file_path="/anvil/scratch/x-ssiingh/JLiangLab//BenchmarkArk/dataset/Xray14_train_official.txt",
+            augment=build_transform_classification(
+                normalize="imagenet",
+                mode="train",
+                crop_size=224,
+                resize=224,
+            ),
+            annotation_percent=100,
+        )
+dataset_val = ChestXray14(
+    images_path="/anvil/scratch/x-ssiingh/JLiangLab/datasets/nih_xray14/nih_xray14/images/images",
+    file_path="/anvil/scratch/x-ssiingh/JLiangLab//BenchmarkArk/dataset/Xray14_val_official.txt",
+    augment=build_transform_classification(
+        normalize="imagenet",
+        mode="valid",
+        crop_size=224,
+        resize=224,
+    ),
+)
+dataset_test = ChestXray14(
+            images_path="/anvil/scratch/x-ssiingh/JLiangLab/datasets/nih_xray14/nih_xray14/images/images",
+            file_path="/anvil/scratch/x-ssiingh/JLiangLab//BenchmarkArk/dataset/Xray14_test_official.txt",
+            augment=build_transform_classification(
+                normalize="imagenet",
+                mode="test",
+                crop_size=224,
+                resize=224,
+            ),
+        )
 
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+train_loader = DataLoader(dataset_train, batch_size=32, shuffle=True)
+test_loader = DataLoader(dataset_test, batch_size=32, shuffle=False)
 
 # Define SWIN model
-model = timm.create_model('swin_base_patch4_window7_224', pretrained=True)
+model = timm.create_model('swin_base_patch4_window7_224', pretrained=False)
+
+checkpoint = torch.load("/anvil/scratch/x-ssiingh/JLiangLab/ACE/models/ACE_contrast_12n_global_inequal_swinb.pth", map_location='cpu')
+state_dict = checkpoint['student']
+state_dict = {k.replace("module.backbone.", ""): v for k, v in state_dict.items()}
+
+model.load_state_dict(state_dict)
 
 # Modify the final layer for your classification task
 num_classes = 10  # Example: CIFAR-10 has 10 classes
