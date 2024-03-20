@@ -1,125 +1,225 @@
-import os
-from PIL import Image
-import numpy as np
-from random import random
-import copy
+import argparse
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, Dataset
-from torchvision import transforms, datasets
+from torch.utils.data import DataLoader
 import timm
-from ..BenchmarkArk.dataloader import ChestXray14, build_transform_classification
-# Define the device to be used (GPU if available, else CPU)
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+import sys
+import numpy as np
+from sklearn.metrics import accuracy_score, roc_auc_score
+import os
+from tqdm import tqdm
+
+sys.path.append("/scratch/ssiingh/JLiangLab")
+from BenchmarkArk.dataloader import ChestXray14, build_transform_classification
+
 
 # Define your dataset and data loaders
-# Example: Assuming you have CIFAR-10 dataset, you can replace this with your dataset
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),  # Resize images to fit SWIN input size
-    transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  # Normalize images
-])
+def get_data_loaders(
+    images_path,
+    train_file_path,
+    val_file_path,
+    test_file_path,
+    augment_train,
+    augment_val,
+    augment_test,
+    batch_size,
+):
+    dataset_train = ChestXray14(
+        images_path=images_path,
+        file_path=train_file_path,
+        augment=augment_train,
+        annotation_percent=100,
+    )
+    # dataset_val = ChestXray14(
+    #     images_path=images_path,
+    #     file_path=val_file_path,
+    #     augment=augment_val,
+    # )
+    dataset_test = ChestXray14(
+        images_path=images_path,
+        file_path=test_file_path,
+        augment=augment_test,
+    )
 
-dataset_train = ChestXray14(
-            images_path="/anvil/scratch/x-ssiingh/JLiangLab/datasets/nih_xray14/nih_xray14/images/images",
-            file_path="/anvil/scratch/x-ssiingh/JLiangLab//BenchmarkArk/dataset/Xray14_train_official.txt",
-            augment=build_transform_classification(
-                normalize="imagenet",
-                mode="train",
-                crop_size=224,
-                resize=224,
-            ),
-            annotation_percent=100,
-        )
-dataset_val = ChestXray14(
-    images_path="/anvil/scratch/x-ssiingh/JLiangLab/datasets/nih_xray14/nih_xray14/images/images",
-    file_path="/anvil/scratch/x-ssiingh/JLiangLab//BenchmarkArk/dataset/Xray14_val_official.txt",
-    augment=build_transform_classification(
-        normalize="imagenet",
-        mode="valid",
-        crop_size=224,
-        resize=224,
-    ),
-)
-dataset_test = ChestXray14(
-            images_path="/anvil/scratch/x-ssiingh/JLiangLab/datasets/nih_xray14/nih_xray14/images/images",
-            file_path="/anvil/scratch/x-ssiingh/JLiangLab//BenchmarkArk/dataset/Xray14_test_official.txt",
-            augment=build_transform_classification(
-                normalize="imagenet",
-                mode="test",
-                crop_size=224,
-                resize=224,
-            ),
-        )
+    train_loader = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(dataset_test, batch_size=batch_size, shuffle=False)
 
-train_loader = DataLoader(dataset_train, batch_size=32, shuffle=True)
-test_loader = DataLoader(dataset_test, batch_size=32, shuffle=False)
+    return train_loader, test_loader
+
 
 # Define SWIN model
-model = timm.create_model('swin_base_patch4_window7_224', pretrained=False)
+def get_model(pretrained_model_path, num_classes, device):
+    model = timm.create_model("swin_base_patch4_window7_224", pretrained=False)
+    # print(model.state_dict().keys())
+    checkpoint = torch.load(pretrained_model_path, map_location="cpu")
+    state_dict = checkpoint["student"]
+    state_dict = {k.replace("module.backbone.", ""): v for k, v in state_dict.items()}
+    msg = model.load_state_dict(state_dict, strict=False)
+    print("Loaded with message:", msg)
+    model.head = nn.Linear(model.head.in_features, num_classes)
+    model.to(device)
+    if torch.cuda.device_count() > 1:
+        model = nn.DataParallel(model)
 
-checkpoint = torch.load("/anvil/scratch/x-ssiingh/JLiangLab/ACE/models/ACE_contrast_12n_global_inequal_swinb.pth", map_location='cpu')
-state_dict = checkpoint['student']
-state_dict = {k.replace("module.backbone.", ""): v for k, v in state_dict.items()}
+    return model
 
-model.load_state_dict(state_dict)
 
-# Modify the final layer for your classification task
-num_classes = 10  # Example: CIFAR-10 has 10 classes
-model.head = nn.Linear(model.head.in_features, num_classes)
+# Train and evaluate the model
+def train_and_evaluate(
+    model,
+    train_loader,
+    test_loader,
+    criterion,
+    optimizer,
+    num_epochs,
+    device,
+    result_file,
+):
+    total_batches = len(train_loader)
+    for epoch in range(num_epochs):
+        model.train()
+        running_loss = 0.0
+        predictions = []
+        ground_truth = []
 
-# Move model to device
-model.to(device)
+        total_processed_batches = 0
+        with tqdm(
+            total=total_batches, desc=f"Epoch {epoch + 1}/{num_epochs}", unit="batch"
+        ) as pbar:
+            for images, labels in train_loader:
+                images, labels = images.to(device), labels.to(device)
 
-# Define loss function and optimizer
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+                optimizer.zero_grad()
 
-# Train the model
-num_epochs = 10
+                outputs = model(images)
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
 
-for epoch in range(num_epochs):
-    model.train()
-    running_loss = 0.0
-    correct = 0
-    total = 0
+                running_loss += loss.item()
 
-    for images, labels in train_loader:
-        images, labels = images.to(device), labels.to(device)
+                _, predicted = outputs.max(1)
+                predictions.extend(predicted.cpu().numpy())
+                ground_truth.extend(labels.cpu().numpy())
 
-        optimizer.zero_grad()
+                total_processed_batches += 1
+                pbar.update(1)
+                pbar.set_postfix({"Train Loss": running_loss / total_processed_batches})
 
-        outputs = model(images)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
+        train_loss = running_loss / len(train_loader)
+        train_accuracy = accuracy_score(ground_truth, predictions)
 
-        running_loss += loss.item()
+        # Calculate AUC
+        all_predictions = []
+        with torch.no_grad():
+            for images, labels in test_loader:
+                images, labels = images.to(device), labels.to(device)
+                outputs = model(images)
+                all_predictions.extend(torch.sigmoid(outputs).cpu().numpy())
+        auc = roc_auc_score(ground_truth, all_predictions)
 
-        _, predicted = outputs.max(1)
-        total += labels.size(0)
-        correct += predicted.eq(labels).sum().item()
+        print(
+            f"Train Loss: {train_loss:.4f}, Train Accuracy: {train_accuracy * 100:.2f}%, AUC: {auc:.4f}"
+        )
 
-    train_loss = running_loss / len(train_loader)
-    train_accuracy = 100. * correct / total
+        # Save model after each epoch
+        torch.save(model.state_dict(), f"model_epoch_{epoch + 1}.pth")
 
-    print(f'Epoch [{epoch + 1}/{num_epochs}], '
-          f'Train Loss: {train_loss:.4f}, '
-          f'Train Accuracy: {train_accuracy:.2f}%')
+        # Write results to a file
+        with open(result_file, "a") as f:
+            f.write(
+                f"Epoch {epoch + 1}/{num_epochs}: Train Loss: {train_loss:.4f}, Train Accuracy: {train_accuracy * 100:.2f}%, AUC: {auc:.4f}\n"
+            )
 
-# Evaluate the model
-model.eval()
-correct = 0
-total = 0
+    model.eval()
+    with torch.no_grad():
+        all_labels = []
+        all_predictions = []
+        for images, labels in test_loader:
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            _, predicted = outputs.max(1)
+            all_labels.extend(labels.cpu().numpy())
+            all_predictions.extend(torch.sigmoid(outputs).cpu().numpy())
+    accuracy = accuracy_score(all_labels, np.round(all_predictions))
+    auc = roc_auc_score(all_labels, all_predictions)
 
-with torch.no_grad():
-    for images, labels in test_loader:
-        images, labels = images.to(device), labels.to(device)
-        outputs = model(images)
-        _, predicted = outputs.max(1)
-        total += labels.size(0)
-        correct += predicted.eq(labels).sum().item()
+    print(f"Accuracy: {accuracy:.4f}, AUC: {auc:.4f}")
 
-test_accuracy = 100. * correct / total
-print(f'Test Accuracy: {test_accuracy:.2f}%')
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Train and evaluate the SWIN model on Chest X-ray dataset."
+    )
+    parser.add_argument(
+        "--images_path", required=True, help="Path to the directory containing images."
+    )
+    parser.add_argument(
+        "--train_file_path", required=True, help="Path to the training data file."
+    )
+    parser.add_argument(
+        "--val_file_path", required=True, help="Path to the validation data file."
+    )
+    parser.add_argument(
+        "--test_file_path", required=True, help="Path to the test data file."
+    )
+    parser.add_argument(
+        "--pretrained_model_path",
+        required=True,
+        help="Path to the pretrained SWIN model.",
+    )
+    parser.add_argument(
+        "--num_classes", type=int, default=10, help="Number of classes."
+    )
+    parser.add_argument(
+        "--batch_size", type=int, default=32, help="Batch size for training."
+    )
+    parser.add_argument(
+        "--num_epochs", type=int, default=10, help="Number of epochs for training."
+    )
+    parser.add_argument(
+        "--result_file",
+        type=str,
+        default="results.txt",
+        help="Path to the results file.",
+    )
+    args = parser.parse_args()
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    augment_train = build_transform_classification(
+        normalize="imagenet", mode="train", crop_size=224, resize=224
+    )
+    augment_val = build_transform_classification(
+        normalize="imagenet", mode="valid", crop_size=224, resize=224
+    )
+    augment_test = build_transform_classification(
+        normalize="imagenet", mode="test", crop_size=224, resize=224
+    )
+    train_loader, test_loader = get_data_loaders(
+        args.images_path,
+        args.train_file_path,
+        args.val_file_path,
+        args.test_file_path,
+        augment_train,
+        augment_val,
+        augment_test,
+        args.batch_size,
+    )
+    model = get_model(args.pretrained_model_path, args.num_classes, device)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    result_file = args.result_file
+    if not os.path.exists(result_file):
+        os.makedirs(result_file)
+
+    train_and_evaluate(
+        model,
+        train_loader,
+        test_loader,
+        criterion,
+        optimizer,
+        args.num_epochs,
+        device,
+        result_file,
+    )

@@ -1,0 +1,35 @@
+
+
+=====================================================================
+This module is intended solely for building or source activating user
+python environments, i.e.,
+
+    mamba create -n myenv -c conda-forge
+
+or
+
+    source activate myenv
+
+To list available environments, run:
+
+    mamba info --envs
+
+See our docs: https://links.asu.edu/solpy
+
+Any other use is NOT TESTED.
+=====================================================================
+
+  
+[W socket.cpp:436] [c10d] The server socket cannot be initialized on [::]:29500 (errno: 97 - Address family not supported by protocol).
+[W socket.cpp:663] [c10d] The client socket cannot be initialized to connect to [localhost]:29500 (errno: 97 - Address family not supported by protocol).
+[W socket.cpp:663] [c10d] The client socket cannot be initialized to connect to [localhost]:29500 (errno: 97 - Address family not supported by protocol).
+/home/ssiingh/.conda/envs/ml10/lib/python3.11/site-packages/torch/utils/data/dataloader.py:557: UserWarning: This DataLoader will create 5 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+/home/ssiingh/.conda/envs/ml10/lib/python3.11/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at /opt/conda/conda-bld/pytorch_1702400440653/work/aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+/home/ssiingh/.conda/envs/ml10/lib/python3.11/site-packages/torch/nn/utils/weight_norm.py:30: UserWarning: torch.nn.utils.weight_norm is deprecated in favor of torch.nn.utils.parametrizations.weight_norm.
+  warnings.warn("torch.nn.utils.weight_norm is deprecated in favor of torch.nn.utils.parametrizations.weight_norm.")
+/home/ssiingh/.conda/envs/ml10/lib/python3.11/site-packages/torch/autograd/__init__.py:251: UserWarning: Grad strides do not match bucket view strides. This may indicate grad was not created according to the gradient layout contract, or that the param's strides changed since DDP was constructed.  This is not an error, but may impair performance.
+grad.sizes() = [512, 512, 1, 1], strides() = [512, 1, 512, 512]
+bucket_view.sizes() = [512, 512, 1, 1], strides() = [512, 1, 1, 1] (Triggered internally at /opt/conda/conda-bld/pytorch_1702400440653/work/torch/csrc/distributed/c10d/reducer.cpp:320.)
+  Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
