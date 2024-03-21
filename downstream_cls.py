@@ -14,7 +14,6 @@ sys.path.append("/scratch/ssiingh/JLiangLab")
 from BenchmarkArk.dataloader import ChestXray14, build_transform_classification
 
 
-# Define your dataset and data loaders
 def get_data_loaders(
     images_path,
     train_file_path,
@@ -39,7 +38,8 @@ def get_data_loaders(
     dataset_test = ChestXray14(
         images_path=images_path,
         file_path=test_file_path,
-        augment=augment_test,
+        augment=augment_train,
+        annotation_percent=100,
     )
 
     train_loader = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
@@ -48,7 +48,6 @@ def get_data_loaders(
     return train_loader, test_loader
 
 
-# Define SWIN model
 def get_model(pretrained_model_path, num_classes, device):
     model = timm.create_model("swin_base_patch4_window7_224", pretrained=False)
     # print(model.state_dict().keys())
@@ -65,7 +64,6 @@ def get_model(pretrained_model_path, num_classes, device):
     return model
 
 
-# Train and evaluate the model
 def train_and_evaluate(
     model,
     train_loader,
@@ -75,6 +73,7 @@ def train_and_evaluate(
     num_epochs,
     device,
     result_file,
+    ckp_dir=".",
 ):
     total_batches = len(train_loader)
     for epoch in range(num_epochs):
@@ -89,7 +88,7 @@ def train_and_evaluate(
         ) as pbar:
             for images, labels in train_loader:
                 images, labels = images.to(device), labels.to(device)
-
+                # print(images.shape)
                 optimizer.zero_grad()
 
                 outputs = model(images)
@@ -99,10 +98,10 @@ def train_and_evaluate(
 
                 running_loss += loss.item()
 
-                _, predicted = outputs.max(1)
-                predictions.extend(predicted.cpu().numpy())
+                predicted = np.round(torch.sigmoid(outputs.detach().cpu()))
+                predictions.extend(predicted)
                 ground_truth.extend(labels.cpu().numpy())
-
+                # print(predicted, ground_truth)
                 total_processed_batches += 1
                 pbar.update(1)
                 pbar.set_postfix({"Train Loss": running_loss / total_processed_batches})
@@ -112,40 +111,29 @@ def train_and_evaluate(
 
         # Calculate AUC
         all_predictions = []
+        all_labels = []
+        model.eval()
         with torch.no_grad():
             for images, labels in test_loader:
                 images, labels = images.to(device), labels.to(device)
+                # print(images.shape, labels.shape)
                 outputs = model(images)
+                all_labels.extend(labels.cpu().numpy())
                 all_predictions.extend(torch.sigmoid(outputs).cpu().numpy())
-        auc = roc_auc_score(ground_truth, all_predictions)
+        auc = roc_auc_score(all_labels, all_predictions)
 
         print(
             f"Train Loss: {train_loss:.4f}, Train Accuracy: {train_accuracy * 100:.2f}%, AUC: {auc:.4f}"
         )
 
         # Save model after each epoch
-        torch.save(model.state_dict(), f"model_epoch_{epoch + 1}.pth")
+        torch.save(model.state_dict(), f"{ckp_dir}/model_epoch_{epoch + 1}.pth")
 
         # Write results to a file
         with open(result_file, "a") as f:
             f.write(
                 f"Epoch {epoch + 1}/{num_epochs}: Train Loss: {train_loss:.4f}, Train Accuracy: {train_accuracy * 100:.2f}%, AUC: {auc:.4f}\n"
             )
-
-    model.eval()
-    with torch.no_grad():
-        all_labels = []
-        all_predictions = []
-        for images, labels in test_loader:
-            images, labels = images.to(device), labels.to(device)
-            outputs = model(images)
-            _, predicted = outputs.max(1)
-            all_labels.extend(labels.cpu().numpy())
-            all_predictions.extend(torch.sigmoid(outputs).cpu().numpy())
-    accuracy = accuracy_score(all_labels, np.round(all_predictions))
-    auc = roc_auc_score(all_labels, all_predictions)
-
-    print(f"Accuracy: {accuracy:.4f}, AUC: {auc:.4f}")
 
 
 if __name__ == "__main__":
@@ -184,6 +172,12 @@ if __name__ == "__main__":
         default="results.txt",
         help="Path to the results file.",
     )
+    parser.add_argument(
+        "--ckp_dir",
+        type=str,
+        default="results.txt",
+        help="Path to the directory to store the checkpoints",
+    )
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -210,8 +204,11 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     result_file = args.result_file
-    if not os.path.exists(result_file):
-        os.makedirs(result_file)
+    if not os.path.exists(os.path.dirname(result_file)):
+        os.makedirs(os.path.dirname(result_file))
+
+    if not os.path.exists(args.ckp_dir):
+        os.makedirs(args.ckp_dir)
 
     train_and_evaluate(
         model,
