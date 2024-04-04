@@ -316,7 +316,7 @@ class PatchCrop():
     output: [image,(x1, y1), (x2, y2), (k, l)]
     image: two concated crops which are resized to 448*448, the size of crop2 is fixed with 14*14 patches (imgsize 448*448), and the size of crop1 is (14*k)*(14*l)
     (x1, y1): the grid index of crop1's top left corner
-    (x2, y2): the grid index of crop2's top left corner
+    (x2, y2): the grid index of crop2's top left corner, the size of crop2 is fixed in 14*14 patches
     (k,l): the h, w rate of crop1
     """
     def __init__(self, size):
@@ -327,23 +327,23 @@ class PatchCrop():
         if k==2 and l==2:
             x1 = randint(0,4)
             y1 = randint(0,4)
-            x2 = randrange(x1, 19, 2) # randrang不包括尾部的数
-            y2 = randrange(y1, 19, 2)
+            x2 = randrange(x1%2, 19, 2) # randrang不包括尾部的数
+            y2 = randrange(y1%2, 19, 2)
         elif k==2 and l==1: # 竖着的矩形
             x1 = randint(0,18)
             y1 = randint(0,4)
-            x2 = randrange(x1, min(19, x1+14), 1)
-            y2 = randrange(y1, 19, 2)
+            x2 = randrange(max(x1-7,0), min(19, x1+7), 1)
+            y2 = randrange(y1%2, 19, 2)
         elif k==1 and l==2: # 横着的矩形
             x1 = randint(0,4)
             y1 = randint(0,18)
-            x2 = randrange(x1, 19, 2)
-            y2 = randrange(y1, min(19, y1+14), 1)
+            x2 = randrange(x1%2, 19, 2)
+            y2 = randrange(max(y1-7,0), min(19, y1+7), 1)
         elif k==1 and l==1:
             x1 = randint(0,18)
             y1 = randint(0,18)
-            x2 = randrange(x1, min(19, x1+14), 1)
-            y2 = randrange(y1, min(19, y1+14), 1)
+            x2 = randrange(max(x1-7,0), min(19, x1+7), 1)
+            y2 = randrange(max(y1-7,0), min(19, y1+7), 1)
         
 
         patch1 = image[x1*grid:(14*l+x1)*grid, y1*grid:(14*k+y1)*grid, :]

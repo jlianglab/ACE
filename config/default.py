@@ -134,7 +134,7 @@ _C.TRAIN.GAMMA2 = 0.0
 _C.TRAIN.BEGIN_EPOCH = 0
 _C.TRAIN.END_EPOCH = 100
 
-_C.TRAIN.IMAGE_SIZE = [224, 224]  # width * height, ex: 192 * 256
+_C.TRAIN.IMAGE_SIZE = [448, 448]  # width * height, ex: 192 * 256
 _C.TRAIN.BATCH_SIZE_PER_GPU = 32
 _C.TRAIN.SHUFFLE = True
 
@@ -155,7 +155,7 @@ _C.TEST = CN()
 # size of images for each device
 _C.TEST.BATCH_SIZE_PER_GPU = 32
 _C.TEST.CENTER_CROP = True
-_C.TEST.IMAGE_SIZE = [224, 224]  # width * height, ex: 192 * 256
+_C.TEST.IMAGE_SIZE = [448, 448]  # width * height, ex: 192 * 256
 _C.TEST.INTERPOLATION = 2
 _C.TEST.MODEL_FILE = ''
 _C.TEST.REAL_LABELS = False

@@ -17,8 +17,12 @@ from .registry import register_model
 from einops import rearrange, repeat
 import numpy as np
 from math import sqrt
+<<<<<<< HEAD
 from timm import create_model
 from timm.models.swin_transformer_v2 import SwinTransformerV2
+=======
+import ipdb
+>>>>>>> 2eb9e4f92c8de50b0ae57203ee1cb1c25c10caea
 
 class Mlp(nn.Module):
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
@@ -1031,6 +1035,7 @@ class SwinTransformerForSimMIM(SwinTransformer):
         trunc_normal_(tensor, mean=mean, std=std, a=-std, b=std)
 
     def forward(self, x, perm=None):
+        ipdb.set_trace()
         B, nc, w, h = x.shape
         if perm is not None:
             
