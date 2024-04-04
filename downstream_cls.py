@@ -39,7 +39,7 @@ def get_data_loaders(images_path, train_file_path, val_file_path, test_file_path
 
 def get_model(pretrained_model_path, num_classes, device):
     model = timm.create_model('swin_base_patch4_window7_224', pretrained=False)
-    checkpoint = torch.load(pretrained_model_path, map_location='cpu')
+    checkpoint = torch.load(pretrained_model_path)
     state_dict = checkpoint['student']
     state_dict = {k.replace("module.backbone.", ""): v for k, v in state_dict.items()}
     msg = model.load_state_dict(state_dict, strict=False)
@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
     model = get_model(args.pretrained_model_path, args.num_classes, device)
     criterion = nn.BCEWithLogitsLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.0001)
+    optimizer = optim.AdamW(model.parameters(), lr=1e-4)
     result_file = args.result_file
     if not os.path.exists(os.path.dirname(result_file)):
         os.makedirs(os.path.dirname(result_file))

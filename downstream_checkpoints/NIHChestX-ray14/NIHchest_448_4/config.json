@@ -1,0 +1,113 @@
+AMP_ENABLE: true
+AMP_OPT_LEVEL: ''
+AUG:
+  AUTO_AUGMENT: rand-m9-mstd0.5-inc1
+  COLOR_JITTER: 0.4
+  CUTMIX: 1.0
+  CUTMIX_MINMAX: null
+  MIXUP: 0.8
+  MIXUP_MODE: batch
+  MIXUP_PROB: 1.0
+  MIXUP_SWITCH_PROB: 0.5
+  RECOUNT: 1
+  REMODE: pixel
+  REPROB: 0.25
+BACKBONE: swin_base
+BASE:
+- ''
+DATA:
+  BATCH_SIZE: 32
+  CACHE_MODE: part
+  CROP_SIZE: 512
+  DATASET: NIHchest
+  DATA_PATH: /mnt/dfs/jpang12/datasets/nih_xray14/images/images
+  FOLD: '4'
+  IMG_SIZE: 448
+  INTERPOLATION: bicubic
+  MASK_PATCH_SIZE: 32
+  MASK_RATIO: 0.6
+  NUM_WORKERS: 8
+  PIN_MEMORY: true
+  TEST_LIST: /mnt/dfs/ssiingh/BenchmarkArk/dataset/Xray14_test_official.txt
+  TRAIN_LIST: /mnt/dfs/ssiingh/BenchmarkArk/dataset/Xray14_train_official.txt
+  VAL_LIST: /mnt/dfs/ssiingh/BenchmarkArk/dataset/Xray14_val_official.txt
+  ZIP_MODE: false
+DEVICE: '1'
+ENABLE_AMP: false
+EVAL_MODE: false
+FUSED_LAYERNORM: false
+FUSED_WINDOW_PROCESS: false
+LINEAR_PROB: false
+LOCAL_RANK: 0
+MODE: train
+MODEL:
+  DROP_PATH_RATE: 0.5
+  DROP_RATE: 0.0
+  LABEL_SMOOTHING: 0.1
+  NAME: swin_base_patch4_window7_224
+  NUM_CLASSES: 14
+  PRETRAINED: /mnt/dfs/ssiingh/ACE/models/ACE_contrast_12n_global_inequal_swinb.pth
+  RESUME: /mnt/dfs/ssiingh/ACE/downstream_checkpoints/NIHChestX-ray14/simmim_compose12N_infonce1/best.pth
+  SWIN:
+    APE: false
+    DEPTHS:
+    - 2
+    - 2
+    - 18
+    - 2
+    EMBED_DIM: 128
+    IN_CHANS: 3
+    MLP_RATIO: 4.0
+    NUM_HEADS:
+    - 4
+    - 8
+    - 16
+    - 32
+    PATCH_NORM: true
+    PATCH_SIZE: 4
+    QKV_BIAS: true
+    QK_SCALE: null
+    WINDOW_SIZE: 7
+  TYPE: swin
+OUTPUT: /mnt/dfs/ssiingh/ACE/downstream_checkpoints/NIHChestX-ray14/NIHchest_448_4
+PATIENCE: 20
+POPAR_FORM: true
+PRETRAIN_MODE: NIHchest
+PRINT_FREQ: 10
+SAVE_FREQ: 1
+SEED: 0
+TAG: default
+TEST:
+  CROP: true
+  SEQUENTIAL: false
+  SHUFFLE: false
+THROUGHPUT_MODE: false
+TRAIN:
+  ACCUMULATION_STEPS: 1
+  AUTO_RESUME: false
+  BASE_LR: 0.000125
+  CLIP_GRAD: 5.0
+  EPOCHS: 150
+  LAYER_DECAY: 1.0
+  LR_SCHEDULER:
+    DECAY_EPOCHS: 30
+    DECAY_RATE: 0.1
+    GAMMA: 0.1
+    MULTISTEPS: []
+    NAME: cosine
+    WARMUP_PREFIX: true
+  MIN_LR: 1.25e-06
+  MOE:
+    SAVE_MASTER: false
+  OPTIMIZER:
+    BETAS:
+    - 0.9
+    - 0.999
+    EPS: 1.0e-08
+    MOMENTUM: 0.9
+    NAME: adamw
+  START_EPOCH: 0
+  USE_CHECKPOINT: false
+  WARMUP_EPOCHS: 20
+  WARMUP_LR: 1.25e-07
+  WEIGHT_DECAY: 0.05

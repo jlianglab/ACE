@@ -1,1 +1,1 @@
-CUDA_VISIBLE_DEVICES="0" python -m torch.distributed.launch --nproc_per_node=1 --master_port 28301 main.py --arch swin_base --batch_size_per_gpu 8 --data_path /data/jliang12/shared/dataset/NIHCXR14/full_images --output_dir /scratch/ssiingh/JLiangLab/ACE/outputs
+CUDA_VISIBLE_DEVICES="0,1,2,3" python -m torch.distributed.launch --nproc_per_node=4 --master_port 28301 main.py --arch swin_base --batch_size_per_gpu 4 --data_path /mnt/dfs/jpang12/datasets/nih_xray14/images/images --output_dir /mnt/dfs/ssiingh/ACE/outputs

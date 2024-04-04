@@ -17,6 +17,8 @@ from .registry import register_model
 from einops import rearrange, repeat
 import numpy as np
 from math import sqrt
+from timm import create_model
+from timm.models.swin_transformer_v2 import SwinTransformerV2
 
 class Mlp(nn.Module):
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
@@ -947,7 +949,7 @@ class SwinTransformer(nn.Module):
 @register_model
 def get_cls_model(config, is_teacher=False, use_dense_prediction=False, **kwargs):
     swin_spec = config.MODEL.SPEC
-    swin = SwinTransformerForSimMIM(
+    swin = SwinTransformerV2ForSimMIM(
         img_size=config.TRAIN.IMAGE_SIZE[0],
         in_chans=3,
         num_classes=config.MODEL.NUM_CLASSES,
@@ -981,7 +983,41 @@ def get_cls_model(config, is_teacher=False, use_dense_prediction=False, **kwargs
     return swin
 
 
+class SwinTransformerV2ForSimMIM(SwinTransformerV2):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
+        assert self.num_classes == 0
+        self.mask_token = nn.Parameter(torch.zeros(1, 1, self.embed_dim))
+        self._trunc_normal_(self.mask_token, std=.02)
+        
+    def _trunc_normal_(self, tensor, mean=0., std=1.):
+        trunc_normal_(tensor, mean=mean, std=std, a=-std, b=std)
+
+    def forward(self, x, perm=None):
+        B, nc, w, h = x.shape
+        if perm is not None:
+            
+            x = rearrange(x, 'b c (h p1) (w p2)-> b (h w) c p1 p2', p1=32, p2=32, w=14,h=14)
+            for i in range(B):
+                x[i] = x[i,perm[i],:,:,:]
+            x = rearrange(x, 'b (h w) c p1 p2 -> b c (h p1) (w p2)', p1=32, p2=32, w=14,h=14)
+
+        x = self.patch_embed(x)
+
+        if self.ape:
+            x = x + self.absolute_pos_embed
+        x = self.pos_drop(x)
+
+
+        
+        for layer in self.layers:
+            x = layer(x)
+        x = self.norm(x)
+        # print(x.shape)
+
+        return x.mean(dim=1), x
+    
 class SwinTransformerForSimMIM(SwinTransformer):
     """ Vision Transformer """
     def __init__(self, **kwargs):
@@ -990,7 +1026,7 @@ class SwinTransformerForSimMIM(SwinTransformer):
         assert self.num_classes == 0
         self.mask_token = nn.Parameter(torch.zeros(1, 1, self.embed_dim))
         self._trunc_normal_(self.mask_token, std=.02)
-
+        
     def _trunc_normal_(self, tensor, mean=0., std=1.):
         trunc_normal_(tensor, mean=mean, std=std, a=-std, b=std)
 
