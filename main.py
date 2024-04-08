@@ -1,6 +1,6 @@
 
 
-# CUDA_VISIBLE_DEVICES="0" python -m torch.distributed.launch --nproc_per_node=1 --master_port 28301 main.py --arch swin_base --batch_size_per_gpu 8
+# CUDA_VISIBLE_DEVICES="1,2,3,4" python -m torch.distributed.launch --nproc_per_node=4 --master_port 28301 main.py --arch swin_base --batch_size_per_gpu 8
 
 
 import argparse
@@ -124,7 +124,7 @@ def get_args_parser():
     # Misc
     parser.add_argument('--data_path', default='/data1/zhouziyu/liang/NIHChestXray/images/images_all/', type=str,
         help='Please specify path to the ImageNet training data.')
-    parser.add_argument('--output_dir', default="/ssd2/zhouziyu/ssl/github/ACE/pretrained_weight/from_imagenet_global_12N", type=str, help='Path to save logs and checkpoints.')
+    parser.add_argument('--output_dir', default="/ssd2/zhouziyu/ssl/github/ACE/pretrained_weight/from_imagenet_global_12N_contrast", type=str, help='Path to save logs and checkpoints.')
     parser.add_argument('--saveckp_freq', default=100, type=int, help='Save checkpoint every x epochs.')
     parser.add_argument('--seed', default=0, type=int, help='Random seed.')
     parser.add_argument('--num_workers', default=5, type=int, help='Number of data loading workers per GPU.')
@@ -274,7 +274,7 @@ def train_dino(args):
     log_writer.flush()
 
     # ============ optionally resume training ... ============
-    utils.init_from_imagenet('pretrained_weight/ldpolyp/swin_base_patch4_window7_224_imagenet1k.pth',student, teacher)
+    utils.init_from_imagenet('/ssd2/zhouziyu/ssl/contrast_12N/pretrained_weight/ldpolyp/swin_base_patch4_window7_224_imagenet1k.pth',student, teacher)
 
     to_restore = {"epoch": 0}
 
@@ -409,7 +409,7 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
         # metric_logger.update(order_loss=order_loss.item())
         metric_logger.update(loss_vic=loss_vic.item())
         metric_logger.update(global_loss=global_loss.item())
-        # metric_logger.update(loss_local=loss_local.item())
+        metric_logger.update(loss_local=loss_local.item())
         # metric_logger.update(restor_loss=restor_loss.item())
         metric_logger.update(lr=optimizer.param_groups[0]["lr"])
         metric_logger.update(wd=optimizer.param_groups[0]["weight_decay"])

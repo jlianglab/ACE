@@ -996,7 +996,7 @@ class SwinTransformerForSimMIM(SwinTransformer):
         trunc_normal_(tensor, mean=mean, std=std, a=-std, b=std)
 
     def forward(self, x, perm=None):
-        ipdb.set_trace()
+        # ipdb.set_trace()
         B, nc, w, h = x.shape
         if perm is not None:
             
