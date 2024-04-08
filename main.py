@@ -1,7 +1,7 @@
 
 
 # CUDA_VISIBLE_DEVICES="1,2,3,4" python -m torch.distributed.launch --nproc_per_node=4 --master_port 28301 main.py --arch swin_base --batch_size_per_gpu 8
-
+# The whole crops will be partitioned into 4 smaller patches to compute composition and decomposition
 
 import argparse
 import os
