@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Copyright (c) Facebook, Inc. and its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,9 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-=======
 
->>>>>>> master
 
 # CUDA_VISIBLE_DEVICES="0" python -m torch.distributed.launch --nproc_per_node=1 --master_port 28301 main.py --arch swin_base --batch_size_per_gpu 8
 
@@ -284,7 +281,7 @@ def get_args_parser():
         help="Path to save logs and checkpoints.",
     )
     parser.add_argument(
-        "--saveckp_freq", default=100, type=int, help="Save checkpoint every x epochs."
+        "--saveckp_freq", default=1, type=int, help="Save checkpoint every x epochs."
     )
     parser.add_argument("--seed", default=0, type=int, help="Random seed.")
     parser.add_argument(
@@ -487,7 +484,7 @@ def train_dino(args):
 
     # ============ optionally resume training ... ============
     utils.init_from_imagenet(
-        "pretrained_weight/ldpolyp/swin_base_patch4_window7_224_imagenet1k.pth",
+        "/scratch/ssiingh/JLiangLab/ACE/models/swinv2_base_patch4_window16_256.pth",
         student,
         teacher,
     )

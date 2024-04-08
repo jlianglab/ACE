@@ -18,11 +18,18 @@ import torchvision.transforms as transforms
 from torchvision.transforms import InterpolationMode
 from torchvision.transforms.functional import _interpolation_modes_from_int
 import torchvision.transforms.functional as FT
-from md_aug import paint, local_pixel_shuffling,local_pixel_shuffling_500, nonlinear_transformation
+from md_aug import (
+    paint,
+    local_pixel_shuffling,
+    local_pixel_shuffling_500,
+    nonlinear_transformation,
+)
 import cv2
-from crop import img_transforms,get_index, get_corresponding_indices
+from crop import img_transforms, get_index, get_corresponding_indices
 from einops import rearrange
 import albumentations as A
+
+
 class GaussianBlur(object):
     def __init__(self):
         pass
@@ -243,8 +250,8 @@ def _location_to_NxN_grid(location, N=7, flip=False):
 
 
 def get_color_distortion(left=True):
-        # p_blur = 1.0
-        # p_sol = 0.0
+    # p_blur = 1.0
+    # p_sol = 0.0
     # s is the strength of color distortion.
     transform = transforms.Compose(
         [
@@ -257,36 +264,41 @@ def get_color_distortion(left=True):
                 p=0.8,
             ),
             transforms.RandomGrayscale(p=0.2),
-            transforms.GaussianBlur(kernel_size=(5,5)),
-            #transforms.RandomApply([Solarization()], p=p_sol),
+            transforms.GaussianBlur(kernel_size=(5, 5)),
+            # transforms.RandomApply([Solarization()], p=p_sol),
         ]
     )
     return transform
+
+
 class MaskGenerator:
-    def __init__(self, input_size=192, mask_patch_size=32, model_patch_size=4, mask_ratio=0.6):
+    def __init__(
+        self, input_size=192, mask_patch_size=32, model_patch_size=4, mask_ratio=0.6
+    ):
         self.input_size = input_size
         self.mask_patch_size = mask_patch_size
         self.model_patch_size = model_patch_size
         self.mask_ratio = mask_ratio
-        
+
         assert self.input_size % self.mask_patch_size == 0
         assert self.mask_patch_size % self.model_patch_size == 0
-        
+
         self.rand_size = self.input_size // self.mask_patch_size
         self.scale = self.mask_patch_size // self.model_patch_size
-        
-        self.token_count = self.rand_size ** 2
+
+        self.token_count = self.rand_size**2
         self.mask_count = int(np.ceil(self.token_count * self.mask_ratio))
-        
+
     def __call__(self):
-        mask_idx = np.random.permutation(self.token_count)[:self.mask_count]
+        mask_idx = np.random.permutation(self.token_count)[: self.mask_count]
         mask = np.zeros(self.token_count, dtype=int)
         mask[mask_idx] = 1
-        
+
         mask = mask.reshape((self.rand_size, self.rand_size))
         mask = mask.repeat(self.scale, axis=0).repeat(self.scale, axis=1)
-        
+
         return mask
+
 
 class MultiCropTrainDataTransform(object):
     def __init__(
@@ -327,7 +339,8 @@ class MultiCropTrainDataTransform(object):
                             get_color_distortion(left=(j % 2 == 0)),
                             transforms.ToTensor(),
                             transforms.Normalize(
-                                mean=[0.485, 0.456, 0.406], std=[0.228, 0.224, 0.225],
+                                mean=[0.485, 0.456, 0.406],
+                                std=[0.228, 0.224, 0.225],
                             ),
                         ]
                     )
@@ -383,34 +396,39 @@ class MultiCropValDataTransform(MultiCropTrainDataTransform):
         return (val_crop, val_crop_with_train_transform)
 
 
-class Rearrange_and_Norm():
+class Rearrange_and_Norm:
     def __call__(self, image):
         # image = cv2.resize(image, (self.size, self.size))
-        image = rearrange(image, 'h w c-> c h w')/255
+        image = rearrange(image, "h w c-> c h w") / 255
         return image
 
+
 class DataAugmentationDINO(object):
-    def __init__(self,
-                global_crops_scale=(0.4, 1.0),
-                local_crops_scale=(0.08, 0.4),
-                local_crops_number=8,
-                patchsize=4,
-                standard_patchsize=32,
-                grid_factor=10,
-                grid_select_inital=9,
-                input_size=224):
+    def __init__(
+        self,
+        global_crops_scale=(0.4, 1.0),
+        local_crops_scale=(0.08, 0.4),
+        local_crops_number=8,
+        patchsize=4,
+        standard_patchsize=32,
+        grid_factor=10,
+        grid_select_inital=9,
+        input_size=256,
+    ):
 
         self.standard_patchsize = standard_patchsize
         self.standard_grid_factor = grid_factor
         self.standard_grid_select_inital = grid_select_inital
-        self.grid_num=int(input_size//standard_patchsize)
-        self.grid= torch.zeros(self.grid_num, self.grid_num)
+        self.grid_num = int(input_size // standard_patchsize)
+        self.grid = torch.zeros(self.grid_num, self.grid_num)
         self.view1_grid = torch.zeros(self.grid_num, self.grid_num)
         self.view2_grid = torch.zeros(self.grid_num, self.grid_num)
         self.input_size = input_size
 
-        #region consistency part
-        self.overlap_initial_crop=transforms.RandomResizedCrop(1024, scale=(0.85,1.0),interpolation=Image.BICUBIC)
+        # region consistency part
+        self.overlap_initial_crop = transforms.RandomResizedCrop(
+            1024, scale=(0.85, 1.0), interpolation=Image.BICUBIC
+        )
 
         # transformation for the local small crops
         self.local_crops_number = local_crops_number
@@ -422,7 +440,7 @@ class DataAugmentationDINO(object):
         # ])
 
         self.mask_generator = MaskGenerator(
-            input_size=224,
+            input_size=256,
             mask_patch_size=32,
             model_patch_size=4,
             mask_ratio=0.6,
@@ -434,38 +452,39 @@ class DataAugmentationDINO(object):
         self.augmentations_albu = []
         self.img_transforms = img_transforms()
 
-
         for i in range(2):
-            transform = A.Compose([
-                A.RandomBrightnessContrast(p=0.5),
-                A.GaussianBlur(p=0.5),
-                A.ElasticTransform(p=0.5, alpha=30, sigma=6,alpha_affine=20)
-            ])
+            transform = A.Compose(
+                [
+                    A.RandomBrightnessContrast(p=0.5),
+                    A.GaussianBlur(p=0.5),
+                    A.ElasticTransform(p=0.5, alpha=30, sigma=6, alpha_affine=20),
+                ]
+            )
             self.augmentations_albu.append(transform)
         # Apply the transformations
 
-
         for i in range(2):
-            transformList_simple=[]
+            transformList_simple = []
             transformList_simple.append(Rearrange_and_Norm())
             transformList_simple.append(torch.from_numpy)
-            transformList_simple.append(transforms.Normalize([0.5056, 0.5056, 0.5056], [0.252, 0.252, 0.252]))
+            transformList_simple.append(
+                transforms.Normalize([0.5056, 0.5056, 0.5056], [0.252, 0.252, 0.252])
+            )
             transformSequence_simple = transforms.Compose(transformList_simple)
             self.augmentations_glo.append(transformSequence_simple)
 
-
         for i in range(2):
-            transformList_mg=[]
+            transformList_mg = []
             transformList_mg.append(nonlinear_transformation)
-            #transformList_mg.append(ElasticTransform(alpha=20, sigma=3))
+            # transformList_mg.append(ElasticTransform(alpha=20, sigma=3))
             transformList_mg.append(Rearrange_and_Norm())
             transformList_mg.append(torch.from_numpy)
             transformList_mg.append(get_color_distortion(left=(i % 2 == 0)))
-            transformList_mg.append(transforms.Normalize([0.5056, 0.5056, 0.5056], [0.252, 0.252, 0.252]))
+            transformList_mg.append(
+                transforms.Normalize([0.5056, 0.5056, 0.5056], [0.252, 0.252, 0.252])
+            )
             transformSequence_mg = transforms.Compose(transformList_mg)
             self.augmentations_glo_noise.append(transformSequence_mg)
-
-
 
         for j in range(local_crops_number):
             random_resized_crop = transforms.RandomResizedCrop(
@@ -480,42 +499,45 @@ class DataAugmentationDINO(object):
                         get_color_distortion(left=(j % 2 == 0)),
                         transforms.ToTensor(),
                         transforms.Normalize(
-                            mean=[0.5056, 0.5056, 0.5056], std= [0.252, 0.252, 0.252],
+                            mean=[0.5056, 0.5056, 0.5056],
+                            std=[0.252, 0.252, 0.252],
                         ),
                     ]
                 )
             )
 
-
-
-
     def __call__(self, image):
         crops = []
-        grids=[]
-        randperms=[]
-        
+        grids = []
+        randperms = []
+
         # global embedding consistency data
-        image = self.overlap_initial_crop(image) # random resize and crop, (0.85,1) of initial image
+        image = self.overlap_initial_crop(
+            image
+        )  # random resize and crop, (0.85,1) of initial image
         image = np.asarray(image)
 
-        patch, (idx_x1, idx_y1), (idx_x2, idx_y2), (k, l) = self.img_transforms(image) # get the two crops, the top left corner indexed of two crops, the size rate of the bigger crop1
-        sample_index1, sample_index2 = get_index((idx_x1, idx_y1), (idx_x2, idx_y2), (k, l)) # the overlap mask of two crops (all 14*14)
+        patch, (idx_x1, idx_y1), (idx_x2, idx_y2), (k, l) = self.img_transforms(
+            image
+        )  # get the two crops, the top left corner indexed of two crops, the size rate of the bigger crop1
+        sample_index1, sample_index2 = get_index(
+            (idx_x1, idx_y1), (idx_x2, idx_y2), (k, l)
+        )  # the overlap mask of two crops (all 14*14)
         # print(patch.shape)
-        patch1 = patch[:,:,0:3]
-        patch2 = patch[:,:,3:6]
-    
+        patch1 = patch[:, :, 0:3]
+        patch2 = patch[:, :, 3:6]
+
         grids.append(sample_index1)
         grids.append(sample_index2)
-        s2lmapping,l2smapping = get_corresponding_indices(sample_index1, sample_index2,(idx_x1, idx_y1), (idx_x2, idx_y2),(k, l)) # two target matrices of matrix matching, size 196*196
+        s2lmapping, l2smapping = get_corresponding_indices(
+            sample_index1, sample_index2, (idx_x1, idx_y1), (idx_x2, idx_y2), (k, l)
+        )  # two target matrices of matrix matching, size 196*196
 
-
-
-        #aug_whole = self.augment[0](imageData)
-        patch1 = self.augmentations_albu[0](image=patch1)['image']
-        patch2 = self.augmentations_albu[1](image=patch2)['image']
+        # aug_whole = self.augment[0](imageData)
+        patch1 = self.augmentations_albu[0](image=patch1)["image"]
+        patch2 = self.augmentations_albu[1](image=patch2)["image"]
 
         crops.append(self.augmentations_glo[0](patch1))
         crops.append(self.augmentations_glo[1](patch2))
 
-
-        return crops,grids, s2lmapping,l2smapping
+        return crops, grids, s2lmapping, l2smapping

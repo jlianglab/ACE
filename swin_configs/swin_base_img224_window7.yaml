@@ -3,7 +3,6 @@ WORKERS: 6
 PRINT_FREQ: 500
 AMP:
   ENABLED: true
-
 MODEL:
   NAME: swin_transformer
   SPEC:

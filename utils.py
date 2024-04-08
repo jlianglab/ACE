@@ -1,11 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,7 +37,8 @@ class GaussianBlur(object):
     """
     Apply Gaussian Blur to the PIL image.
     """
-    def __init__(self, p=0.5, radius_min=0.1, radius_max=2.):
+
+    def __init__(self, p=0.5, radius_min=0.1, radius_max=2.0):
         self.prob = p
         self.radius_min = radius_min
         self.radius_max = radius_max
@@ -58,6 +59,7 @@ class Solarization(object):
     """
     Apply Solarization to the PIL image.
     """
+
     def __init__(self, p):
         self.p = p
 
@@ -68,7 +70,9 @@ class Solarization(object):
             return img
 
 
-def load_pretrained_weights(model, pretrained_weights, checkpoint_key, model_name, patch_size):
+def load_pretrained_weights(
+    model, pretrained_weights, checkpoint_key, model_name, patch_size
+):
     if os.path.isfile(pretrained_weights):
         state_dict = torch.load(pretrained_weights, map_location="cpu")
         if checkpoint_key is not None and checkpoint_key in state_dict:
@@ -78,11 +82,17 @@ def load_pretrained_weights(model, pretrained_weights, checkpoint_key, model_nam
         state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
         # remove `backbone.` prefix induced by multicrop wrapper
         state_dict = {k.replace("backbone.", ""): v for k, v in state_dict.items()}
-    
+
         msg = model.load_state_dict(state_dict, strict=False)
-        print('Pretrained weights found at {} and loaded with msg: {}'.format(pretrained_weights, msg))
+        print(
+            "Pretrained weights found at {} and loaded with msg: {}".format(
+                pretrained_weights, msg
+            )
+        )
     else:
-        print("Please use the `--pretrained_weights` argument to indicate the path of the checkpoint to evaluate.")
+        print(
+            "Please use the `--pretrained_weights` argument to indicate the path of the checkpoint to evaluate."
+        )
         url = None
         if model_name == "vit_small" and patch_size == 16:
             url = "dino_deitsmall16_pretrain/dino_deitsmall16_pretrain.pth"
@@ -97,20 +107,30 @@ def load_pretrained_weights(model, pretrained_weights, checkpoint_key, model_nam
         elif model_name == "xcit_small_12_p8":
             url = "dino_xcit_small_12_p8_pretrain/dino_xcit_small_12_p8_pretrain.pth"
         elif model_name == "xcit_medium_24_p16":
-            url = "dino_xcit_medium_24_p16_pretrain/dino_xcit_medium_24_p16_pretrain.pth"
+            url = (
+                "dino_xcit_medium_24_p16_pretrain/dino_xcit_medium_24_p16_pretrain.pth"
+            )
         elif model_name == "xcit_medium_24_p8":
             url = "dino_xcit_medium_24_p8_pretrain/dino_xcit_medium_24_p8_pretrain.pth"
         elif model_name == "resnet50":
             url = "dino_resnet50_pretrain/dino_resnet50_pretrain.pth"
         if url is not None:
-            print("Since no pretrained weights have been provided, we load the reference pretrained DINO weights.")
-            state_dict = torch.hub.load_state_dict_from_url(url="https://dl.fbaipublicfiles.com/dino/" + url)
+            print(
+                "Since no pretrained weights have been provided, we load the reference pretrained DINO weights."
+            )
+            state_dict = torch.hub.load_state_dict_from_url(
+                url="https://dl.fbaipublicfiles.com/dino/" + url
+            )
             model.load_state_dict(state_dict, strict=True)
         else:
-            print("There is no reference weights available for this model => We use random weights.")
+            print(
+                "There is no reference weights available for this model => We use random weights."
+            )
 
 
-def load_pretrained_weights_student(model, pretrained_weights, checkpoint_key, model_name, patch_size):
+def load_pretrained_weights_student(
+    model, pretrained_weights, checkpoint_key, model_name, patch_size
+):
     if os.path.isfile(pretrained_weights):
         state_dict = torch.load(pretrained_weights, map_location="cpu")
         if checkpoint_key is not None and checkpoint_key in state_dict:
@@ -121,7 +141,11 @@ def load_pretrained_weights_student(model, pretrained_weights, checkpoint_key, m
         # remove `backbone.` prefix induced by multicrop wrapper
         state_dict = {k.replace("backbone.", ""): v for k, v in state_dict.items()}
         msg = model.load_state_dict(state_dict, strict=False)
-        print('Pretrained weights found at {} and loaded with msg: {}'.format(pretrained_weights, msg))
+        print(
+            "Pretrained weights found at {} and loaded with msg: {}".format(
+                pretrained_weights, msg
+            )
+        )
 
 
 def load_pretrained_linear_weights(linear_classifier, model_name, patch_size):
@@ -138,7 +162,9 @@ def load_pretrained_linear_weights(linear_classifier, model_name, patch_size):
         url = "dino_resnet50_pretrain/dino_resnet50_linearweights.pth"
     if url is not None:
         print("We load the reference pretrained linear weights.")
-        state_dict = torch.hub.load_state_dict_from_url(url="https://dl.fbaipublicfiles.com/dino/" + url)["state_dict"]
+        state_dict = torch.hub.load_state_dict_from_url(
+            url="https://dl.fbaipublicfiles.com/dino/" + url
+        )["state_dict"]
         linear_classifier.load_state_dict(state_dict, strict=True)
     else:
         print("We use random linear weights.")
@@ -174,17 +200,24 @@ def init_from_imagenet(ckp_path, student, teacher):
 
     # open checkpoint file
     checkpoint = torch.load(ckp_path, map_location="cpu")
-    state_dict = checkpoint['model']
-    state_dict = {"module.backbone."+k: v for k, v in state_dict.items()}
+    state_dict = checkpoint["model"]
+    state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
+    # state_dict = {"module.backbone."+k: v for k, v in state_dict.items()}
+    k_del = []
+    for k in state_dict.keys():
+        if "attn_mask" in k:
+            k_del.append(k)
+        if ("layers.3" and "attn.relative_coords_table") in k:
+            k_del.append(k)
+    k_del.append("layers.3.blocks.1.attn.relative_position_index")
+    k_del.append("layers.3.blocks.0.attn.relative_position_index")
+    print(f"Removing key {k_del} from pretrained checkpoint")
+    for k in k_del:
+        del state_dict[k]
     msg = student.load_state_dict(state_dict, strict=False)
     print(msg)
     msg = teacher.load_state_dict(state_dict, strict=False)
     print(msg)
-
-
-
-
-
 
 
 def restart_from_checkpoint(ckp_path, run_variables=None, **kwargs):
@@ -205,13 +238,21 @@ def restart_from_checkpoint(ckp_path, run_variables=None, **kwargs):
         if key in checkpoint and value is not None:
             try:
                 msg = value.load_state_dict(checkpoint[key], strict=False)
-                print("=> loaded '{}' from checkpoint '{}' with msg {}".format(key, ckp_path, msg))
+                print(
+                    "=> loaded '{}' from checkpoint '{}' with msg {}".format(
+                        key, ckp_path, msg
+                    )
+                )
             except TypeError:
                 try:
                     msg = value.load_state_dict(checkpoint[key])
                     print("=> loaded '{}' from checkpoint: '{}'".format(key, ckp_path))
                 except ValueError:
-                    print("=> failed to load '{}' from checkpoint: '{}'".format(key, ckp_path))
+                    print(
+                        "=> failed to load '{}' from checkpoint: '{}'".format(
+                            key, ckp_path
+                        )
+                    )
         else:
             print("=> key '{}' not found in checkpoint: '{}'".format(key, ckp_path))
 
@@ -222,14 +263,18 @@ def restart_from_checkpoint(ckp_path, run_variables=None, **kwargs):
                 run_variables[var_name] = checkpoint[var_name]
 
 
-def cosine_scheduler(base_value, final_value, epochs, niter_per_ep, warmup_epochs=0, start_warmup_value=0):
+def cosine_scheduler(
+    base_value, final_value, epochs, niter_per_ep, warmup_epochs=0, start_warmup_value=0
+):
     warmup_schedule = np.array([])
     warmup_iters = warmup_epochs * niter_per_ep
     if warmup_epochs > 0:
         warmup_schedule = np.linspace(start_warmup_value, base_value, warmup_iters)
 
     iters = np.arange(epochs * niter_per_ep - warmup_iters)
-    schedule = final_value + 0.5 * (base_value - final_value) * (1 + np.cos(np.pi * iters / len(iters)))
+    schedule = final_value + 0.5 * (base_value - final_value) * (
+        1 + np.cos(np.pi * iters / len(iters))
+    )
 
     schedule = np.concatenate((warmup_schedule, schedule))
     assert len(schedule) == epochs * niter_per_ep
@@ -283,7 +328,7 @@ class SmoothedValue(object):
         """
         if not is_dist_avail_and_initialized():
             return
-        t = torch.tensor([self.count, self.total], dtype=torch.float64, device='cuda')
+        t = torch.tensor([self.count, self.total], dtype=torch.float64, device="cuda")
         dist.barrier()
         dist.all_reduce(t)
         t = t.tolist()
@@ -318,7 +363,8 @@ class SmoothedValue(object):
             avg=self.avg,
             global_avg=self.global_avg,
             max=self.max,
-            value=self.value)
+            value=self.value,
+        )
 
 
 def reduce_dict(input_dict, average=True):
@@ -365,15 +411,14 @@ class MetricLogger(object):
             return self.meters[attr]
         if attr in self.__dict__:
             return self.__dict__[attr]
-        raise AttributeError("'{}' object has no attribute '{}'".format(
-            type(self).__name__, attr))
+        raise AttributeError(
+            "'{}' object has no attribute '{}'".format(type(self).__name__, attr)
+        )
 
     def __str__(self):
         loss_str = []
         for name, meter in self.meters.items():
-            loss_str.append(
-                "{}: {}".format(name, str(meter))
-            )
+            loss_str.append("{}: {}".format(name, str(meter)))
         return self.delimiter.join(loss_str)
 
     def synchronize_between_processes(self):
@@ -386,31 +431,35 @@ class MetricLogger(object):
     def log_every(self, iterable, print_freq, header=None, log_writer=None):
         i = 0
         if not header:
-            header = ''
+            header = ""
         start_time = time.time()
         end = time.time()
-        iter_time = SmoothedValue(fmt='{avg:.6f}')
-        data_time = SmoothedValue(fmt='{avg:.6f}')
-        space_fmt = ':' + str(len(str(len(iterable)))) + 'd'
+        iter_time = SmoothedValue(fmt="{avg:.6f}")
+        data_time = SmoothedValue(fmt="{avg:.6f}")
+        space_fmt = ":" + str(len(str(len(iterable)))) + "d"
         if torch.cuda.is_available():
-            log_msg = self.delimiter.join([
-                header,
-                '[{0' + space_fmt + '}/{1}]',
-                'eta: {eta}',
-                '{meters}',
-                'time: {time}',
-                'data: {data}',
-                'max mem: {memory:.0f}'
-            ])
+            log_msg = self.delimiter.join(
+                [
+                    header,
+                    "[{0" + space_fmt + "}/{1}]",
+                    "eta: {eta}",
+                    "{meters}",
+                    "time: {time}",
+                    "data: {data}",
+                    "max mem: {memory:.0f}",
+                ]
+            )
         else:
-            log_msg = self.delimiter.join([
-                header,
-                '[{0' + space_fmt + '}/{1}]',
-                'eta: {eta}',
-                '{meters}',
-                'time: {time}',
-                'data: {data}'
-            ])
+            log_msg = self.delimiter.join(
+                [
+                    header,
+                    "[{0" + space_fmt + "}/{1}]",
+                    "eta: {eta}",
+                    "{meters}",
+                    "time: {time}",
+                    "data: {data}",
+                ]
+            )
         MB = 1024.0 * 1024.0
         for obj in iterable:
             data_time.update(time.time() - end)
@@ -420,23 +469,41 @@ class MetricLogger(object):
                 eta_seconds = iter_time.global_avg * (len(iterable) - i)
                 eta_string = str(datetime.timedelta(seconds=int(eta_seconds)))
                 if torch.cuda.is_available():
-                    print(log_msg.format(
-                        i, len(iterable), eta=eta_string,
-                        meters=str(self),
-                        time=str(iter_time), data=str(data_time),
-                        memory=torch.cuda.max_memory_allocated() / MB), file=log_writer)
+                    print(
+                        log_msg.format(
+                            i,
+                            len(iterable),
+                            eta=eta_string,
+                            meters=str(self),
+                            time=str(iter_time),
+                            data=str(data_time),
+                            memory=torch.cuda.max_memory_allocated() / MB,
+                        ),
+                        file=log_writer,
+                    )
                 else:
-                    print(log_msg.format(
-                        i, len(iterable), eta=eta_string,
-                        meters=str(self),
-                        time=str(iter_time), data=str(data_time)), file=log_writer)
+                    print(
+                        log_msg.format(
+                            i,
+                            len(iterable),
+                            eta=eta_string,
+                            meters=str(self),
+                            time=str(iter_time),
+                            data=str(data_time),
+                        ),
+                        file=log_writer,
+                    )
                 log_writer.flush()
             i += 1
             end = time.time()
         total_time = time.time() - start_time
         total_time_str = str(datetime.timedelta(seconds=int(total_time)))
-        print('{} Total time: {} ({:.6f} s / it)'.format(
-            header, total_time_str, total_time / len(iterable)), file=log_writer)
+        print(
+            "{} Total time: {} ({:.6f} s / it)".format(
+                header, total_time_str, total_time / len(iterable)
+            ),
+            file=log_writer,
+        )
         log_writer.flush()
 
 
@@ -444,16 +511,17 @@ def get_sha():
     cwd = os.path.dirname(os.path.abspath(__file__))
 
     def _run(command):
-        return subprocess.check_output(command, cwd=cwd).decode('ascii').strip()
-    sha = 'N/A'
+        return subprocess.check_output(command, cwd=cwd).decode("ascii").strip()
+
+    sha = "N/A"
     diff = "clean"
-    branch = 'N/A'
+    branch = "N/A"
     try:
-        sha = _run(['git', 'rev-parse', 'HEAD'])
-        subprocess.check_output(['git', 'diff'], cwd=cwd)
-        diff = _run(['git', 'diff-index', 'HEAD'])
+        sha = _run(["git", "rev-parse", "HEAD"])
+        subprocess.check_output(["git", "diff"], cwd=cwd)
+        diff = _run(["git", "diff-index", "HEAD"])
         diff = "has uncommited changes" if diff else "clean"
-        branch = _run(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
+        branch = _run(["git", "rev-parse", "--abbrev-ref", "HEAD"])
     except Exception:
         pass
     message = f"sha: {sha}, status: {diff}, branch: {branch}"
@@ -494,10 +562,11 @@ def setup_for_distributed(is_master):
     This function disables printing when not in master process
     """
     import builtins as __builtin__
+
     builtin_print = __builtin__.print
 
     def print(*args, **kwargs):
-        force = kwargs.pop('force', False)
+        force = kwargs.pop("force", False)
         if is_master or force:
             builtin_print(*args, **kwargs)
 
@@ -506,23 +575,23 @@ def setup_for_distributed(is_master):
 
 def init_distributed_mode(args):
     # launched with torch.distributed.launch
-    if 'RANK' in os.environ and 'WORLD_SIZE' in os.environ:
+    if "RANK" in os.environ and "WORLD_SIZE" in os.environ:
         args.rank = int(os.environ["RANK"])
-        args.world_size = int(os.environ['WORLD_SIZE'])
-        args.gpu = int(os.environ['LOCAL_RANK'])
+        args.world_size = int(os.environ["WORLD_SIZE"])
+        args.gpu = int(os.environ["LOCAL_RANK"])
     # launched with submitit on a slurm cluster
-    elif 'SLURM_PROCID' in os.environ:
-        args.rank = int(os.environ['SLURM_PROCID'])
+    elif "SLURM_PROCID" in os.environ:
+        args.rank = int(os.environ["SLURM_PROCID"])
         args.gpu = args.rank % torch.cuda.device_count()
     # launched naively with `python main_dino.py`
     # we manually add MASTER_ADDR and MASTER_PORT to env variables
     elif torch.cuda.is_available():
-        print('Will run the code on one GPU.')
+        print("Will run the code on one GPU.")
         args.rank, args.gpu, args.world_size = 0, 0, 1
-        os.environ['MASTER_ADDR'] = '127.0.0.1'
-        os.environ['MASTER_PORT'] = '29500'
+        os.environ["MASTER_ADDR"] = "127.0.0.1"
+        os.environ["MASTER_PORT"] = "29500"
     else:
-        print('Does not support training without GPU.')
+        print("Does not support training without GPU.")
         sys.exit(1)
 
     dist.init_process_group(
@@ -533,8 +602,9 @@ def init_distributed_mode(args):
     )
 
     torch.cuda.set_device(args.gpu)
-    print('| distributed init (rank {}): {}'.format(
-        args.rank, args.dist_url), flush=True)
+    print(
+        "| distributed init (rank {}): {}".format(args.rank, args.dist_url), flush=True
+    )
     dist.barrier()
     setup_for_distributed(args.rank == 0)
 
@@ -546,7 +616,7 @@ def accuracy(output, target, topk=(1,)):
     _, pred = output.topk(maxk, 1, True, True)
     pred = pred.t()
     correct = pred.eq(target.reshape(1, -1).expand_as(pred))
-    return [correct[:k].reshape(-1).float().sum(0) * 100. / batch_size for k in topk]
+    return [correct[:k].reshape(-1).float().sum(0) * 100.0 / batch_size for k in topk]
 
 
 def _no_grad_trunc_normal_(tensor, mean, std, a, b):
@@ -554,12 +624,14 @@ def _no_grad_trunc_normal_(tensor, mean, std, a, b):
     # Method based on https://people.sc.fsu.edu/~jburkardt/presentations/truncated_normal.pdf
     def norm_cdf(x):
         # Computes standard normal cumulative distribution function
-        return (1. + math.erf(x / math.sqrt(2.))) / 2.
+        return (1.0 + math.erf(x / math.sqrt(2.0))) / 2.0
 
     if (mean < a - 2 * std) or (mean > b + 2 * std):
-        warnings.warn("mean is more than 2 std from [a, b] in nn.init.trunc_normal_. "
-                      "The distribution of values may be incorrect.",
-                      stacklevel=2)
+        warnings.warn(
+            "mean is more than 2 std from [a, b] in nn.init.trunc_normal_. "
+            "The distribution of values may be incorrect.",
+            stacklevel=2,
+        )
 
     with torch.no_grad():
         # Values are generated by using a truncated uniform distribution and
@@ -577,7 +649,7 @@ def _no_grad_trunc_normal_(tensor, mean, std, a, b):
         tensor.erfinv_()
 
         # Transform to proper mean, std
-        tensor.mul_(std * math.sqrt(2.))
+        tensor.mul_(std * math.sqrt(2.0))
         tensor.add_(mean)
 
         # Clamp to ensure it's in the proper range
@@ -585,7 +657,7 @@ def _no_grad_trunc_normal_(tensor, mean, std, a, b):
         return tensor
 
 
-def trunc_normal_(tensor, mean=0., std=1., a=-2., b=2.):
+def trunc_normal_(tensor, mean=0.0, std=1.0, a=-2.0, b=2.0):
     # type: (Tensor, float, float, float, float) -> Tensor
     return _no_grad_trunc_normal_(tensor, mean, std, a, b)
 
@@ -594,41 +666,59 @@ class LARS(torch.optim.Optimizer):
     """
     Almost copy-paste from https://github.com/facebookresearch/barlowtwins/blob/main/main.py
     """
-    def __init__(self, params, lr=0, weight_decay=0, momentum=0.9, eta=0.001,
-                 weight_decay_filter=None, lars_adaptation_filter=None):
-        defaults = dict(lr=lr, weight_decay=weight_decay, momentum=momentum,
-                        eta=eta, weight_decay_filter=weight_decay_filter,
-                        lars_adaptation_filter=lars_adaptation_filter)
+
+    def __init__(
+        self,
+        params,
+        lr=0,
+        weight_decay=0,
+        momentum=0.9,
+        eta=0.001,
+        weight_decay_filter=None,
+        lars_adaptation_filter=None,
+    ):
+        defaults = dict(
+            lr=lr,
+            weight_decay=weight_decay,
+            momentum=momentum,
+            eta=eta,
+            weight_decay_filter=weight_decay_filter,
+            lars_adaptation_filter=lars_adaptation_filter,
+        )
         super().__init__(params, defaults)
 
     @torch.no_grad()
     def step(self):
         for g in self.param_groups:
-            for p in g['params']:
+            for p in g["params"]:
                 dp = p.grad
 
                 if dp is None:
                     continue
 
                 if p.ndim != 1:
-                    dp = dp.add(p, alpha=g['weight_decay'])
+                    dp = dp.add(p, alpha=g["weight_decay"])
 
                 if p.ndim != 1:
                     param_norm = torch.norm(p)
                     update_norm = torch.norm(dp)
                     one = torch.ones_like(param_norm)
-                    q = torch.where(param_norm > 0.,
-                                    torch.where(update_norm > 0,
-                                                (g['eta'] * param_norm / update_norm), one), one)
+                    q = torch.where(
+                        param_norm > 0.0,
+                        torch.where(
+                            update_norm > 0, (g["eta"] * param_norm / update_norm), one
+                        ),
+                        one,
+                    )
                     dp = dp.mul(q)
 
                 param_state = self.state[p]
-                if 'mu' not in param_state:
-                    param_state['mu'] = torch.zeros_like(p)
-                mu = param_state['mu']
-                mu.mul_(g['momentum']).add_(dp)
+                if "mu" not in param_state:
+                    param_state["mu"] = torch.zeros_like(p)
+                mu = param_state["mu"]
+                mu.mul_(g["momentum"]).add_(dp)
 
-                p.add_(mu, alpha=-g['lr'])
+                p.add_(mu, alpha=-g["lr"])
 
 
 class MultiCropWrapper(nn.Module):
@@ -640,42 +730,50 @@ class MultiCropWrapper(nn.Module):
     concatenate all the output features and run the head forward on these
     concatenated features.
     """
-    def __init__(self, backbone, head ,  DenseHead,args):
+
+    def __init__(self, backbone, head, DenseHead, args):
         super(MultiCropWrapper, self).__init__()
         # disable layers dedicated to ImageNet labels classification
         backbone.fc, backbone.head = nn.Identity(), nn.Identity()
         self.backbone = backbone
         self.head = head
         self.DenseHead = DenseHead
-        self.args =args
-        self.predictor_ = nn.Sequential(nn.Linear(512, 512, bias=False),
-                                nn.LayerNorm(512),
-                                nn.ReLU(inplace=True), # hidden layer
-                                nn.Linear(512, 512)) # output layer
+        self.args = args
+        self.predictor_ = nn.Sequential(
+            nn.Linear(512, 512, bias=False),
+            nn.LayerNorm(512),
+            nn.ReLU(inplace=True),  # hidden layer
+            nn.Linear(512, 512),
+        )  # output layer
+
     def forward(self, x):
         spatial_features = []
         # convert to list
         if not isinstance(x, list):
             x = [x]
-        idx_crops = torch.cumsum(torch.unique_consecutive(
-            torch.tensor([inp.shape[-1] for inp in x]),
-            return_counts=True,
-        )[1], 0)
+        idx_crops = torch.cumsum(
+            torch.unique_consecutive(
+                torch.tensor([inp.shape[-1] for inp in x]),
+                return_counts=True,
+            )[1],
+            0,
+        )
         start_idx, output = 0, torch.empty(0).to(x[0].device)
-        loss_mask=0
+        loss_mask = 0
 
-        for end_idx in idx_crops: # idx_crops=[2]
-            image_origin_input=torch.cat(x[start_idx: end_idx])
-            if end_idx==2: # will go to this branch
-                #print(perm[0].shape,perm[1].shape)
-                _out,_middle_features = self.backbone( image_origin_input)
-                spatial_features = self.DenseHead(_middle_features)#)
-
+        for end_idx in idx_crops:  # idx_crops=[2]
+            image_origin_input = torch.cat(x[start_idx:end_idx])
+            if end_idx == 2:  # will go to this branch
+                # print(perm[0].shape,perm[1].shape)
+                _out, _middle_features = self.backbone(image_origin_input)
+                spatial_features = self.DenseHead(_middle_features)  # )
 
             else:
 
-                _out,_middle_features = self.backbone( image_origin_input)
-                spatial_features+= self.DenseHead(_middle_features).chunk(self.args.local_crops_number)
+                _out, _middle_features = self.backbone(image_origin_input)
+                spatial_features += self.DenseHead(_middle_features).chunk(
+                    self.args.local_crops_number
+                )
             # The output is a tuple with XCiT model. See:
             # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
             if isinstance(_out, tuple):
@@ -686,7 +784,11 @@ class MultiCropWrapper(nn.Module):
             # if mask_turn:
             #     loss_mask=self.head2( image_origin_input,_middle_features,mask_origin_input)
         # Run the head forward on the concatenated features.
-        return self.head(output),spatial_features.detach(),self.predictor_(spatial_features)# global embedding, local embeddings of teacher, local embeddings of student
+        return (
+            self.head(output),
+            spatial_features.detach(),
+            self.predictor_(spatial_features),
+        )  # global embedding, local embeddings of teacher, local embeddings of student
 
 
 class MultiCropWrapper_teacher(nn.Module):
@@ -698,6 +800,7 @@ class MultiCropWrapper_teacher(nn.Module):
     concatenate all the output features and run the head forward on these
     concatenated features.
     """
+
     def __init__(self, backbone, head, DenseHead):
         super(MultiCropWrapper_teacher, self).__init__()
         # disable layers dedicated to ImageNet labels classification
@@ -711,14 +814,19 @@ class MultiCropWrapper_teacher(nn.Module):
         spatial_features = []
         if not isinstance(x, list):
             x = [x]
-        idx_crops = torch.cumsum(torch.unique_consecutive(
-            torch.tensor([inp.shape[-1] for inp in x]),
-            return_counts=True,
-        )[1], 0)
+        idx_crops = torch.cumsum(
+            torch.unique_consecutive(
+                torch.tensor([inp.shape[-1] for inp in x]),
+                return_counts=True,
+            )[1],
+            0,
+        )
         start_idx, output = 0, torch.empty(0).to(x[0].device)
         for end_idx in idx_crops:
-            _out,_middle_features = self.backbone(torch.cat(x[start_idx: end_idx]),perm=None)
-            spatial_features =self.DenseHead(_middle_features)
+            _out, _middle_features = self.backbone(
+                torch.cat(x[start_idx:end_idx]), perm=None
+            )
+            spatial_features = self.DenseHead(_middle_features)
             # The output is a tuple with XCiT model. See:
             # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
             if isinstance(_out, tuple):
@@ -727,10 +835,7 @@ class MultiCropWrapper_teacher(nn.Module):
             output = torch.cat((output, _out))
             start_idx = end_idx
         # Run the head forward on the concatenated features.
-        return   self.head(output),spatial_features # 
-
-
-
+        return self.head(output), spatial_features  #
 
 
 def get_params_groups(model):
@@ -744,7 +849,7 @@ def get_params_groups(model):
             not_regularized.append(param)
         else:
             regularized.append(param)
-    return [{'params': regularized}, {'params': not_regularized, 'weight_decay': 0.}]
+    return [{"params": regularized}, {"params": not_regularized, "weight_decay": 0.0}]
 
 
 def has_batchnorms(model):
@@ -755,10 +860,11 @@ def has_batchnorms(model):
     return False
 
 
-class PCA():
+class PCA:
     """
     Class to  compute and apply PCA.
     """
+
     def __init__(self, dim=256, whit=0.5):
         self.dim = dim
         self.whit = whit
@@ -778,14 +884,14 @@ class PCA():
         totenergy = d.sum()
 
         # sort eigenvectors with eigenvalues order
-        idx = np.argsort(d)[::-1][:self.dim]
+        idx = np.argsort(d)[::-1][: self.dim]
         d = d[idx]
         v = v[:, idx]
 
         print("keeping %.2f %% of the energy" % (d.sum() / totenergy * 100.0))
 
         # for the whitening
-        d = np.diag(1. / d**self.whit)
+        d = np.diag(1.0 / d**self.whit)
 
         # principal components
         self.dvt = np.dot(d, v.T)
@@ -801,7 +907,9 @@ class PCA():
         if x.is_cuda:
             if self.mean is not None:
                 x -= torch.cuda.FloatTensor(self.mean)
-            return torch.mm(torch.cuda.FloatTensor(self.dvt), x.transpose(0, 1)).transpose(0, 1)
+            return torch.mm(
+                torch.cuda.FloatTensor(self.dvt), x.transpose(0, 1)
+            ).transpose(0, 1)
 
         # input if from torch, on CPU
         if self.mean is not None:
@@ -827,19 +935,19 @@ def compute_ap(ranks, nres):
     # accumulate trapezoids in PR-plot
     ap = 0
 
-    recall_step = 1. / nres
+    recall_step = 1.0 / nres
 
     for j in np.arange(nimgranks):
         rank = ranks[j]
 
         if rank == 0:
-            precision_0 = 1.
+            precision_0 = 1.0
         else:
             precision_0 = float(j) / rank
 
         precision_1 = float(j + 1) / (rank + 1)
 
-        ap += (precision_0 + precision_1) * recall_step / 2.
+        ap += (precision_0 + precision_1) * recall_step / 2.0
 
     return ap
 
@@ -859,40 +967,40 @@ def compute_map(ranks, gnd, kappas=[]):
          3) If there are no positive images for some query, that query is excluded from the evaluation
     """
 
-    map = 0.
-    nq = len(gnd) # number of queries
+    map = 0.0
+    nq = len(gnd)  # number of queries
     aps = np.zeros(nq)
     pr = np.zeros(len(kappas))
     prs = np.zeros((nq, len(kappas)))
     nempty = 0
 
     for i in np.arange(nq):
-        qgnd = np.array(gnd[i]['ok'])
+        qgnd = np.array(gnd[i]["ok"])
 
         # no positive images, skip from the average
         if qgnd.shape[0] == 0:
-            aps[i] = float('nan')
-            prs[i, :] = float('nan')
+            aps[i] = float("nan")
+            prs[i, :] = float("nan")
             nempty += 1
             continue
 
         try:
-            qgndj = np.array(gnd[i]['junk'])
+            qgndj = np.array(gnd[i]["junk"])
         except:
             qgndj = np.empty(0)
 
         # sorted positions of positive and junk images (0 based)
-        pos  = np.arange(ranks.shape[0])[np.in1d(ranks[:,i], qgnd)]
-        junk = np.arange(ranks.shape[0])[np.in1d(ranks[:,i], qgndj)]
+        pos = np.arange(ranks.shape[0])[np.in1d(ranks[:, i], qgnd)]
+        junk = np.arange(ranks.shape[0])[np.in1d(ranks[:, i], qgndj)]
 
-        k = 0;
-        ij = 0;
+        k = 0
+        ij = 0
         if len(junk):
             # decrease positions of positives based on the number of
             # junk images appearing before them
             ip = 0
-            while (ip < len(pos)):
-                while (ij < len(junk) and pos[ip] > junk[ij]):
+            while ip < len(pos):
+                while ij < len(junk) and pos[ip] > junk[ij]:
                     k += 1
                     ij += 1
                 pos[ip] = pos[ip] - k
@@ -904,9 +1012,9 @@ def compute_map(ranks, gnd, kappas=[]):
         aps[i] = ap
 
         # compute precision @ k
-        pos += 1 # get it to 1-based
+        pos += 1  # get it to 1-based
         for j in np.arange(len(kappas)):
-            kq = min(max(pos), kappas[j]); 
+            kq = min(max(pos), kappas[j])
             prs[i, j] = (pos <= kq).sum() / kq
         pr = pr + prs[i, :]
 
@@ -918,11 +1026,13 @@ def compute_map(ranks, gnd, kappas=[]):
 
 def multi_scale(samples, model):
     v = None
-    for s in [1, 1/2**(1/2), 1/2]:  # we use 3 different scales
+    for s in [1, 1 / 2 ** (1 / 2), 1 / 2]:  # we use 3 different scales
         if s == 1:
             inp = samples.clone()
         else:
-            inp = nn.functional.interpolate(samples, scale_factor=s, mode='bilinear', align_corners=False)
+            inp = nn.functional.interpolate(
+                samples, scale_factor=s, mode="bilinear", align_corners=False
+            )
         feats = model(inp).clone()
         if v is None:
             v = feats
