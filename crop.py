@@ -115,13 +115,17 @@ class NIHchest_dataset(Dataset):
         return len(self.datalist)
 
 
-def img_transforms():
-    size = 1024
+def img_transforms(img_size):
+    if img_size == 448:
+        size = 608
+    elif img_size == 224:
+        size = 304
     img_transforms = transforms.Compose([
-                        # KeepRatioResize(size),
+                        KeepRatioResize(size),
                         # CenterCrop(size),
-                        # GridRandomCrop(size),
-                        PatchCrop(size)
+                        GridRandomCrop(size),
+                        PatchCrop_PEAC(size)
+                        # PatchCrop_ACE(1024)
     ])
     return img_transforms
 
@@ -222,8 +226,8 @@ def get_corresponding_indices(overlap_mask_1, overlap_mask_2, idx1_pair, idx2_pa
     k, l = kl
     
     # initialize the mapping array as -1
-    mapping_array_2_to_1 = np.full(overlap_mask_2.numel(), -1, dtype=int) # shape: (196,)
-    mapping_array_1_to_2 = np.full(overlap_mask_1.numel(), -1, dtype=int)
+    # mapping_array_2_to_1 = np.full(overlap_mask_2.numel(), -1, dtype=int) # shape: (196,)
+    # mapping_array_1_to_2 = np.full(overlap_mask_1.numel(), -1, dtype=int)
 
     # compute the offsets
     offset_x = idx_x2 - idx_x1
@@ -233,8 +237,8 @@ def get_corresponding_indices(overlap_mask_1, overlap_mask_2, idx1_pair, idx2_pa
     true_indices_2 = torch.nonzero(overlap_mask_2).squeeze()
 
     # initialize the target of matching matrix
-    bce_labelsl2s = torch.zeros(196, 196)
-    bce_labelss2l = torch.zeros(196, 196)
+    bce_labels1to2 = torch.zeros(196, 196)
+    bce_labels2to1 = torch.zeros(196, 196)
 
     if true_indices_2.dim() != 0:
     # 如果是0维张量（标量），则跳过循环
@@ -248,15 +252,16 @@ def get_corresponding_indices(overlap_mask_1, overlap_mask_2, idx1_pair, idx2_pa
             corresponding_idx = corresponding_row * 14 + corresponding_col
 
             # 更新映射数组
-            mapping_array_2_to_1[idx] = corresponding_idx if overlap_mask_1[corresponding_idx] else -1
-            bce_labelss2l[idx,corresponding_idx] = 1 
+            # mapping_array_2_to_1[idx] = corresponding_idx if overlap_mask_1[corresponding_idx] else -1
+            # print(idx, corresponding_idx)
+            bce_labels2to1[idx,corresponding_idx] = 1 
 
             # if overlap_mask_1[corresponding_idx]:
-            bce_labelsl2s[corresponding_idx,idx] = 1 
+            bce_labels1to2[corresponding_idx,idx] = 1 
     else:
         pass
     
-    return  bce_labelss2l, bce_labelsl2s
+    return  bce_labels2to1, bce_labels1to2
 
 
 class Rearrange_and_Norm():
@@ -309,9 +314,40 @@ class GridRandomCrop(): # 608*608 -> 576*576 / 304*304 -> 288*288
         image = image[start_x:grid_size*18+start_x, start_y:grid_size*18+start_y, :]
         return image
 
-class PatchCrop():
+
+class PatchCrop_PEAC():
     """
-    get grid-wise cropping
+    get grid-wise cropping (two crops with the same shapes)
+    """
+    def __init__(self, size):
+        self.size = size
+    def __call__(self, image):
+        grid = int(self.size/19)
+        x1 = randint(0,4)
+        y1 = randint(0,4)
+        x2 = randint(0,4)
+        y2 = randint(0,4)
+        patch1 = image[x1*grid:(14+x1)*grid, y1*grid:(14+y1)*grid, :]
+        patch2 = image[x2*grid:(14+x2)*grid, y2*grid:(14+y2)*grid, :]
+        image = np.concatenate((patch1, patch2), axis=2) # 448*448*6
+        patch1_local = []
+        patch2_local = []
+        patch1_local.append(patch1[:7*grid, :7*grid, :])
+        patch1_local.append(patch1[7*grid:14*grid, :7*grid, :])
+        patch1_local.append(patch1[:7*grid, 7*grid:14*grid, :])
+        patch1_local.append(patch1[7*grid:14*grid, 7*grid:14*grid, :])
+
+        patch2_local.append(patch2[:7*grid, :7*grid, :])
+        patch2_local.append(patch2[7*grid:14*grid, :7*grid, :])
+        patch2_local.append(patch2[:7*grid, 7*grid:14*grid, :])
+        patch2_local.append(patch2[7*grid:14*grid, 7*grid:14*grid, :])
+        return image, patch1_local, patch2_local, (x1, y1), (x2, y2)
+
+
+
+class PatchCrop_ACE():
+    """
+    get grid-wise cropping (two crops with different shapes)
     input: the whole image with size 1024*1024, the image is grided to 32*32 patches and each potch size is 32*32
     output: [image,(x1, y1), (x2, y2), (k, l)]
     image: two concated crops which are resized to 448*448, the size of crop2 is fixed with 14*14 patches (imgsize 448*448), and the size of crop1 is (14*k)*(14*l)

@@ -39,6 +39,7 @@ from einops import rearrange
 from torchvision.ops import sigmoid_focal_loss
 from sklearn.metrics import recall_score
 from torch import autograd
+import ipdb
 torchvision_archs = sorted(name for name in torchvision_models.__dict__
     if name.islower() and not name.startswith("__")
     and callable(torchvision_models.__dict__[name]))
@@ -124,10 +125,10 @@ def get_args_parser():
     # Misc
     parser.add_argument('--data_path', default='/data1/zhouziyu/liang/NIHChestXray/images/images_all/', type=str,
         help='Please specify path to the ImageNet training data.')
-    parser.add_argument('--output_dir', default="/ssd2/zhouziyu/ssl/github/ACE/pretrained_weight/from_imagenet_global_12N_contrast", type=str, help='Path to save logs and checkpoints.')
+    parser.add_argument('--output_dir', default="/ssd2/zhouziyu/ssl/github/ACE/pretrained_weight/comp_decomp_new", type=str, help='Path to save logs and checkpoints.')
     parser.add_argument('--saveckp_freq', default=100, type=int, help='Save checkpoint every x epochs.')
     parser.add_argument('--seed', default=0, type=int, help='Random seed.')
-    parser.add_argument('--num_workers', default=5, type=int, help='Number of data loading workers per GPU.')
+    parser.add_argument('--num_workers', default=8, type=int, help='Number of data loading workers per GPU.')
     parser.add_argument("--dist_url", default="env://", type=str, help="""url used to set up
         distributed training; see https://pytorch.org/docs/stable/distributed.html""")
     parser.add_argument("--local_rank", default=0, type=int, help="Please ignore and do not set this argument.")
@@ -152,7 +153,7 @@ def train_dino(args):
         log_writer = open(os.path.join(args.output_dir, "log.txt"), 'w')
 
     # ============ preparing data ... ============
-    transform = DataAugmentationDINO()
+    transform = DataAugmentationDINO(input_size=config.TRAIN.IMAGE_SIZE[0])
     #transform =DataAugmentationDINO()
     #dataset = datasets.ImageFolder(args.data_path, transform=transform)
     #dataset = ImageFolder_vindr(args.data_path, transform=transform)
@@ -235,7 +236,7 @@ def train_dino(args):
     barlow_loss = AttentionMLPModel(512,512,1).cuda()#BarlowLoss(
     dino_loss = DINOLoss(
         args.out_dim,
-        2,  # total number of crops
+        1,  # total number of crops
         args.warmup_teacher_temp,
         args.teacher_temp,
         args.warmup_teacher_temp_epochs,
@@ -339,7 +340,7 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
     # triplet_loss =barlow_loss.cuda()
     local_loss = TripletLoss()
     #torch.autograd.set_detect_anomaly(True)
-    for it, ((images,locations,s2lmapping,l2smapping), _) in enumerate(metric_logger.log_every(data_loader, 50, header, log_writer)):
+    for it, ((crop1,crop2,mapping2to1,mapping1to2), _) in enumerate(metric_logger.log_every(data_loader, 50, header, log_writer)):
         # locations:the overlap mask of two crops(14*14), s2lmapping:matrix matching target(196*196)
 
         # update weight decay and learning rate according to their schedule
@@ -350,31 +351,35 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
                 param_group["weight_decay"] = wd_schedule[it]
 
         # move images to gpu
-        images = [im.cuda(non_blocking=True).float() for im in images]
+        crop1 = [im.cuda(non_blocking=True).float() for im in crop1]
+        crop2 = [im.cuda(non_blocking=True).float() for im in crop2]
 
 
-        locations=[location.cuda(non_blocking=True) for location in locations]
         # teacher and student forward passes + compute dino loss
         with torch.cuda.amp.autocast(fp16_scaler is not None):
             # with autograd.detect_anomaly():
-            teacher_cls, teacher_spatial = teacher(images)  
-            student_cls, student_spatial, student_spatial_pred = student(images) # global embedding of student, local embeddings of teacher, local embeddings of student
+            student_cls, student_spatial, student_comp, student_decomp = student(crop1) # global embedding of student, local embeddings of teacher, local embeddings of student
+            teacher_cls, teacher_spatial, teacher_comp, teacher_decomp = teacher(crop2)  
 
-            student_spatials_pred = student_spatial_pred.chunk(2)
-            student_spatials = student_spatial.chunk(2)
+            # student_spatials_pred = student_spatial_pred.chunk(2)
+            # student_spatials = student_spatial.chunk(2)
 
 
-            loss_vic=0
             loss_local=0
+            loss_decomp=0
             
             global_loss = dino_loss(student_cls, teacher_cls, epoch)
-            loss1, loss2 = barlow_loss(student_spatials,student_spatials_pred,locations[0],locations[1],s2lmapping.cuda(),l2smapping.cuda())
-            loss_vic += (loss1+loss2)/2 # matrix matching loss
+            loss1, loss2 = barlow_loss(student_spatial,teacher_spatial,mapping2to1.cuda(),mapping1to2.cuda())
+            loss_local += (loss1+loss2)/2 # matrix matching loss
+            loss_comp = F.smooth_l1_loss(student_comp, teacher_comp)
+            
+            # # ipdb.set_trace()
+            for i in range(4):
+                loss_decomp+=F.smooth_l1_loss(student_decomp[i], teacher_decomp[i])
+            loss_decomp = loss_decomp/4
 
-            loss_local =  local_loss(student_spatials[0], student_spatials_pred[1], l2smapping.cuda(),s2lmapping.cuda()) + local_loss(student_spatials_pred[0], student_spatials[1], l2smapping.cuda(),s2lmapping.cuda()) #contrastive learning loss
-
-            loss = (loss_vic+loss_local+global_loss)/2# loss_local#loss_local #loss_vic#(+loss_local)/2#(loss_dino + order_loss+ loss_vic+restor_loss)/4
-            # loss = loss_local
+            loss = (loss_local+global_loss+loss_comp+loss_decomp)/2# loss_local#loss_local #loss_vic#(+loss_local)/2#(loss_dino + order_loss+ loss_vic+restor_loss)/4
+            # loss = global_loss
 
             # student update
             optimizer.zero_grad()
@@ -400,17 +405,18 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
             with torch.no_grad():
                 m = momentum_schedule[it]  # momentum parameter
                 for (name_q, param_q), (name_k, param_k) in zip(student.module.named_parameters(), teacher_without_ddp.named_parameters()):
-                    #print(f"Updating parameter: {name_q} in student, {name_k} in teacher")
+                # for (name_q, param_q), (name_k, param_k) in zip(student.named_parameters(), teacher_without_ddp.named_parameters()):
+                    # print(f"Updating parameter: {name_q} in student, {name_k} in teacher")
                     param_k.data.mul_(m).add_((1 - m) * param_q.detach().data)
 
         # logging
         torch.cuda.synchronize()
         metric_logger.update(loss=loss.item())
         # metric_logger.update(order_loss=order_loss.item())
-        metric_logger.update(loss_vic=loss_vic.item())
         metric_logger.update(global_loss=global_loss.item())
         metric_logger.update(loss_local=loss_local.item())
-        # metric_logger.update(restor_loss=restor_loss.item())
+        metric_logger.update(loss_comp=loss_comp.item())
+        metric_logger.update(loss_decomp=loss_decomp.item())
         metric_logger.update(lr=optimizer.param_groups[0]["lr"])
         metric_logger.update(wd=optimizer.param_groups[0]["weight_decay"])
     # gather the stats from all processes
@@ -482,33 +488,22 @@ class AttentionMLPModel(nn.Module): # compute matrix matching loss
         self.mlp = nn.ModuleDict({
             'mlp_layer': MLPLayer(input_dim, hidden_dim, output_dim)
         })
-        self.nonlinear =  MLP("512",196,"layer_norm")
+
         # Loss Criterion
         self.criterion = nn.BCEWithLogitsLoss()
 
 
         
-    def forward(self, student_out, student_out_proj, locations0,locations1,s2lmapping,l2smapping):
+    def forward(self, student_spatial, teacher_spatial, mapping2to1,mapping1to2):
 
 
-        ZA,ZB = student_out
-        PA,PB =  student_out_proj
-        logits_A, logits_B = self.attention['attention_layer'](ZA, PB)
-        logits_A_, logits_B_ = self.attention['attention_layer'](PA, ZB)
-        # print(logits_A.shape,logits_B.shape)
-        # logits_A = self.nonlinear(logits_A)
-        # logits_A_ = self.nonlinear(logits_A_)
-        loss1 = ( sigmoid_focal_loss(logits_A,l2smapping.cuda(),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_A_,l2smapping.cuda(),alpha=0.99,gamma=0).mean())/2
-        loss2 = ( sigmoid_focal_loss(logits_B,s2lmapping.cuda(),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_B_,s2lmapping.cuda(),alpha=0.99,gamma=0).mean())/2
+        # ZA,ZB = student_out
+        # PA,PB =  student_out_proj
+        logits_A, logits_B = self.attention['attention_layer'](student_spatial, teacher_spatial)
+        # logits_A_, logits_B_ = self.attention['attention_layer'](PA, ZB)
 
-
-        # # Get predicted labels
-        # predicted_A = (torch.sigmoid(logits_A) >= 0.5).float()
-        # predicted_B = (torch.sigmoid(logits_B) >= 0.5).float()
-
-
-
-
+        loss1 = sigmoid_focal_loss(logits_A,mapping1to2.cuda(),alpha=0.99,gamma=0).mean()
+        loss2 = sigmoid_focal_loss(logits_B,mapping2to1.cuda(),alpha=0.99,gamma=0).mean()
 
         return loss1,loss2
 
@@ -633,15 +628,16 @@ class DINOLoss(nn.Module):
         # teacher centering and sharpening
         temp = self.teacher_temp_schedule[epoch]
         teacher_out = F.softmax((teacher_output - self.center) / temp, dim=-1)
-        teacher_out = teacher_out.detach().chunk(2)
+        teacher_out = teacher_out.detach().chunk(self.ncrops)
 
         total_loss = 0
         n_loss_terms = 0
         for iq, q in enumerate(teacher_out):
             for v in range(len(student_out)):
-                if v == iq:
-                    # we skip cases where student and teacher operate on the same view
-                    continue
+                # ipdb.set_trace()
+                # if v == iq: # 新版的输入没有concat两个crop
+                #     # we skip cases where student and teacher operate on the same view
+                #     continue
                 loss = torch.sum(-q * F.log_softmax(student_out[v], dim=-1), dim=-1)
                 total_loss += loss.mean()
                 n_loss_terms += 1

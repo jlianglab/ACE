@@ -31,6 +31,7 @@ import torch
 from torch import nn
 import torch.distributed as dist
 from PIL import ImageFilter, ImageOps
+import ipdb
 
 
 class GaussianBlur(object):
@@ -631,6 +632,46 @@ class LARS(torch.optim.Optimizer):
                 p.add_(mu, alpha=-g['lr'])
 
 
+class Composer(nn.Module):
+    def __init__(self):
+        super(Composer, self).__init__()
+        self.layer = nn.Sequential(nn.Linear(1024*4, 1024, bias=False),
+                                nn.LayerNorm(1024),
+                                nn.ReLU(inplace=True), # hidden layer
+                                nn.Linear(1024, 1024),
+                                nn.LayerNorm(1024),
+                                nn.ReLU(inplace=True), # hidden layer
+                                nn.Linear(1024, 1024)) # output layer
+    
+    def forward(self,x):
+        if not isinstance(x, list):
+            x = [x]
+        x = torch.cat(x,dim=1) # concate the last dim, x [B,1024*4]
+        x = self.layer(x)
+        return x
+    
+
+class Decomposer(nn.Module):
+    def __init__(self):
+        super(Decomposer, self).__init__()
+        self.layer = nn.Sequential(nn.Linear(1024, 1024*4, bias=False),
+                                nn.LayerNorm(1024*4),
+                                nn.ReLU(inplace=True), # hidden layer
+                                nn.Linear(1024*4, 1024*4)) # output layer
+    
+    def forward(self,x): 
+        """
+        input: [B,1024]
+        output: list with each tensor [B,1024]
+        """
+        out_list = []
+        x = self.layer(x)
+        out_list+=x.chunk(4,dim=1)
+
+        return out_list
+
+
+
 class MultiCropWrapper(nn.Module):
     """
     Perform forward pass separately on each resolution input.
@@ -652,41 +693,58 @@ class MultiCropWrapper(nn.Module):
                                 nn.LayerNorm(512),
                                 nn.ReLU(inplace=True), # hidden layer
                                 nn.Linear(512, 512)) # output layer
+        self.composer = Composer()
+        self.decomposer = Decomposer()
     def forward(self, x):
-        spatial_features = []
+        # spatial_features = []
+        local_embd = []
         # convert to list
         if not isinstance(x, list):
             x = [x]
-        idx_crops = torch.cumsum(torch.unique_consecutive(
-            torch.tensor([inp.shape[-1] for inp in x]),
-            return_counts=True,
-        )[1], 0)
-        start_idx, output = 0, torch.empty(0).to(x[0].device)
-        loss_mask=0
 
-        for end_idx in idx_crops: # idx_crops=[2]
-            image_origin_input=torch.cat(x[start_idx: end_idx])
-            if end_idx==2: # will go to this branch
-                #print(perm[0].shape,perm[1].shape)
-                _out,_middle_features = self.backbone( image_origin_input)
-                spatial_features = self.DenseHead(_middle_features)#)
+        global_out, _middle_features = self.backbone(x[0]) # input global crop
+        spatial_features = self.DenseHead(_middle_features)
 
 
-            else:
+        # ipdb.set_trace()
+        local_input = torch.cat(x[1:])
+        local_out, _ = self.backbone(local_input)
+        local_embd += local_out.chunk(4) # divide the 4 local crops
+        local_comp = self.composer(local_embd) # [B,1024]
 
-                _out,_middle_features = self.backbone( image_origin_input)
-                spatial_features+= self.DenseHead(_middle_features).chunk(self.args.local_crops_number)
-            # The output is a tuple with XCiT model. See:
-            # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
-            if isinstance(_out, tuple):
-                _out = _out[0]
-            # accumulate outputs
-            output = torch.cat((output, _out))
-            start_idx = end_idx
-            # if mask_turn:
-            #     loss_mask=self.head2( image_origin_input,_middle_features,mask_origin_input)
+        global_decomp = self.decomposer(global_out) # list
+
+        
+
+        # idx_crops = torch.cumsum(torch.unique_consecutive(
+        #     torch.tensor([inp.shape[-1] for inp in x]),
+        #     return_counts=True,
+        # )[1], 0)
+        # start_idx, output = 0, torch.empty(0).to(x[0].device)
+        # loss_mask=0
+
+        # for end_idx in idx_crops: # idx_crops=[2]
+        #     image_origin_input=torch.cat(x[start_idx: end_idx])
+        #     if end_idx==2: # will go to this branch
+        #         #print(perm[0].shape,perm[1].shape)
+        #         _out,_middle_features = self.backbone( image_origin_input)
+        #         spatial_features = self.DenseHead(_middle_features)#)
+
+
+        #     else:
+
+        #         _out,_middle_features = self.backbone( image_origin_input)
+        #         spatial_features+= self.DenseHead(_middle_features).chunk(self.args.local_crops_number)
+        #     # The output is a tuple with XCiT model. See:
+        #     # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
+        #     if isinstance(_out, tuple):
+        #         _out = _out[0]
+        #     # accumulate outputs
+        #     output = torch.cat((output, _out))
+        #     start_idx = end_idx
+
         # Run the head forward on the concatenated features.
-        return self.head(output),spatial_features.detach(),self.predictor_(spatial_features)# global embedding, local embeddings of teacher, local embeddings of student
+        return self.head(global_out),self.predictor_(spatial_features),local_comp,global_decomp# global embedding,local embeddings of student,
 
 
 class MultiCropWrapper_teacher(nn.Module):
@@ -706,28 +764,40 @@ class MultiCropWrapper_teacher(nn.Module):
         self.head = head
         self.DenseHead = DenseHead
 
+
     def forward(self, x):
+        local_embd = []
         # convert to list
         spatial_features = []
         if not isinstance(x, list):
             x = [x]
-        idx_crops = torch.cumsum(torch.unique_consecutive(
-            torch.tensor([inp.shape[-1] for inp in x]),
-            return_counts=True,
-        )[1], 0)
-        start_idx, output = 0, torch.empty(0).to(x[0].device)
-        for end_idx in idx_crops:
-            _out,_middle_features = self.backbone(torch.cat(x[start_idx: end_idx]),perm=None)
-            spatial_features =self.DenseHead(_middle_features)
-            # The output is a tuple with XCiT model. See:
-            # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
-            if isinstance(_out, tuple):
-                _out = _out[0]
-            # accumulate outputs
-            output = torch.cat((output, _out))
-            start_idx = end_idx
+
+        global_out, _middle_features = self.backbone(x[0]) # input global crop
+        spatial_features = self.DenseHead(_middle_features)
+
+        local_input = torch.cat(x[1:])
+        local_out, _ = self.backbone(local_input)
+        local_embd += local_out.chunk(4) # divide the 4 local crops
+
+        
+        # idx_crops = torch.cumsum(torch.unique_consecutive(
+        #     torch.tensor([inp.shape[-1] for inp in x]),
+        #     return_counts=True,
+        # )[1], 0)
+        # start_idx, output = 0, torch.empty(0).to(x[0].device)
+        # for end_idx in idx_crops:
+        #     _out,_middle_features = self.backbone(torch.cat(x[start_idx: end_idx]),perm=None)
+        #     spatial_features =self.DenseHead(_middle_features)
+        #     # The output is a tuple with XCiT model. See:
+        #     # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
+        #     if isinstance(_out, tuple):
+        #         _out = _out[0]
+        #     # accumulate outputs
+        #     output = torch.cat((output, _out))
+        #     start_idx = end_idx
         # Run the head forward on the concatenated features.
-        return   self.head(output),spatial_features # 
+        return   self.head(global_out),spatial_features,global_out, local_embd# 
+        # return   self.head(output),spatial_features,output, local_embd# 
 
 
 
