@@ -23,7 +23,7 @@ _C.PIN_MEMORY = True
 _C.PRINT_FREQ = 20
 _C.RANK = 0
 _C.VERBOSE = True
-_C.WORKERS = 4
+_C.WORKERS = 40
 _C.MODEL_SUMMARY = False
 
 _C.AMP = CN()
@@ -285,7 +285,7 @@ def update_config(config, args):
     config.merge_from_list(args.opts)
     file_name, _ = op.splitext(op.basename(args.cfg))
     config.NAME = file_name + config.NAME
-    config.RANK = args.rank
+    # config.RANK = args.rank
 
     if 'timm' == config.TRAIN.LR_SCHEDULER.METHOD:
         config.TRAIN.LR_SCHEDULER.ARGS.epochs = config.TRAIN.END_EPOCH

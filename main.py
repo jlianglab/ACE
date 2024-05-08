@@ -12,14 +12,16 @@ import math
 import json
 from pathlib import Path
 import torch
+import torch.backends
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 from PIL import Image
 import torch
 import torch.nn as nn
-import torch.distributed as dist
-import torch.backends.cudnn as cudnn
+# import torch.distributed as dist
+# import torch.backends.cudnn as cudnn
+# import torch.backends.mps as mps
 import torch.nn.functional as F
 from torchvision import datasets, transforms
 from torchvision import models as torchvision_models
@@ -140,17 +142,18 @@ def get_args_parser():
 
 
 def train_dino(args):
-    utils.init_distributed_mode(args)
+    # utils.init_distributed_mode(args)
     utils.fix_random_seeds(args.seed)
     print("git:\n  {}\n".format(utils.get_sha()))
     print("\n".join("%s: %s" % (k, str(v)) for k, v in sorted(dict(vars(args)).items())))
-    cudnn.benchmark = True
+    # cudnn.benchmark = True
 
     if os.path.exists(os.path.join(args.output_dir, "log.txt")):
         log_writer = open(os.path.join(args.output_dir, "log.txt"), 'a')
     else:
         log_writer = open(os.path.join(args.output_dir, "log.txt"), 'w')
 
+    device = "mps" if torch.backends.mps.is_available() else "cuda"
     # ============ preparing data ... ============
     transform = DataAugmentationDINO()
     #transform =DataAugmentationDINO()
@@ -158,10 +161,10 @@ def train_dino(args):
     #dataset = ImageFolder_vindr(args.data_path, transform=transform)
     # dataset = LDPolyp(augment=transform)
     dataset = ChestX_ray14(args.data_path,'./data/xray14/official/train_val.txt', augment=transform)
-    sampler = torch.utils.data.DistributedSampler(dataset, shuffle=True)
+    # sampler = torch.utils.data.DistributedSampler(dataset, shuffle=True)
     data_loader = torch.utils.data.DataLoader(
         dataset,
-        sampler=sampler,
+        # sampler=sampler,
         batch_size=args.batch_size_per_gpu,
         num_workers=args.num_workers,
         pin_memory=True,
@@ -211,19 +214,19 @@ def train_dino(args):
 
 
     # move networks to gpu
-    student, teacher = student.cuda(), teacher.cuda()
+    student, teacher = student.to(device), teacher.to(device)
     # synchronize batch norms (if any)
     if utils.has_batchnorms(student):
         student = nn.SyncBatchNorm.convert_sync_batchnorm(student)
         teacher = nn.SyncBatchNorm.convert_sync_batchnorm(teacher)
 
         # we need DDP wrapper to have synchro batch norms working...
-        teacher = nn.parallel.DistributedDataParallel(teacher, device_ids=[args.gpu],find_unused_parameters=True)
+        teacher = nn.DataParallel(teacher)
         teacher_without_ddp = teacher.module
     else:
         # teacher_without_ddp and teacher are the same thing
         teacher_without_ddp = teacher
-    student = nn.parallel.DistributedDataParallel(student, device_ids=[args.gpu],find_unused_parameters=True)
+    student = nn.DataParallel(student)
     # teacher and student start with the same weights
     teacher_without_ddp.load_state_dict(student.module.state_dict(),strict=False)
     # there is no backpropagation through the teacher, so no need for gradients
@@ -232,7 +235,7 @@ def train_dino(args):
     print(f"Student and Teacher are built: they are both {args.arch} network.", file=log_writer)
     log_writer.flush()
     # ============ preparing loss ... ============
-    barlow_loss = AttentionMLPModel(512,512,1).cuda()#BarlowLoss(
+    barlow_loss = AttentionMLPModel(512,512,1).to(device)#BarlowLoss(
     dino_loss = DINOLoss(
         args.out_dim,
         2,  # total number of crops
@@ -240,7 +243,7 @@ def train_dino(args):
         args.teacher_temp,
         args.warmup_teacher_temp_epochs,
         args.epochs,
-    ).cuda()
+    ).to(device)
 
     # ============ preparing optimizer ... ============
     params_groups = utils.get_params_groups(student)
@@ -294,12 +297,11 @@ def train_dino(args):
     print("Starting DINO training !", file=log_writer)
     log_writer.flush()
     for epoch in range(start_epoch, args.epochs):
-        data_loader.sampler.set_epoch(epoch)
 
         # ============ training one epoch of DINO ... ============
         train_stats = train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss,
             data_loader, optimizer, lr_schedule, wd_schedule, momentum_schedule,
-            epoch, fp16_scaler, args, log_writer)
+            epoch, fp16_scaler, args, log_writer, device=device)
 
         # ============ writing logs ... ============
         save_dict = {
@@ -326,17 +328,65 @@ def train_dino(args):
     print('Training time {}'.format(total_time_str), file=log_writer)
     log_writer.flush()
 
+# Function to get Composition labels
+def get_comp_barlow_labels(l2smapping, c2_rearranged_embeddings, crop_size = 14):
+    # Input : l2smapping : (196, 1)
+    # Output : comp_embeddings : (49, 1)
+    ''' IF we view [196,1] as [14,14]:
+    0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 1 1 1 1 1 1
+    0 0 0 0 0 0 0 1 1 1 1 1 1
+    0 0 0 0 0 0 0 1 1 1 1 1 1
+    0 0 0 0 0 0 0 1 1 1 1 1 1
+    0 0 0 0 0 0 0 1 1 1 1 1 1
+    0 0 0 0 0 0 0 1 1 1 1 1 1
+    The [7,7] view of the output will look like this:
+    0 0 0 0 0 0 0
+    0 0 0 0 0 0 0
+    0 0 0 0 0 0 0
+    0 0 0 0 0 0 0
+    0 0 0 0 1 1 1
+    0 0 0 0 1 1 1
+    0 0 0 0 1 1 1
+    '''
+    comp_embeddings = torch.zeros(c2_rearranged_embeddings.shape[0])
+    for i in range(0, l2smapping.shape[0], crop_size * 2):
+        for j in range(0, crop_size, 2):
+            if l2smapping[i + j] == 1:
+                comp_embeddings.cat(torch.tensor([1]))
+            else:
+                comp_embeddings.cat(torch.tensor([0]))
+    return comp_embeddings
+
+# Function to get Decomposition labels
+def get_decomp_barlow_labels(s2lmapping, c1_embeddings):
+    # Output : s2lmapping : (196, 1)
+    # Input : decomp_embeddings : (784, 1)
+    '''
+    Coverts an input of [0,1,0,1] to [0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1]
+    '''
+    c1_decomp_embeddings = torch.zeros(c1_embeddings.shape[0] * 4)
+    for i, item in enumerate(s2lmapping):
+        c1_decomp_embeddings[i * 4 : i * 4 + 4] = item
 
 def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss, data_loader,
                     optimizer, lr_schedule, wd_schedule, momentum_schedule,epoch,
-                    fp16_scaler, args, log_writer):
+                    fp16_scaler, args, log_writer, device):
+    
     metric_logger = utils.MetricLogger(delimiter="  ")
     header = 'Epoch: [{}/{}]'.format(epoch, args.epochs)
-    ce_loss = nn.CrossEntropyLoss()
-    mse_loss =nn.MSELoss()
-    barlow_loss.cuda()
-    criterion = nn.CosineSimilarity(dim=1).cuda()
-    # triplet_loss =barlow_loss.cuda()
+    # ce_loss = nn.CrossEntropyLoss()
+    # mse_loss =nn.MSELoss()
+    barlow_loss.to(device)
+    # criterion = nn.CosineSimilarity(dim=1).to(device)
+    # triplet_loss =barlow_loss.to(device)
     local_loss = TripletLoss()
     #torch.autograd.set_detect_anomaly(True)
     for it, ((images,locations,s2lmapping,l2smapping), _) in enumerate(metric_logger.log_every(data_loader, 50, header, log_writer)):
@@ -350,28 +400,29 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
                 param_group["weight_decay"] = wd_schedule[it]
 
         # move images to gpu
-        images = [im.cuda(non_blocking=True).float() for im in images]
+        images = [im.to(torch.float32).to(device) for im in images]
 
 
-        locations=[location.cuda(non_blocking=True) for location in locations]
+        locations=[location.to(device) for location in locations]
         # teacher and student forward passes + compute dino loss
         with torch.cuda.amp.autocast(fp16_scaler is not None):
             # with autograd.detect_anomaly():
             teacher_cls, teacher_spatial = teacher(images)  
-            student_cls, student_spatial, student_spatial_pred = student(images) # global embedding of student, local embeddings of teacher, local embeddings of student
-
-            student_spatials_pred = student_spatial_pred.chunk(2)
-            student_spatials = student_spatial.chunk(2)
+            student_cls, student_spatial, student_spatial_pred, comp_decomp, comp_decomp_pred= student(images) # global embedding of student, (local embeddings of teacher; student), (local pred embeddings of teacher; student), (decomposition; composition embeddings)
+            c1_barlow_labels = get_decomp_barlow_labels(s2lmapping=s2lmapping,c1_embeddings=comp_decomp[0])
+            c2_barlow_labels = get_comp_barlow_labels(l2smapping=l2smapping,c2_rearranged_embeddings=comp_decomp[1])
+            # student_spatials_pred = student_spatial_pred.chunk(2)
+            # student_spatials = student_spatial.chunk(2)
 
 
             loss_vic=0
             loss_local=0
             
             global_loss = dino_loss(student_cls, teacher_cls, epoch)
-            loss1, loss2 = barlow_loss(student_spatials,student_spatials_pred,locations[0],locations[1],s2lmapping.cuda(),l2smapping.cuda())
+            loss1, loss2 = barlow_loss(comp_decomp,comp_decomp_pred,locations[0],locations[1],c1_barlow_labels.to(device),c2_barlow_labels.to(device))
             loss_vic += (loss1+loss2)/2 # matrix matching loss
 
-            loss_local =  local_loss(student_spatials[0], student_spatials_pred[1], l2smapping.cuda(),s2lmapping.cuda()) + local_loss(student_spatials_pred[0], student_spatials[1], l2smapping.cuda(),s2lmapping.cuda()) #contrastive learning loss
+            loss_local =  local_loss(comp_decomp[0], comp_decomp_pred[1], c2_barlow_labels.to(device),c1_barlow_labels.to(device)) + local_loss(comp_decomp_pred[0], comp_decomp[1], c2_barlow_labels.to(device),c1_barlow_labels.to(device)) #contrastive learning loss
 
             loss = (loss_vic+loss_local+global_loss)/2# loss_local#loss_local #loss_vic#(+loss_local)/2#(loss_dino + order_loss+ loss_vic+restor_loss)/4
             # loss = loss_local
@@ -404,7 +455,7 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
                     param_k.data.mul_(m).add_((1 - m) * param_q.detach().data)
 
         # logging
-        torch.cuda.synchronize()
+        # torch.cuda.synchronize()
         metric_logger.update(loss=loss.item())
         # metric_logger.update(order_loss=order_loss.item())
         metric_logger.update(loss_vic=loss_vic.item())
@@ -485,6 +536,7 @@ class AttentionMLPModel(nn.Module): # compute matrix matching loss
         self.nonlinear =  MLP("512",196,"layer_norm")
         # Loss Criterion
         self.criterion = nn.BCEWithLogitsLoss()
+        self.device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
 
         
@@ -498,13 +550,13 @@ class AttentionMLPModel(nn.Module): # compute matrix matching loss
         # print(logits_A.shape,logits_B.shape)
         # logits_A = self.nonlinear(logits_A)
         # logits_A_ = self.nonlinear(logits_A_)
-        loss1 = ( sigmoid_focal_loss(logits_A,l2smapping.cuda(),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_A_,l2smapping.cuda(),alpha=0.99,gamma=0).mean())/2
-        loss2 = ( sigmoid_focal_loss(logits_B,s2lmapping.cuda(),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_B_,s2lmapping.cuda(),alpha=0.99,gamma=0).mean())/2
+        loss1 = ( sigmoid_focal_loss(logits_A,l2smapping.to(self.device),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_A_,l2smapping.to(self.device),alpha=0.99,gamma=0).mean())/2
+        loss2 = ( sigmoid_focal_loss(logits_B,s2lmapping.to(self.device),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_B_,s2lmapping.to(self.device),alpha=0.99,gamma=0).mean())/2
 
 
         # # Get predicted labels
-        # predicted_A = (torch.sigmoid(logits_A) >= 0.5).float()
-        # predicted_B = (torch.sigmoid(logits_B) >= 0.5).float()
+        # predicted_A = (torch.sigmoid(logits_A) >= 0.5).to(torch.float32) for im in images])
+        # predicted_B = (torch.sigmoid(logits_B) >= 0.5).to(torch.float32) for im in images])
 
 
 
@@ -659,8 +711,8 @@ class DINOLoss(nn.Module):
         Update center used for teacher output.
         """
         batch_center = torch.sum(teacher_output, dim=0, keepdim=True)
-        dist.all_reduce(batch_center)
-        batch_center = batch_center / (len(teacher_output) * dist.get_world_size())
+        # dist.all_reduce(batch_center)
+        batch_center = batch_center / (len(teacher_output) * utils.get_world_size())
 
         # ema update
         self.center = self.center * self.center_momentum + batch_center * (1 - self.center_momentum)

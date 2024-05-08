@@ -678,6 +678,7 @@ class SwinTransformer(nn.Module):
         return {'relative_position_bias_table'}
 
     def forward_features(self, x):
+        print("forward_features called", x.shape)
         x = self.patch_embed(x)
         if self.ape:
             x = x + self.absolute_pos_embed
@@ -689,7 +690,7 @@ class SwinTransformer(nn.Module):
         x_region = self.norm(x)  # B L C
         x = self.avgpool(x_region.transpose(1, 2))  # B C 1
         x = torch.flatten(x, 1)
-
+        print("forward_features end", x.shape)
         if self.use_dense_prediction:
             return x, x_region
         else:
@@ -697,6 +698,7 @@ class SwinTransformer(nn.Module):
 
 
     def forward_feature_maps(self, x):
+        print ("forward_features_maps called", x.shape)
         x = self.patch_embed(x)
         if self.ape:
             x = x + self.absolute_pos_embed
@@ -708,12 +710,13 @@ class SwinTransformer(nn.Module):
         x_grid = self.norm(x)  # B L C
         x = self.avgpool(x_grid.transpose(1, 2))  # B C 1
         x = torch.flatten(x, 1)
-
+        print ("forward_features_maps", x.shape)
         return x, x_grid
 
 
     def forward(self, x):
         # convert to list
+        print("forward called", x.shape)
         if not isinstance(x, list):
             x = [x]
         # Perform forward pass separately on each resolution input.
@@ -749,7 +752,7 @@ class SwinTransformer(nn.Module):
                     output_fea = torch.cat((output_fea, _out_fea.reshape(B * N, C) ))
                     npatch.append(N)
                 start_idx = end_idx
-
+            print("forward end", output_fea.shape)
             return self.head(output_cls), self.head_dense(output_fea), output_fea, npatch 
 
         else:
@@ -762,6 +765,7 @@ class SwinTransformer(nn.Module):
                     output = torch.cat((output, _out))
                 start_idx = end_idx
             # Run the head forward on the concatenated features.
+            print("forward end", output.shape)
             return self.head(output)
 
 
@@ -996,7 +1000,7 @@ class SwinTransformerForSimMIM(SwinTransformer):
         trunc_normal_(tensor, mean=mean, std=std, a=-std, b=std)
 
     def forward(self, x, perm=None):
-        ipdb.set_trace()
+        # ipdb.set_trace()
         B, nc, w, h = x.shape
         if perm is not None:
             

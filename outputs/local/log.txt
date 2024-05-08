@@ -1,0 +1,37 @@
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Epoch: [0/302]  [    0/86524]  eta: 10 days, 18:59:21  loss: 5.392112 (5.392112)  loss_vic: 0.033168 (0.033168)  global_loss: 10.751056 (10.751056)  lr: 0.000000 (0.000000)  wd: 0.040000 (0.040000)  time: 10.775757  data: 8.641057
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !

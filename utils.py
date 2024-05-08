@@ -31,7 +31,7 @@ import torch
 from torch import nn
 import torch.distributed as dist
 from PIL import ImageFilter, ImageOps
-
+import ipdb
 
 class GaussianBlur(object):
     """
@@ -181,12 +181,6 @@ def init_from_imagenet(ckp_path, student, teacher):
     msg = teacher.load_state_dict(state_dict, strict=False)
     print(msg)
 
-
-
-
-
-
-
 def restart_from_checkpoint(ckp_path, run_variables=None, **kwargs):
     """
     Re-start from checkpoint
@@ -260,10 +254,6 @@ def fix_random_seeds(seed=31):
 
 
 class SmoothedValue(object):
-    """Track a series of values and provide access to smoothed values over a
-    window or the global series average.
-    """
-
     def __init__(self, window_size=20, fmt=None):
         if fmt is None:
             fmt = "{median:.6f} ({global_avg:.6f})"
@@ -276,19 +266,6 @@ class SmoothedValue(object):
         self.deque.append(value)
         self.count += n
         self.total += value * n
-
-    def synchronize_between_processes(self):
-        """
-        Warning: does not synchronize the deque!
-        """
-        if not is_dist_avail_and_initialized():
-            return
-        t = torch.tensor([self.count, self.total], dtype=torch.float64, device='cuda')
-        dist.barrier()
-        dist.all_reduce(t)
-        t = t.tolist()
-        self.count = int(t[0])
-        self.total = t[1]
 
     @property
     def median(self):
@@ -320,34 +297,6 @@ class SmoothedValue(object):
             max=self.max,
             value=self.value)
 
-
-def reduce_dict(input_dict, average=True):
-    """
-    Args:
-        input_dict (dict): all the values will be reduced
-        average (bool): whether to do average or sum
-    Reduce the values in the dictionary from all processes so that all processes
-    have the averaged results. Returns a dict with the same fields as
-    input_dict, after reduction.
-    """
-    world_size = get_world_size()
-    if world_size < 2:
-        return input_dict
-    with torch.no_grad():
-        names = []
-        values = []
-        # sort the keys so that they are consistent across processes
-        for k in sorted(input_dict.keys()):
-            names.append(k)
-            values.append(input_dict[k])
-        values = torch.stack(values, dim=0)
-        dist.all_reduce(values)
-        if average:
-            values /= world_size
-        reduced_dict = {k: v for k, v in zip(names, values)}
-    return reduced_dict
-
-
 class MetricLogger(object):
     def __init__(self, delimiter="\t"):
         self.meters = defaultdict(SmoothedValue)
@@ -375,10 +324,6 @@ class MetricLogger(object):
                 "{}: {}".format(name, str(meter))
             )
         return self.delimiter.join(loss_str)
-
-    def synchronize_between_processes(self):
-        for meter in self.meters.values():
-            meter.synchronize_between_processes()
 
     def add_meter(self, name, meter):
         self.meters[name] = meter
@@ -439,6 +384,16 @@ class MetricLogger(object):
             header, total_time_str, total_time / len(iterable)), file=log_writer)
         log_writer.flush()
 
+def accuracy(output, target, topk=(1,)):
+    maxk = max(topk)
+    batch_size = target.size(0)
+    _, pred = output.topk(maxk, 1, True, True)
+    pred = pred.t()
+    correct = pred.eq(target.reshape(1, -1).expand_as(pred))
+    return [correct[:k].reshape(-1).float().sum(0) * 100. / batch_size for k in topk]
+
+def trunc_normal_(tensor, mean=0., std=1., a=-2., b=2.):
+    return _no_grad_trunc_normal_(tensor, mean, std, a, b)
 
 def get_sha():
     cwd = os.path.dirname(os.path.abspath(__file__))
@@ -459,86 +414,6 @@ def get_sha():
     message = f"sha: {sha}, status: {diff}, branch: {branch}"
     return message
 
-
-def is_dist_avail_and_initialized():
-    if not dist.is_available():
-        return False
-    if not dist.is_initialized():
-        return False
-    return True
-
-
-def get_world_size():
-    if not is_dist_avail_and_initialized():
-        return 1
-    return dist.get_world_size()
-
-
-def get_rank():
-    if not is_dist_avail_and_initialized():
-        return 0
-    return dist.get_rank()
-
-
-def is_main_process():
-    return get_rank() == 0
-
-
-def save_on_master(*args, **kwargs):
-    if is_main_process():
-        torch.save(*args, **kwargs)
-
-
-def setup_for_distributed(is_master):
-    """
-    This function disables printing when not in master process
-    """
-    import builtins as __builtin__
-    builtin_print = __builtin__.print
-
-    def print(*args, **kwargs):
-        force = kwargs.pop('force', False)
-        if is_master or force:
-            builtin_print(*args, **kwargs)
-
-    __builtin__.print = print
-
-
-def init_distributed_mode(args):
-    # launched with torch.distributed.launch
-    if 'RANK' in os.environ and 'WORLD_SIZE' in os.environ:
-        args.rank = int(os.environ["RANK"])
-        args.world_size = int(os.environ['WORLD_SIZE'])
-        args.gpu = int(os.environ['LOCAL_RANK'])
-    # launched with submitit on a slurm cluster
-    elif 'SLURM_PROCID' in os.environ:
-        args.rank = int(os.environ['SLURM_PROCID'])
-        args.gpu = args.rank % torch.cuda.device_count()
-    # launched naively with `python main_dino.py`
-    # we manually add MASTER_ADDR and MASTER_PORT to env variables
-    elif torch.cuda.is_available():
-        print('Will run the code on one GPU.')
-        args.rank, args.gpu, args.world_size = 0, 0, 1
-        os.environ['MASTER_ADDR'] = '127.0.0.1'
-        os.environ['MASTER_PORT'] = '29500'
-    else:
-        print('Does not support training without GPU.')
-        sys.exit(1)
-
-    dist.init_process_group(
-        backend="nccl",
-        init_method=args.dist_url,
-        world_size=args.world_size,
-        rank=args.rank,
-    )
-
-    torch.cuda.set_device(args.gpu)
-    print('| distributed init (rank {}): {}'.format(
-        args.rank, args.dist_url), flush=True)
-    dist.barrier()
-    setup_for_distributed(args.rank == 0)
-
-
 def accuracy(output, target, topk=(1,)):
     """Computes the accuracy over the k top predictions for the specified values of k"""
     maxk = max(topk)
@@ -548,6 +423,8 @@ def accuracy(output, target, topk=(1,)):
     correct = pred.eq(target.reshape(1, -1).expand_as(pred))
     return [correct[:k].reshape(-1).float().sum(0) * 100. / batch_size for k in topk]
 
+def get_world_size():
+    return 1
 
 def _no_grad_trunc_normal_(tensor, mean, std, a, b):
     # Cut & paste from PyTorch official master until it's in a few official releases - RW
@@ -589,7 +466,6 @@ def trunc_normal_(tensor, mean=0., std=1., a=-2., b=2.):
     # type: (Tensor, float, float, float, float) -> Tensor
     return _no_grad_trunc_normal_(tensor, mean, std, a, b)
 
-
 class LARS(torch.optim.Optimizer):
     """
     Almost copy-paste from https://github.com/facebookresearch/barlowtwins/blob/main/main.py
@@ -630,6 +506,55 @@ class LARS(torch.optim.Optimizer):
 
                 p.add_(mu, alpha=-g['lr'])
 
+def rearrange_embeddings(input, crop_size=14):
+    input_shape = input.size()
+    last_two_dims = input_shape[-2:]
+    
+    input_tensor_reshaped = input.view(-1, *last_two_dims)
+    
+    input_slices = torch.split(input_tensor_reshaped, 1, dim=0)
+
+    def apply_logic(embeddings):
+        assert (
+            embeddings.shape[0] % crop_size == 0
+        ), f"Embeddings length {embeddings.shape[0]} mismatch with crop_size {crop_size}"
+        # Calculate the multiplier
+        multiplier = np.arange(embeddings.shape[0]) // (crop_size * 2)
+
+        # Calculate the effective index
+        eff_i = np.arange(1, embeddings.shape[0] + 1) % (2 * crop_size)
+        eff_i[eff_i == 0] = 2 * crop_size
+
+        # Calculate the final index based on the pattern
+        final_index = np.where(
+            eff_i % 4 == 1,
+            (eff_i + 1) // 2,
+            np.where(eff_i % 4 == 2, (eff_i + 2) // 2, crop_size + (eff_i // 2)),
+        )
+
+        # Apply adjustments to final index
+        final_index -= 1
+        final_index += 2 * crop_size * multiplier
+
+        # Convert final index to integers
+        final_index = final_index.astype(int)
+        # Rearrange embeddings using fancy indexing
+        rearranged_embeddings = embeddings[final_index]
+        # ipdb.set_trace()
+        return rearranged_embeddings
+
+    results = torch.cat([apply_logic(embeddings.squeeze(0)) for embeddings in input_slices], dim=0)
+    reshaped = results.view(*input_shape[:-2], *last_two_dims)
+    return reshaped
+
+def prep_composition(embeddings, composition_factor=4):
+    num_groups = embeddings.shape[0] // composition_factor
+    print(embeddings,"\n")
+    groups = embeddings.reshape(num_groups, embeddings.shape[1] * composition_factor)
+    print(groups)
+    groups = torch.tensor(groups, dtype=torch.float32)
+    # composed = model(groups)
+    return groups
 
 class MultiCropWrapper(nn.Module):
     """
@@ -640,7 +565,7 @@ class MultiCropWrapper(nn.Module):
     concatenate all the output features and run the head forward on these
     concatenated features.
     """
-    def __init__(self, backbone, head ,  DenseHead,args):
+    def __init__(self, backbone, head , DenseHead,args):
         super(MultiCropWrapper, self).__init__()
         # disable layers dedicated to ImageNet labels classification
         backbone.fc, backbone.head = nn.Identity(), nn.Identity()
@@ -648,10 +573,26 @@ class MultiCropWrapper(nn.Module):
         self.head = head
         self.DenseHead = DenseHead
         self.args =args
+        self.composition_factor = 4
+        self.decomposition_factor = 4
+        self.emb_len = self.DenseHead.out_dim
         self.predictor_ = nn.Sequential(nn.Linear(512, 512, bias=False),
                                 nn.LayerNorm(512),
                                 nn.ReLU(inplace=True), # hidden layer
                                 nn.Linear(512, 512)) # output layer
+        self.composition_head = nn.Sequential(nn.Linear(self.emb_len * 4, self.emb_len*2, bias=False),
+                                                nn.LayerNorm(self.emb_len*2),
+                                                nn.ReLU(inplace=True),
+                                                nn.Linear(self.emb_len*2, self.emb_len, bias=False),
+                                                nn.LayerNorm(self.emb_len),
+                                                nn.ReLU(inplace=True),)
+        self.decomposition_head = nn.Sequential(nn.Linear(self.emb_len,self.emb_len*2, bias=False),
+                                                nn.LayerNorm(self.emb_len*2),
+                                                nn.ReLU(inplace=True),
+                                                nn.Linear(self.emb_len*2, self.emb_len * 4, bias=False),
+                                                nn.LayerNorm(self.emb_len * 4),
+                                                nn.ReLU(inplace=True),)
+
     def forward(self, x):
         spatial_features = []
         # convert to list
@@ -670,14 +611,19 @@ class MultiCropWrapper(nn.Module):
                 #print(perm[0].shape,perm[1].shape)
                 _out,_middle_features = self.backbone( image_origin_input)
                 spatial_features = self.DenseHead(_middle_features)#)
-
-
             else:
-
                 _out,_middle_features = self.backbone( image_origin_input)
                 spatial_features+= self.DenseHead(_middle_features).chunk(self.args.local_crops_number)
+                # ipdb.set_trace()
             # The output is a tuple with XCiT model. See:
             # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
+            c1_emb = spatial_features[0]
+            c2_emb = spatial_features[1]
+            # Rerrange and perform composition on C2 embeddings
+            c2_rearranged_emb = rearrange_embeddings(c2_emb)
+            c2_composed_emb = self.composition_head(c2_rearranged_emb)
+            # Perform decomposition on C1 embeddings
+            c1_decomposed_emb = self.decomposition_head(c1_emb)
             if isinstance(_out, tuple):
                 _out = _out[0]
             # accumulate outputs
@@ -686,7 +632,7 @@ class MultiCropWrapper(nn.Module):
             # if mask_turn:
             #     loss_mask=self.head2( image_origin_input,_middle_features,mask_origin_input)
         # Run the head forward on the concatenated features.
-        return self.head(output),spatial_features.detach(),self.predictor_(spatial_features)# global embedding, local embeddings of teacher, local embeddings of student
+        return self.head(output),spatial_features.detach(),self.predictor_(spatial_features),(c2_composed_emb.detach(), c1_decomposed_emb.detach()), (self.predictor_(c2_composed_emb), self.predictor_(c1_decomposed_emb))# global embedding, local embeddings of teacher, local embeddings of student
 
 
 class MultiCropWrapper_teacher(nn.Module):
@@ -728,10 +674,6 @@ class MultiCropWrapper_teacher(nn.Module):
             start_idx = end_idx
         # Run the head forward on the concatenated features.
         return   self.head(output),spatial_features # 
-
-
-
-
 
 def get_params_groups(model):
     regularized = []

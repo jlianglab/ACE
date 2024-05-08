@@ -18,8 +18,92 @@ try:  # SciPy >= 0.19
     from scipy.special import comb
 except ImportError:
     from scipy.misc import comb
+from local_comp_decomp import LocalCompDecompCrop    
+
+def img_transforms():
+    size = 1024
+    img_transforms = transforms.Compose([
+                        # KeepRatioResize(size),
+                        # CenterCrop(size),
+                        # GridRandomCrop(size),
+                        # PatchCrop(size)
+                        LocalCompDecompCrop(size, 32, 14)
+    ])
+    return img_transforms
+
+def patch_transforms(mode):
+    if mode == 'train':
+        img_transforms = transforms.Compose([
+                            To_Tensor(),
+                            transforms.GaussianBlur(kernel_size=5),
+                            transforms.RandomHorizontalFlip(p=0.5),
+                            transforms.RandomRotation(degrees=7),
+                            transforms.Normalize([0.5056, 0.5056, 0.5056], [0.252, 0.252, 0.252])
+        ])
+    elif mode == 'val':
+        img_transforms = transforms.Compose([
+                            transforms.Normalize([0.5056, 0.5056, 0.5056], [0.252, 0.252, 0.252])
+        ])
+    return img_transforms
+
+def build_md_transform(mode, dataset = "chexray"):
+    transformList_mg = []
+    transformList_simple = []
+
+    if dataset == "imagenet":
+        normalize = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    else:
+        normalize = transforms.Normalize([0.5056, 0.5056, 0.5056], [0.252, 0.252, 0.252])
 
 
+    if mode=="train":
+        transformList_mg.append(Rearrange_and_Norm())
+        transformList_mg.append(local_pixel_shuffling)
+        transformList_mg.append(nonlinear_transformation)
+        transformList_mg.append(transforms.RandomApply([paint], p=0.9))
+        transformList_mg.append(torch.from_numpy)
+        transformList_mg.append(normalize)
+        transformSequence_mg = transforms.Compose(transformList_mg)
+
+        transformList_simple.append(Rearrange_and_Norm())
+        transformList_simple.append(torch.from_numpy)
+        transformList_simple.append(normalize)
+        transformSequence_simple = transforms.Compose(transformList_simple)
+
+        return transformSequence_mg, transformSequence_simple
+    else:
+        transformList_simple.append(Rearrange_and_Norm())
+        transformList_simple.append(torch.from_numpy)
+        transformList_simple.append(normalize)
+        transformSequence_simple = transforms.Compose(transformList_simple)
+        return transformSequence_simple, transformSequence_simple
+
+class NIHchest_dataset(Dataset):
+    def __init__(self, dataset_root, datalist, config, img_transforms, popar_transform):
+        # super(NIHchest_dataset, self).__init__()
+        self.img_transforms = img_transforms
+        self.popar_transform = popar_transform
+        self.dataset_root = dataset_root
+        self.datalist = datalist
+        self.image_size = config.DATA.IMG_SIZE
+        self.patch_size = config.DATA.PATCH_SIZE
+
+    def __getitem__(self, index):
+
+        image = cv2.imread(os.path.join(self.dataset_root, self.datalist[index]))
+
+        # global embedding consistency data
+        patch, (c1_x1, idx_y1), (idx_x2, idx_y2), (k, l) = self.img_transforms(image)
+        c1_overlap_indices, c2_overlap_indices = get_index((c1_x1, idx_y1), (idx_x2, idx_y2), (k, l))
+        # print(patch.shape)
+        patch1 = patch[:,:,0:3]
+        patch2 = patch[:,:,3:6]
+
+        return patch1.float(), patch2.float(), c1_overlap_indices, c2_overlap_indices
+    
+    def __len__(self):
+        return len(self.datalist)
+    
 def build_loader_compose(config):
     dataset_root = config.DATA.DATA_PATH
     traintxt = config.DATA.TRAIN_LIST
@@ -86,92 +170,6 @@ def build_loader_compose(config):
 
     return train_dataset, val_dataset, train_loader, val_loader
 
-    
-
-class NIHchest_dataset(Dataset):
-    def __init__(self, dataset_root, datalist, config, img_transforms, popar_transform):
-        # super(NIHchest_dataset, self).__init__()
-        self.img_transforms = img_transforms
-        self.popar_transform = popar_transform
-        self.dataset_root = dataset_root
-        self.datalist = datalist
-        self.image_size = config.DATA.IMG_SIZE
-        self.patch_size = config.DATA.PATCH_SIZE
-
-    def __getitem__(self, index):
-
-        image = cv2.imread(os.path.join(self.dataset_root, self.datalist[index]))
-
-        # global embedding consistency data
-        patch, (idx_x1, idx_y1), (idx_x2, idx_y2), (k, l) = self.img_transforms(image)
-        sample_index1, sample_index2 = get_index((idx_x1, idx_y1), (idx_x2, idx_y2), (k, l))
-        # print(patch.shape)
-        patch1 = patch[:,:,0:3]
-        patch2 = patch[:,:,3:6]
-
-        return patch1.float(), patch2.float(), sample_index1, sample_index2
-    
-    def __len__(self):
-        return len(self.datalist)
-
-
-def img_transforms():
-    size = 1024
-    img_transforms = transforms.Compose([
-                        # KeepRatioResize(size),
-                        # CenterCrop(size),
-                        # GridRandomCrop(size),
-                        PatchCrop(size)
-    ])
-    return img_transforms
-
-def patch_transforms(mode):
-    if mode == 'train':
-        img_transforms = transforms.Compose([
-                            To_Tensor(),
-                            transforms.GaussianBlur(kernel_size=5),
-                            transforms.RandomHorizontalFlip(p=0.5),
-                            transforms.RandomRotation(degrees=7),
-                            transforms.Normalize([0.5056, 0.5056, 0.5056], [0.252, 0.252, 0.252])
-        ])
-    elif mode == 'val':
-        img_transforms = transforms.Compose([
-                            transforms.Normalize([0.5056, 0.5056, 0.5056], [0.252, 0.252, 0.252])
-        ])
-    return img_transforms
-
-def build_md_transform(mode, dataset = "chexray"):
-    transformList_mg = []
-    transformList_simple = []
-
-    if dataset == "imagenet":
-        normalize = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    else:
-        normalize = transforms.Normalize([0.5056, 0.5056, 0.5056], [0.252, 0.252, 0.252])
-
-
-    if mode=="train":
-        transformList_mg.append(Rearrange_and_Norm())
-        transformList_mg.append(local_pixel_shuffling)
-        transformList_mg.append(nonlinear_transformation)
-        transformList_mg.append(transforms.RandomApply([paint], p=0.9))
-        transformList_mg.append(torch.from_numpy)
-        transformList_mg.append(normalize)
-        transformSequence_mg = transforms.Compose(transformList_mg)
-
-        transformList_simple.append(Rearrange_and_Norm())
-        transformList_simple.append(torch.from_numpy)
-        transformList_simple.append(normalize)
-        transformSequence_simple = transforms.Compose(transformList_simple)
-
-        return transformSequence_mg, transformSequence_simple
-    else:
-        transformList_simple.append(Rearrange_and_Norm())
-        transformList_simple.append(torch.from_numpy)
-        transformList_simple.append(normalize)
-        transformSequence_simple = transforms.Compose(transformList_simple)
-        return transformSequence_simple, transformSequence_simple
-
 
 def get_index(a, b, c): 
 # 输入：a为crop1左上角grid的index，b为patch2左上角grid的index
@@ -184,21 +182,23 @@ def get_index(a, b, c):
       c: the h, w rate of crop1, (14*k)*(14*l)
     output: the overlap mask of crop1 and crop2, and the shape of overlap masks are all 14*14
     """
-    (idx_x1, idx_y1), (idx_x2, idx_y2), (k, l) = a, b, c
+    (c1_x1, c1_y1), (c2_x2, c2_y2), (k, l) = a, b, c
 
     # 重合部分index范围
-    idx_xmin, idx_xmax = max(idx_x1, idx_x2), min((idx_x1+14*l), (idx_x2+14))
-    idx_ymin, idx_ymax = max(idx_y1, idx_y2), min((idx_y1+14*k), (idx_y2+14))
+    overlap_xmin, overlap_xmax = max(c1_x1, c2_x2), min((c1_x1+14*l), (c2_x2+14))
+    overlap_ymin, overlap_ymax = max(c1_y1, c2_y2), min((c1_y1+14*k), (c2_y2+14))
 
     # 找出重合部分在crop1中对应的index list
     overlap_mask_1 = torch.zeros((14,14))
-    overlap_mask_1[(idx_ymin-idx_y1)//k : (idx_ymax-idx_y1)//k,(idx_xmin-idx_x1)//l : (idx_xmax-idx_x1)//l] = 1
+    overlap_mask_1[(overlap_ymin-c1_y1)//k : (overlap_ymax-c1_y1)//k,
+                   (overlap_xmin-c1_x1)//l : (overlap_xmax-c1_x1)//l] = 1
     overlap_mask_1 = overlap_mask_1.flatten()
     # index1 = torch.nonzero(overlap_mask_1)
     # print(index1)
 
     overlap_mask_2 = torch.zeros((14,14))
-    overlap_mask_2[idx_ymin-idx_y2:idx_ymax-idx_y2,idx_xmin-idx_x2:idx_xmax-idx_x2] = 1
+    overlap_mask_2[overlap_ymin-c2_y2:overlap_ymax-c2_y2,
+                   overlap_xmin-c2_x2:overlap_xmax-c2_x2] = 1
     overlap_mask_2 = overlap_mask_2.flatten()
     # index2 = torch.nonzero(overlap_mask_2)
     # print(index2)
@@ -217,7 +217,7 @@ def get_corresponding_indices(overlap_mask_1, overlap_mask_2, idx1_pair, idx2_pa
     output: two target matrices of matrix matching, size 196*196
 
     """
-    idx_x1, idx_y1 = idx1_pair
+    c1_x1, idx_y1 = idx1_pair
     idx_x2, idx_y2 = idx2_pair
     k, l = kl
     
@@ -226,7 +226,7 @@ def get_corresponding_indices(overlap_mask_1, overlap_mask_2, idx1_pair, idx2_pa
     mapping_array_1_to_2 = np.full(overlap_mask_1.numel(), -1, dtype=int)
 
     # compute the offsets
-    offset_x = idx_x2 - idx_x1
+    offset_x = idx_x2 - c1_x1
     offset_y = idx_y2 - idx_y1
 
     # find True in overlap_mask_2
