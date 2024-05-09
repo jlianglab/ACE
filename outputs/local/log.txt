@@ -35,3 +35,197 @@ Data loaded: there are 86524 images.
 Student and Teacher are built: they are both swin_base network.
 Loss, optimizer and schedulers ready.
 Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !
+Data loaded: there are 86524 images.
+Student and Teacher are built: they are both swin_base network.
+Loss, optimizer and schedulers ready.
+Starting DINO training !

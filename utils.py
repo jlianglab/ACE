@@ -32,6 +32,7 @@ from torch import nn
 import torch.distributed as dist
 from PIL import ImageFilter, ImageOps
 import ipdb
+from local_comp_decomp import rearrange_embeddings, prep_composition
 
 class GaussianBlur(object):
     """
@@ -506,56 +507,6 @@ class LARS(torch.optim.Optimizer):
 
                 p.add_(mu, alpha=-g['lr'])
 
-def rearrange_embeddings(input, crop_size=14):
-    input_shape = input.size()
-    last_two_dims = input_shape[-2:]
-    
-    input_tensor_reshaped = input.view(-1, *last_two_dims)
-    
-    input_slices = torch.split(input_tensor_reshaped, 1, dim=0)
-
-    def apply_logic(embeddings):
-        assert (
-            embeddings.shape[0] % crop_size == 0
-        ), f"Embeddings length {embeddings.shape[0]} mismatch with crop_size {crop_size}"
-        # Calculate the multiplier
-        multiplier = np.arange(embeddings.shape[0]) // (crop_size * 2)
-
-        # Calculate the effective index
-        eff_i = np.arange(1, embeddings.shape[0] + 1) % (2 * crop_size)
-        eff_i[eff_i == 0] = 2 * crop_size
-
-        # Calculate the final index based on the pattern
-        final_index = np.where(
-            eff_i % 4 == 1,
-            (eff_i + 1) // 2,
-            np.where(eff_i % 4 == 2, (eff_i + 2) // 2, crop_size + (eff_i // 2)),
-        )
-
-        # Apply adjustments to final index
-        final_index -= 1
-        final_index += 2 * crop_size * multiplier
-
-        # Convert final index to integers
-        final_index = final_index.astype(int)
-        # Rearrange embeddings using fancy indexing
-        rearranged_embeddings = embeddings[final_index]
-        # ipdb.set_trace()
-        return rearranged_embeddings
-
-    results = torch.cat([apply_logic(embeddings.squeeze(0)) for embeddings in input_slices], dim=0)
-    reshaped = results.view(*input_shape[:-2], *last_two_dims)
-    return reshaped
-
-def prep_composition(embeddings, composition_factor=4):
-    num_groups = embeddings.shape[0] // composition_factor
-    print(embeddings,"\n")
-    groups = embeddings.reshape(num_groups, embeddings.shape[1] * composition_factor)
-    print(groups)
-    groups = torch.tensor(groups, dtype=torch.float32)
-    # composed = model(groups)
-    return groups
-
 class MultiCropWrapper(nn.Module):
     """
     Perform forward pass separately on each resolution input.
@@ -576,7 +527,7 @@ class MultiCropWrapper(nn.Module):
         self.composition_factor = 4
         self.decomposition_factor = 4
         self.emb_len = self.DenseHead.out_dim
-        self.predictor_ = nn.Sequential(nn.Linear(512, 512, bias=False),
+        self.projector_ = nn.Sequential(nn.Linear(512, 512, bias=False),
                                 nn.LayerNorm(512),
                                 nn.ReLU(inplace=True), # hidden layer
                                 nn.Linear(512, 512)) # output layer
@@ -621,9 +572,11 @@ class MultiCropWrapper(nn.Module):
             c2_emb = spatial_features[1]
             # Rerrange and perform composition on C2 embeddings
             c2_rearranged_emb = rearrange_embeddings(c2_emb)
+            c2_rearranged_emb = torch.reshape(c2_rearranged_emb, (c2_rearranged_emb.shape[0] // 4, c2_rearranged_emb.shape[1] * 4))
             c2_composed_emb = self.composition_head(c2_rearranged_emb)
             # Perform decomposition on C1 embeddings
             c1_decomposed_emb = self.decomposition_head(c1_emb)
+            c1_decomposed_emb = torch.reshape(c1_decomposed_emb, (c1_decomposed_emb.shape[0] * 4, c1_decomposed_emb.shape[1] // 4))
             if isinstance(_out, tuple):
                 _out = _out[0]
             # accumulate outputs
@@ -632,7 +585,7 @@ class MultiCropWrapper(nn.Module):
             # if mask_turn:
             #     loss_mask=self.head2( image_origin_input,_middle_features,mask_origin_input)
         # Run the head forward on the concatenated features.
-        return self.head(output),spatial_features.detach(),self.predictor_(spatial_features),(c2_composed_emb.detach(), c1_decomposed_emb.detach()), (self.predictor_(c2_composed_emb), self.predictor_(c1_decomposed_emb))# global embedding, local embeddings of teacher, local embeddings of student
+        return self.head(output),(c2_composed_emb.detach(), c1_decomposed_emb.detach()), (self.projector_(c2_composed_emb), self.projector_(c1_decomposed_emb)), spatial_features, self.projector_(spatial_features)# global embedding, local embeddings of teacher, local embeddings of student
 
 
 class MultiCropWrapper_teacher(nn.Module):

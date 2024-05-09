@@ -2,11 +2,8 @@ import torch
 import numpy as np
 import random
 import cv2
-from vision_transformer import DINOHead, SimMIM_head, SimMIM_head_SWIN, DenseHead
 import torch.nn as nn
 import torch.nn.functional as F
-import math
-import ipdb
 
 class SimpleModel(nn.Module):
     def __init__(self, embedding_size=3):
@@ -155,18 +152,28 @@ def get_embeddings(patches, model):
     embeddings = np.array(embeddings, dtype=np.float32)
     return embeddings
 
+def prep_composition(embeddings, composition_factor=4):
+    num_groups = embeddings.shape[0] // composition_factor
+    print(embeddings,"\n")
+    groups = embeddings.reshape(num_groups, embeddings.shape[1] * composition_factor)
+    print(groups)
+    groups = torch.tensor(groups, dtype=torch.float32)
+    # composed = model(groups)
+    return groups
+
+
 def rearrange_embeddings(input, crop_size=14):
     input_shape = input.size()
     last_two_dims = input_shape[-2:]
-    
+
     input_tensor_reshaped = input.view(-1, *last_two_dims)
-    
+
     input_slices = torch.split(input_tensor_reshaped, 1, dim=0)
 
     def apply_logic(embeddings):
         assert (
             embeddings.shape[0] % crop_size == 0
-        ), f"Embeddings size {embeddings.shape[0]} mismatch with crop_size {crop_size}"
+        ), f"Embeddings length {embeddings.shape[0]} mismatch with crop_size {crop_size}"
         # Calculate the multiplier
         multiplier = np.arange(embeddings.shape[0]) // (crop_size * 2)
 
@@ -187,24 +194,130 @@ def rearrange_embeddings(input, crop_size=14):
 
         # Convert final index to integers
         final_index = final_index.astype(int)
+        print(final_index)
         # Rearrange embeddings using fancy indexing
         rearranged_embeddings = embeddings[final_index]
         # ipdb.set_trace()
         return rearranged_embeddings
 
-def composition(embeddings, model, composition_factor=4):
-    num_groups = embeddings.shape[0] // composition_factor
-    print(embeddings,"\n")
-    groups = embeddings.reshape(num_groups, embeddings.shape[1] * composition_factor)
-    print(groups)
-    groups = torch.tensor(groups, dtype=torch.float32)
-    composed = model(groups)
-    return composed.detach().numpy()
+    results = torch.cat([apply_logic(embeddings.squeeze(0)) for embeddings in input_slices], dim=0)
+    reshaped = results.view(*input_shape[:-2], *last_two_dims)
+    return reshaped
 
-# Resize
-# Get Embeddings from student and teacher
-# Reorder the embeddings
-# Get embeddings from Comp and decomp head
+# Function to get Composition labels
+def get_comp_gt(c2_overlap_gt : torch.Tensor, crop_size = 14):
+    # Input : c2_overlap_gt : (196, 1)
+    # Output : comp_embeddings : (49, 1)
+    ''' IF we view [196,1] as [14,14]:
+    0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 1 1 1 1 1 1
+    0 0 0 0 0 0 0 1 1 1 1 1 1
+    0 0 0 0 0 0 0 1 1 1 1 1 1
+    0 0 0 0 0 0 0 1 1 1 1 1 1
+    0 0 0 0 0 0 0 1 1 1 1 1 1
+    0 0 0 0 0 0 0 1 1 1 1 1 1
+    The [7,7] view of the output will look like this:
+    0 0 0 0 0 0 0
+    0 0 0 0 0 0 0
+    0 0 0 0 0 0 0
+    0 0 0 0 0 0 0
+    0 0 0 0 1 1 1
+    0 0 0 0 1 1 1
+    0 0 0 0 1 1 1
+    '''
+    comp_embeddings = torch.empty((0,))
+    for i in range(0, c2_overlap_gt.shape[0], crop_size * 2):
+        for j in range(0, crop_size, 2):
+            if c2_overlap_gt[i + j]:
+                comp_embeddings = torch.cat((comp_embeddings, torch.tensor([1])), dim=0)
+            else:
+                comp_embeddings = torch.cat((comp_embeddings, torch.tensor([0])), dim=0)
+    return comp_embeddings
+
+# Function to get Decomposition labels
+def get_decomp_gt(c1_overlap_gt : torch.Tensor):
+    # Output : c1_overlap_gt : (196, 1)
+    # Input : decomp_embeddings : (784, 1)
+    '''
+    Coverts an input of [0,1,0,1] to [0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1]
+    '''
+    c1_decomp_embeddings = torch.zeros((c1_overlap_gt.shape[0] * 4, 1))
+    # ipdb.set_trace()
+    for i, item in enumerate(c1_overlap_gt):
+        c1_decomp_embeddings[i * 4 : i * 4 + 4] = item
+    return c1_decomp_embeddings
+
+def get_comp_decomp_barlow_labels(c1_decomp_gt : torch.Tensor,
+                                    c2_comp_gt : torch.Tensor,
+                                    c1_locations : torch.Tensor,
+                                    c2_locations : torch.Tensor,
+                                    crop_size=14):
+    # Input : c1_decomp_gt : (784, 1) , c2_comp_gt : (49, 1)
+    # Output : comp_barlow_labels : (196, 49) , decomp_barlow_labels : (196, 784)
+
+    def process_comp_barlow_labels(c2_comp_gt : torch.Tensor,
+                                    c1_locations : torch.Tensor,
+                                    crop_size = crop_size):
+        # Input : c2_comp_gt : (49, 1)
+        # Input : c2_locations : (196, 1)
+        '''
+        We will see which of the 196 embeddings in C1 ground truths correspond to the positive embeddings in composition embeddings
+        '''
+        comp_barlow_labels = torch.zeros((c1_locations.shape[0], c2_comp_gt.shape[0]))
+        idx = torch.argmax(c1_locations).item()
+        # Top indices of C1
+        c1_row_min = idx // crop_size
+        c1_col_min = idx % crop_size
+        # Top indices of C2 composition
+        c2_comp_row_min = torch.argmax(c2_comp_gt).item() // (crop_size / 2)
+        c2_comp_col_min = torch.argmax(c2_comp_gt).item() % (crop_size / 2)
+        print(c2_comp_row_min, c2_comp_col_min)
+        # Number of steps
+        num_row = torch.sum(torch.any(c1_locations.reshape(14,14), dim=1)).item()
+        num_col = torch.sum(c1_locations.reshape(14,14)[c1_row_min]).item()
+        for r in range(num_row):
+            for c in range(num_col):
+                c1_idx = (c1_row_min + r) * crop_size + (c1_col_min + c)
+                c2_comp_idx = int((c2_comp_row_min + r) * (crop_size // 2) + (c2_comp_col_min + c))
+                comp_barlow_labels[c1_idx][c2_comp_idx] = True
+        return comp_barlow_labels
+
+    def process_decomp_barlow_labels(c1_decomp_gt, c2_locations, decomposition_factor=4, crop_size=crop_size):
+        decomp_barlow_labels = torch.zeros((c2_locations.shape[0], c1_decomp_gt.shape[0]))
+        c2_locations_rearr = rearrange_embeddings(c2_locations)
+        idx = torch.argmax(c2_locations_rearr).item()
+        # Top indices of C2
+        c2_row_min = idx // crop_size
+        c2_col_min = idx % crop_size
+        # Top indices of C1 decomposition
+        c1_decomp_row_min = torch.argmax(c1_decomp_gt).item() // crop_size
+        c1_decomp_col_min = torch.argmax(c1_decomp_gt).item() % (decomposition_factor * crop_size)
+        # Number of steps
+        num_row = torch.sum(torch.any(c2_locations_rearr.reshape(14,14), dim=1)).item()
+        num_col = torch.sum(c2_locations_rearr.reshape(14,14)[c2_row_min]).item()
+        # print(num_row, num_col)
+        for r in range(num_row):
+            for c in range(num_col):
+                print(r, c)
+                c2_idx = (c2_row_min + r) * crop_size + (c2_col_min + c)
+                effective_idx = r * crop_size + c
+                effective_r = effective_idx // (crop_size * 2)
+                effective_c = effective_idx % (crop_size * 2)
+                print(effective_r, effective_c)
+                c1_decomp_idx = int((c1_decomp_row_min + effective_r) * (crop_size * 2)  + (c1_decomp_col_min + effective_c))
+                decomp_barlow_labels[c2_idx][c1_decomp_idx] = True
+        return decomp_barlow_labels
+
+    comp_barlow_labels = process_comp_barlow_labels(c2_comp_gt, c1_locations, crop_size=crop_size)
+    decomp_barlow_labels = process_decomp_barlow_labels(c1_decomp_gt, c2_locations)
+    return comp_barlow_labels, decomp_barlow_labels
 
 class LocalCompDecompCrop() :
     def __init__(self, size, patch_size, crop_size):

@@ -506,7 +506,7 @@ class DataAugmentationDINO(object):
     
         grids.append(sample_index1)
         grids.append(sample_index2)
-        s2lmapping,l2smapping = get_corresponding_indices(sample_index1, sample_index2,(idx_x1, idx_y1), (idx_x2, idx_y2),(k, l)) # two target matrices of matrix matching, size 196*196
+        # s2lmapping,l2smapping = get_corresponding_indices(sample_index1, sample_index2,(idx_x1, idx_y1), (idx_x2, idx_y2),(k, l)) # two target matrices of matrix matching, size 196*196
 
 
 
@@ -518,4 +518,5 @@ class DataAugmentationDINO(object):
         crops.append(self.augmentations_glo[1](patch2))
 
 
-        return crops,grids, s2lmapping,l2smapping
+        return crops,grids
+        # return crops,grids, s2lmapping,l2smapping

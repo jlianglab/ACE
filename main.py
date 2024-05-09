@@ -40,7 +40,9 @@ from losses import globalconsis_loss
 from einops import rearrange
 from torchvision.ops import sigmoid_focal_loss
 from sklearn.metrics import recall_score
+import ipdb
 from torch import autograd
+from local_comp_decomp import rearrange_embeddings, get_comp_decomp_barlow_labels, get_comp_gt, get_decomp_gt
 torchvision_archs = sorted(name for name in torchvision_models.__dict__
     if name.islower() and not name.startswith("__")
     and callable(torchvision_models.__dict__[name]))
@@ -328,54 +330,6 @@ def train_dino(args):
     print('Training time {}'.format(total_time_str), file=log_writer)
     log_writer.flush()
 
-# Function to get Composition labels
-def get_comp_barlow_labels(l2smapping, c2_rearranged_embeddings, crop_size = 14):
-    # Input : l2smapping : (196, 1)
-    # Output : comp_embeddings : (49, 1)
-    ''' IF we view [196,1] as [14,14]:
-    0 0 0 0 0 0 0 0 0 0 0 0 0
-    0 0 0 0 0 0 0 0 0 0 0 0 0
-    0 0 0 0 0 0 0 0 0 0 0 0 0
-    0 0 0 0 0 0 0 0 0 0 0 0 0
-    0 0 0 0 0 0 0 0 0 0 0 0 0
-    0 0 0 0 0 0 0 0 0 0 0 0 0
-    0 0 0 0 0 0 0 0 0 0 0 0 0
-    0 0 0 0 0 0 0 0 0 0 0 0 0
-    0 0 0 0 0 0 0 1 1 1 1 1 1
-    0 0 0 0 0 0 0 1 1 1 1 1 1
-    0 0 0 0 0 0 0 1 1 1 1 1 1
-    0 0 0 0 0 0 0 1 1 1 1 1 1
-    0 0 0 0 0 0 0 1 1 1 1 1 1
-    0 0 0 0 0 0 0 1 1 1 1 1 1
-    The [7,7] view of the output will look like this:
-    0 0 0 0 0 0 0
-    0 0 0 0 0 0 0
-    0 0 0 0 0 0 0
-    0 0 0 0 0 0 0
-    0 0 0 0 1 1 1
-    0 0 0 0 1 1 1
-    0 0 0 0 1 1 1
-    '''
-    comp_embeddings = torch.zeros(c2_rearranged_embeddings.shape[0])
-    for i in range(0, l2smapping.shape[0], crop_size * 2):
-        for j in range(0, crop_size, 2):
-            if l2smapping[i + j] == 1:
-                comp_embeddings.cat(torch.tensor([1]))
-            else:
-                comp_embeddings.cat(torch.tensor([0]))
-    return comp_embeddings
-
-# Function to get Decomposition labels
-def get_decomp_barlow_labels(s2lmapping, c1_embeddings):
-    # Output : s2lmapping : (196, 1)
-    # Input : decomp_embeddings : (784, 1)
-    '''
-    Coverts an input of [0,1,0,1] to [0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1]
-    '''
-    c1_decomp_embeddings = torch.zeros(c1_embeddings.shape[0] * 4)
-    for i, item in enumerate(s2lmapping):
-        c1_decomp_embeddings[i * 4 : i * 4 + 4] = item
-
 def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss, data_loader,
                     optimizer, lr_schedule, wd_schedule, momentum_schedule,epoch,
                     fp16_scaler, args, log_writer, device):
@@ -389,7 +343,8 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
     # triplet_loss =barlow_loss.to(device)
     local_loss = TripletLoss()
     #torch.autograd.set_detect_anomaly(True)
-    for it, ((images,locations,s2lmapping,l2smapping), _) in enumerate(metric_logger.log_every(data_loader, 50, header, log_writer)):
+    # for it, ((images,locations,s2lmapping,l2smapping), _) in enumerate(metric_logger.log_every(data_loader, 50, header, log_writer)):
+    for it, ((images,locations), _) in enumerate(metric_logger.log_every(data_loader, 50, header, log_writer)):    
         # locations:the overlap mask of two crops(14*14), s2lmapping:matrix matching target(196*196)
 
         # update weight decay and learning rate according to their schedule
@@ -408,21 +363,32 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
         with torch.cuda.amp.autocast(fp16_scaler is not None):
             # with autograd.detect_anomaly():
             teacher_cls, teacher_spatial = teacher(images)  
-            student_cls, student_spatial, student_spatial_pred, comp_decomp, comp_decomp_pred= student(images) # global embedding of student, (local embeddings of teacher; student), (local pred embeddings of teacher; student), (decomposition; composition embeddings)
-            c1_barlow_labels = get_decomp_barlow_labels(s2lmapping=s2lmapping,c1_embeddings=comp_decomp[0])
-            c2_barlow_labels = get_comp_barlow_labels(l2smapping=l2smapping,c2_rearranged_embeddings=comp_decomp[1])
+            student_cls, comp_decomp, comp_decomp_pred, spatial_features, spatial_features_proj= student(images) # global embedding of student, (local embeddings of teacher; student), (local pred embeddings of teacher; student), (decomposition; composition embeddings), (decomposition; composition predictions) 
+            # ipdb.set_trace()
+            c1_decomp_gt = get_decomp_gt(c1_overlap_gt=locations[0].squeeze())
+            c2_comp_gt = get_comp_gt(c2_overlap_gt=locations[1].squeeze())
+            # ipdb.set_trace()
+            # cdbl = "comp_decomp_barlow_labels"
+            cdbl = get_comp_decomp_barlow_labels(c1_decomp_gt,c2_comp_gt, c1_locations=locations[0].squeeze(), c2_locations=locations[1].squeeze(), crop_size=14)
             # student_spatials_pred = student_spatial_pred.chunk(2)
             # student_spatials = student_spatial.chunk(2)
-
+            # ipdb.set_trace()
 
             loss_vic=0
             loss_local=0
-            
+            spatial_features = spatial_features.chunk(2)
             global_loss = dino_loss(student_cls, teacher_cls, epoch)
-            loss1, loss2 = barlow_loss(comp_decomp,comp_decomp_pred,locations[0],locations[1],c1_barlow_labels.to(device),c2_barlow_labels.to(device))
+            loss1, loss2 = barlow_loss(spatial_features, comp_decomp_pred, cdbl[0].to(device), cdbl[1].to(device))
             loss_vic += (loss1+loss2)/2 # matrix matching loss
 
-            loss_local =  local_loss(comp_decomp[0], comp_decomp_pred[1], c2_barlow_labels.to(device),c1_barlow_labels.to(device)) + local_loss(comp_decomp_pred[0], comp_decomp[1], c2_barlow_labels.to(device),c1_barlow_labels.to(device)) #contrastive learning loss
+            loss_local =  local_loss(comp_decomp[0].unsqueeze(0), 
+                                    comp_decomp_pred[1].unsqueeze(0), 
+                                    cdbl[1].to(device),
+                                    cdbl[0].to(device)
+                                    ) + local_loss(comp_decomp_pred[0].unsqueeze(0), 
+                                                    comp_decomp[1].unsqueeze(0), 
+                                                    cdbl[1].to(device),
+                                                    cdbl[0].to(device)) #contrastive learning loss
 
             loss = (loss_vic+loss_local+global_loss)/2# loss_local#loss_local #loss_vic#(+loss_local)/2#(loss_dino + order_loss+ loss_vic+restor_loss)/4
             # loss = loss_local
@@ -540,27 +506,18 @@ class AttentionMLPModel(nn.Module): # compute matrix matching loss
 
 
         
-    def forward(self, student_out, student_out_proj, locations0,locations1,s2lmapping,l2smapping):
+    def forward(self, student_out, comp_decomp_proj, comp_barlow_labels, decomp_barlow_labels):
 
 
-        ZA,ZB = student_out
-        PA,PB =  student_out_proj
-        logits_A, logits_B = self.attention['attention_layer'](ZA, PB)
-        logits_A_, logits_B_ = self.attention['attention_layer'](PA, ZB)
+        C1,C2 = student_out
+        C_P,DC_P =  comp_decomp_proj
+        logits_A, logits_B = self.attention['attention_layer'](C1, DC_P.unsqueeze(0))
+        logits_A_, logits_B_ = self.attention['attention_layer'](C2, C_P.unsqueeze(0))
         # print(logits_A.shape,logits_B.shape)
         # logits_A = self.nonlinear(logits_A)
         # logits_A_ = self.nonlinear(logits_A_)
-        loss1 = ( sigmoid_focal_loss(logits_A,l2smapping.to(self.device),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_A_,l2smapping.to(self.device),alpha=0.99,gamma=0).mean())/2
-        loss2 = ( sigmoid_focal_loss(logits_B,s2lmapping.to(self.device),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_B_,s2lmapping.to(self.device),alpha=0.99,gamma=0).mean())/2
-
-
-        # # Get predicted labels
-        # predicted_A = (torch.sigmoid(logits_A) >= 0.5).to(torch.float32) for im in images])
-        # predicted_B = (torch.sigmoid(logits_B) >= 0.5).to(torch.float32) for im in images])
-
-
-
-
+        loss1 = ( sigmoid_focal_loss(logits_A,decomp_barlow_labels.unsqueeze(0).to(self.device),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_A_,comp_barlow_labels.unsqueeze(0).to(self.device),alpha=0.99,gamma=0).mean())/2
+        loss2 = ( sigmoid_focal_loss(logits_B,decomp_barlow_labels.unsqueeze(0).transpose(1,2).to(self.device),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_B_,comp_barlow_labels.unsqueeze(0).transpose(1,2).to(self.device),alpha=0.99,gamma=0).mean())/2
 
         return loss1,loss2
 
