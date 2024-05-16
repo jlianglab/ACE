@@ -194,7 +194,7 @@ def rearrange_embeddings(input, crop_size=14):
 
         # Convert final index to integers
         final_index = final_index.astype(int)
-        print(final_index)
+        # print(final_index)
         # Rearrange embeddings using fancy indexing
         rearranged_embeddings = embeddings[final_index]
         # ipdb.set_trace()
@@ -278,7 +278,7 @@ def get_comp_decomp_barlow_labels(c1_decomp_gt : torch.Tensor,
         # Top indices of C2 composition
         c2_comp_row_min = torch.argmax(c2_comp_gt).item() // (crop_size / 2)
         c2_comp_col_min = torch.argmax(c2_comp_gt).item() % (crop_size / 2)
-        print(c2_comp_row_min, c2_comp_col_min)
+        # print(c2_comp_row_min, c2_comp_col_min)
         # Number of steps
         num_row = torch.sum(torch.any(c1_locations.reshape(14,14), dim=1)).item()
         num_col = torch.sum(c1_locations.reshape(14,14)[c1_row_min]).item()
@@ -305,12 +305,12 @@ def get_comp_decomp_barlow_labels(c1_decomp_gt : torch.Tensor,
         # print(num_row, num_col)
         for r in range(num_row):
             for c in range(num_col):
-                print(r, c)
+                # print(r, c)
                 c2_idx = (c2_row_min + r) * crop_size + (c2_col_min + c)
                 effective_idx = r * crop_size + c
                 effective_r = effective_idx // (crop_size * 2)
                 effective_c = effective_idx % (crop_size * 2)
-                print(effective_r, effective_c)
+                # print(effective_r, effective_c)
                 c1_decomp_idx = int((c1_decomp_row_min + effective_r) * (crop_size * 2)  + (c1_decomp_col_min + effective_c))
                 decomp_barlow_labels[c2_idx][c1_decomp_idx] = True
         return decomp_barlow_labels

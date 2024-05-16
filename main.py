@@ -381,16 +381,16 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
             loss1, loss2 = barlow_loss(spatial_features, comp_decomp_pred, cdbl[0].to(device), cdbl[1].to(device))
             loss_vic += (loss1+loss2)/2 # matrix matching loss
 
-            loss_local =  local_loss(comp_decomp[0].unsqueeze(0), 
-                                    comp_decomp_pred[1].unsqueeze(0), 
-                                    cdbl[1].to(device),
-                                    cdbl[0].to(device)
-                                    ) + local_loss(comp_decomp_pred[0].unsqueeze(0), 
-                                                    comp_decomp[1].unsqueeze(0), 
-                                                    cdbl[1].to(device),
-                                                    cdbl[0].to(device)) #contrastive learning loss
+            # loss_local =  local_loss(comp_decomp[0].unsqueeze(0), 
+            #                         comp_decomp_pred[1].unsqueeze(0), 
+            #                         cdbl[1].to(device),
+            #                         cdbl[0].to(device)
+            #                         ) + local_loss(comp_decomp_pred[0].unsqueeze(0), 
+            #                                         comp_decomp[1].unsqueeze(0), 
+            #                                         cdbl[1].to(device),
+            #                                         cdbl[0].to(device)) #contrastive learning loss
 
-            loss = (loss_vic+loss_local+global_loss)/2# loss_local#loss_local #loss_vic#(+loss_local)/2#(loss_dino + order_loss+ loss_vic+restor_loss)/4
+            loss = (loss_vic+global_loss)/2# loss_local#loss_local #loss_vic#(+loss_local)/2#(loss_dino + order_loss+ loss_vic+restor_loss)/4
             # loss = loss_local
 
             # student update
