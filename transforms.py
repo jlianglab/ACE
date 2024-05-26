@@ -491,6 +491,7 @@ class DataAugmentationDINO(object):
 
     def __call__(self, image):
         crops = []
+        local_crops = []
         grids=[]
         randperms=[]
         
@@ -498,7 +499,7 @@ class DataAugmentationDINO(object):
         image = self.overlap_initial_crop(image) # random resize and crop, (0.85,1) of initial image
         image = np.asarray(image)
 
-        patch, (idx_x1, idx_y1), (idx_x2, idx_y2), (k, l) = self.img_transforms(image) # get the two crops, the top left corner indexed of two crops, the size rate of the bigger crop1
+        patch, patch_local, (idx_x1, idx_y1), (idx_x2, idx_y2), (k, l) = self.img_transforms(image) # get the two crops, the top left corner indexed of two crops, the size rate of the bigger crop1
         sample_index1, sample_index2 = get_index((idx_x1, idx_y1), (idx_x2, idx_y2), (k, l)) # the overlap mask of two crops (all 14*14)
         # print(patch.shape)
         patch1 = patch[:,:,0:3]
@@ -517,5 +518,9 @@ class DataAugmentationDINO(object):
         crops.append(self.augmentations_glo[0](patch1))
         crops.append(self.augmentations_glo[1](patch2))
 
+        for i in patch_local:
+            image = self.augmentations_albu[0](image=i)['image']
+            local_crops.append(self.augmentations_glo[0](image))
 
-        return crops,grids, s2lmapping,l2smapping
+
+        return crops,local_crops,grids, s2lmapping,l2smapping

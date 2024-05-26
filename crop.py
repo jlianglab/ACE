@@ -350,7 +350,19 @@ class PatchCrop():
         patch1 = cv2.resize(patch1, (448, 448))
         patch2 = image[x2*grid:(14+x2)*grid, y2*grid:(14+y2)*grid, :]
         image = np.concatenate((patch1, patch2), axis=2)
-        return image, (x1, y1), (x2, y2), (k, l)
+
+        patch_local = []
+
+        patch_local.append(patch1[:7*grid, :7*grid, :])
+        patch_local.append(patch1[7*grid:14*grid, :7*grid, :])
+        patch_local.append(patch1[:7*grid, 7*grid:14*grid, :])
+        patch_local.append(patch1[7*grid:14*grid, 7*grid:14*grid, :])
+
+        patch_local.append(patch2[:7*grid, :7*grid, :])
+        patch_local.append(patch2[7*grid:14*grid, :7*grid, :])
+        patch_local.append(patch2[:7*grid, 7*grid:14*grid, :])
+        patch_local.append(patch2[7*grid:14*grid, 7*grid:14*grid, :])
+        return image, patch_local, (x1, y1), (x2, y2), (k, l)
     
 class PatchResize():
     def __init__(self, size):

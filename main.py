@@ -124,10 +124,10 @@ def get_args_parser():
     # Misc
     parser.add_argument('--data_path', default='/data1/zhouziyu/liang/NIHChestXray/images/images_all/', type=str,
         help='Please specify path to the ImageNet training data.')
-    parser.add_argument('--output_dir', default="/ssd2/zhouziyu/ssl/github/ACE/pretrained_weight/from_imagenet_global_12N", type=str, help='Path to save logs and checkpoints.')
+    parser.add_argument('--output_dir', default="/ssd2/zhouziyu/ssl/github/ACE/pretrained_weight/ACE_v2", type=str, help='Path to save logs and checkpoints.')
     parser.add_argument('--saveckp_freq', default=100, type=int, help='Save checkpoint every x epochs.')
     parser.add_argument('--seed', default=0, type=int, help='Random seed.')
-    parser.add_argument('--num_workers', default=5, type=int, help='Number of data loading workers per GPU.')
+    parser.add_argument('--num_workers', default=4, type=int, help='Number of data loading workers per GPU.')
     parser.add_argument("--dist_url", default="env://", type=str, help="""url used to set up
         distributed training; see https://pytorch.org/docs/stable/distributed.html""")
     parser.add_argument("--local_rank", default=0, type=int, help="Please ignore and do not set this argument.")
@@ -274,7 +274,7 @@ def train_dino(args):
     log_writer.flush()
 
     # ============ optionally resume training ... ============
-    utils.init_from_imagenet('pretrained_weight/ldpolyp/swin_base_patch4_window7_224_imagenet1k.pth',student, teacher)
+    # utils.init_from_imagenet('pretrained_weight/ldpolyp/swin_base_patch4_window7_224_imagenet1k.pth',student, teacher)
 
     to_restore = {"epoch": 0}
 
@@ -339,7 +339,7 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
     # triplet_loss =barlow_loss.cuda()
     local_loss = TripletLoss()
     #torch.autograd.set_detect_anomaly(True)
-    for it, ((images,locations,s2lmapping,l2smapping), _) in enumerate(metric_logger.log_every(data_loader, 50, header, log_writer)):
+    for it, ((images,local_crops,locations,s2lmapping,l2smapping), _) in enumerate(metric_logger.log_every(data_loader, 50, header, log_writer)):
         # locations:the overlap mask of two crops(14*14), s2lmapping:matrix matching target(196*196)
 
         # update weight decay and learning rate according to their schedule
@@ -351,29 +351,37 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
 
         # move images to gpu
         images = [im.cuda(non_blocking=True).float() for im in images]
+        local_crops = [im.cuda(non_blocking=True).float() for im in local_crops]
 
 
-        locations=[location.cuda(non_blocking=True) for location in locations]
+        # locations=[location.cuda(non_blocking=True) for location in locations]
         # teacher and student forward passes + compute dino loss
         with torch.cuda.amp.autocast(fp16_scaler is not None):
             # with autograd.detect_anomaly():
-            teacher_cls, teacher_spatial = teacher(images)  
-            student_cls, student_spatial, student_spatial_pred = student(images) # global embedding of student, local embeddings of teacher, local embeddings of student
+            teacher_cls, teacher_spatial, teacher_comp, teacher_decomp = teacher(images, local_crops)  
+            student_cls, student_spatial, student_spatial_pred, student_comp, student_decomp = student(images, local_crops) # global embedding of student, local embeddings of teacher, local embeddings of student
 
             student_spatials_pred = student_spatial_pred.chunk(2)
             student_spatials = student_spatial.chunk(2)
 
 
             loss_vic=0
-            loss_local=0
+            loss_decomp=0
             
             global_loss = dino_loss(student_cls, teacher_cls, epoch)
             loss1, loss2 = barlow_loss(student_spatials,student_spatials_pred,locations[0],locations[1],s2lmapping.cuda(),l2smapping.cuda())
             loss_vic += (loss1+loss2)/2 # matrix matching loss
 
-            loss_local =  local_loss(student_spatials[0], student_spatials_pred[1], l2smapping.cuda(),s2lmapping.cuda()) + local_loss(student_spatials_pred[0], student_spatials[1], l2smapping.cuda(),s2lmapping.cuda()) #contrastive learning loss
+            # loss_local =  local_loss(student_spatials[0], student_spatials_pred[1], l2smapping.cuda(),s2lmapping.cuda()) + local_loss(student_spatials_pred[0], student_spatials[1], l2smapping.cuda(),s2lmapping.cuda()) #contrastive learning loss
 
-            loss = (loss_vic+loss_local+global_loss)/2# loss_local#loss_local #loss_vic#(+loss_local)/2#(loss_dino + order_loss+ loss_vic+restor_loss)/4
+            loss_comp = F.smooth_l1_loss(student_comp, teacher_comp)
+            
+            # # ipdb.set_trace()
+            for i in range(4):
+                loss_decomp+=F.smooth_l1_loss(student_decomp[i], teacher_decomp[i])
+            loss_decomp = loss_decomp/4
+
+            loss = (loss_vic+global_loss+loss_comp+loss_decomp)/4 # 
             # loss = loss_local
 
             # student update
@@ -406,11 +414,11 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
         # logging
         torch.cuda.synchronize()
         metric_logger.update(loss=loss.item())
-        # metric_logger.update(order_loss=order_loss.item())
-        metric_logger.update(loss_vic=loss_vic.item())
+        # metric_logger.update(order_loss=order_loss.item())\
         metric_logger.update(global_loss=global_loss.item())
-        # metric_logger.update(loss_local=loss_local.item())
-        # metric_logger.update(restor_loss=restor_loss.item())
+        metric_logger.update(loss_matrix=loss_vic.item())
+        metric_logger.update(loss_comp=loss_comp.item())
+        metric_logger.update(loss_decomp=loss_decomp.item())
         metric_logger.update(lr=optimizer.param_groups[0]["lr"])
         metric_logger.update(wd=optimizer.param_groups[0]["weight_decay"])
     # gather the stats from all processes
