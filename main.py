@@ -375,7 +375,7 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
             # ipdb.set_trace()
 
             loss_vic=0
-            loss_local=0
+            # loss_local=0
             spatial_features = spatial_features.chunk(2)
             global_loss = dino_loss(student_cls, teacher_cls, epoch)
             loss1, loss2 = barlow_loss(spatial_features, comp_decomp_pred, cdbl[0].to(device), cdbl[1].to(device))
