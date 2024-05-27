@@ -31,7 +31,7 @@ import torch
 from torch import nn
 import torch.distributed as dist
 from PIL import ImageFilter, ImageOps
-
+from local_comp_decomp import rearrange_embeddings
 
 class GaussianBlur(object):
     """
@@ -730,52 +730,68 @@ class MultiCropWrapper(nn.Module):
     concatenate all the output features and run the head forward on these
     concatenated features.
     """
-
-    def __init__(self, backbone, head, DenseHead, args):
+    def __init__(self, backbone, head , DenseHead,args):
         super(MultiCropWrapper, self).__init__()
         # disable layers dedicated to ImageNet labels classification
         backbone.fc, backbone.head = nn.Identity(), nn.Identity()
         self.backbone = backbone
         self.head = head
         self.DenseHead = DenseHead
-        self.args = args
-        self.predictor_ = nn.Sequential(
-            nn.Linear(512, 512, bias=False),
-            nn.LayerNorm(512),
-            nn.ReLU(inplace=True),  # hidden layer
-            nn.Linear(512, 512),
-        )  # output layer
+        self.args =args
+        self.composition_factor = 4
+        self.decomposition_factor = 4
+        self.emb_len = self.DenseHead.out_dim
+        self.projector_ = nn.Sequential(nn.Linear(512, 512, bias=False),
+                                nn.LayerNorm(512),
+                                nn.ReLU(inplace=True), # hidden layer
+                                nn.Linear(512, 512)) # output layer
+        self.composition_head = nn.Sequential(nn.Linear(self.emb_len * 4, self.emb_len*2, bias=False),
+                                                nn.LayerNorm(self.emb_len*2),
+                                                nn.ReLU(inplace=True),
+                                                nn.Linear(self.emb_len*2, self.emb_len, bias=False),
+                                                nn.LayerNorm(self.emb_len),
+                                                nn.ReLU(inplace=True),)
+        self.decomposition_head = nn.Sequential(nn.Linear(self.emb_len,self.emb_len*2, bias=False),
+                                                nn.LayerNorm(self.emb_len*2),
+                                                nn.ReLU(inplace=True),
+                                                nn.Linear(self.emb_len*2, self.emb_len * 4, bias=False),
+                                                nn.LayerNorm(self.emb_len * 4),
+                                                nn.ReLU(inplace=True),)
 
     def forward(self, x):
         spatial_features = []
         # convert to list
         if not isinstance(x, list):
             x = [x]
-        idx_crops = torch.cumsum(
-            torch.unique_consecutive(
-                torch.tensor([inp.shape[-1] for inp in x]),
-                return_counts=True,
-            )[1],
-            0,
-        )
+        idx_crops = torch.cumsum(torch.unique_consecutive(
+            torch.tensor([inp.shape[-1] for inp in x]),
+            return_counts=True,
+        )[1], 0)
         start_idx, output = 0, torch.empty(0).to(x[0].device)
-        loss_mask = 0
+        loss_mask=0
 
-        for end_idx in idx_crops:  # idx_crops=[2]
-            image_origin_input = torch.cat(x[start_idx:end_idx])
-            if end_idx == 2:  # will go to this branch
-                # print(perm[0].shape,perm[1].shape)
-                _out, _middle_features = self.backbone(image_origin_input)
-                spatial_features = self.DenseHead(_middle_features)  # )
-
+        for end_idx in idx_crops: # idx_crops=[2]
+            image_origin_input=torch.cat(x[start_idx: end_idx])
+            if end_idx==2: # will go to this branch
+                #print(perm[0].shape,perm[1].shape)
+                _out,_middle_features = self.backbone( image_origin_input)
+                spatial_features = self.DenseHead(_middle_features)#)
             else:
-
-                _out, _middle_features = self.backbone(image_origin_input)
-                spatial_features += self.DenseHead(_middle_features).chunk(
-                    self.args.local_crops_number
-                )
+                _out,_middle_features = self.backbone( image_origin_input)
+                spatial_features+= self.DenseHead(_middle_features).chunk(self.args.local_crops_number)
+                # ipdb.set_trace()
             # The output is a tuple with XCiT model. See:
             # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
+            
+            c1_emb = spatial_features.chunk(2)[0]
+            c2_emb = spatial_features.chunk(2)[1]
+            # Rerrange and perform composition on C2 embeddings
+            c2_rearranged_emb = rearrange_embeddings(c2_emb)
+            c2_rearranged_emb = torch.reshape(c2_rearranged_emb, (c2_rearranged_emb.shape[0], c2_rearranged_emb.shape[1] // 4, c2_rearranged_emb.shape[2] * 4))
+            c2_composed_emb = self.composition_head(c2_rearranged_emb)
+            # Perform decomposition on C1 embeddings
+            c1_decomposed_emb = self.decomposition_head(c1_emb)
+            c1_decomposed_emb = torch.reshape(c1_decomposed_emb, (c1_decomposed_emb.shape[0], c1_decomposed_emb.shape[1] * 4, c1_decomposed_emb.shape[2] // 4))
             if isinstance(_out, tuple):
                 _out = _out[0]
             # accumulate outputs
@@ -783,12 +799,10 @@ class MultiCropWrapper(nn.Module):
             start_idx = end_idx
             # if mask_turn:
             #     loss_mask=self.head2( image_origin_input,_middle_features,mask_origin_input)
+            # ipdb.set_trace()
         # Run the head forward on the concatenated features.
-        return (
-            self.head(output),
-            spatial_features.detach(),
-            self.predictor_(spatial_features),
-        )  # global embedding, local embeddings of teacher, local embeddings of student
+        return self.head(output),(c2_composed_emb.detach(), c1_decomposed_emb.detach()), (self.projector_(c2_composed_emb), self.projector_(c1_decomposed_emb)), spatial_features, self.projector_(spatial_features)# global embedding, local embeddings of teacher, local embeddings of student
+  # global embedding, local embeddings of teacher, local embeddings of student
 
 
 class MultiCropWrapper_teacher(nn.Module):
