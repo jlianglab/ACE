@@ -2,4 +2,4 @@
 pretrained_weight/
 runs/
 *.ipynb
-log.txt
+/log.txt
