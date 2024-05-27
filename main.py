@@ -365,11 +365,11 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
             teacher_cls, teacher_spatial = teacher(images)  
             student_cls, comp_decomp, comp_decomp_pred, spatial_features, spatial_features_proj= student(images) # global embedding of student, (local embeddings of teacher; student), (local pred embeddings of teacher; student), (decomposition; composition embeddings), (decomposition; composition predictions) 
             # ipdb.set_trace()
-            c1_decomp_gt = get_decomp_gt(c1_overlap_gt=locations[0].squeeze())
-            c2_comp_gt = get_comp_gt(c2_overlap_gt=locations[1].squeeze())
+            c1_decomp_gt = get_decomp_gt(c1_overlap_gt_batch=locations[0].squeeze())
+            c2_comp_gt = get_comp_gt(c2_overlap_gt_batch=locations[1].squeeze())
             # ipdb.set_trace()
             # cdbl = "comp_decomp_barlow_labels"
-            cdbl = get_comp_decomp_barlow_labels(c1_decomp_gt,c2_comp_gt, c1_locations=locations[0].squeeze(), c2_locations=locations[1].squeeze(), crop_size=14)
+            cdbl = get_comp_decomp_barlow_labels(c1_decomp_gt,c2_comp_gt, c1_locations_batch=locations[0].squeeze(), c2_locations_batch=locations[1].squeeze(), crop_size=14)
             # student_spatials_pred = student_spatial_pred.chunk(2)
             # student_spatials = student_spatial.chunk(2)
             # ipdb.set_trace()
@@ -511,13 +511,13 @@ class AttentionMLPModel(nn.Module): # compute matrix matching loss
 
         C1,C2 = student_out
         C_P,DC_P =  comp_decomp_proj
-        logits_A, logits_B = self.attention['attention_layer'](C1, DC_P.unsqueeze(0))
-        logits_A_, logits_B_ = self.attention['attention_layer'](C2, C_P.unsqueeze(0))
+        logits_A, logits_B = self.attention['attention_layer'](C1, DC_P)
+        logits_A_, logits_B_ = self.attention['attention_layer'](C2, C_P)
         # print(logits_A.shape,logits_B.shape)
         # logits_A = self.nonlinear(logits_A)
         # logits_A_ = self.nonlinear(logits_A_)
-        loss1 = ( sigmoid_focal_loss(logits_A,decomp_barlow_labels.unsqueeze(0).to(self.device),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_A_,comp_barlow_labels.unsqueeze(0).to(self.device),alpha=0.99,gamma=0).mean())/2
-        loss2 = ( sigmoid_focal_loss(logits_B,decomp_barlow_labels.unsqueeze(0).transpose(1,2).to(self.device),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_B_,comp_barlow_labels.unsqueeze(0).transpose(1,2).to(self.device),alpha=0.99,gamma=0).mean())/2
+        loss1 = ( sigmoid_focal_loss(logits_A,decomp_barlow_labels.to(self.device),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_A_,comp_barlow_labels.to(self.device),alpha=0.99,gamma=0).mean())/2
+        loss2 = ( sigmoid_focal_loss(logits_B,decomp_barlow_labels.transpose(1,2).to(self.device),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_B_,comp_barlow_labels.transpose(1,2).to(self.device),alpha=0.99,gamma=0).mean())/2
 
         return loss1,loss2
 

@@ -32,7 +32,7 @@ from torch import nn
 import torch.distributed as dist
 from PIL import ImageFilter, ImageOps
 import ipdb
-from local_comp_decomp import rearrange_embeddings, prep_composition
+from local_comp_decomp import rearrange_embeddings
 
 class GaussianBlur(object):
     """
@@ -568,15 +568,16 @@ class MultiCropWrapper(nn.Module):
                 # ipdb.set_trace()
             # The output is a tuple with XCiT model. See:
             # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
-            c1_emb = spatial_features[0]
-            c2_emb = spatial_features[1]
+            
+            c1_emb = spatial_features.chunk(2)[0]
+            c2_emb = spatial_features.chunk(2)[1]
             # Rerrange and perform composition on C2 embeddings
             c2_rearranged_emb = rearrange_embeddings(c2_emb)
-            c2_rearranged_emb = torch.reshape(c2_rearranged_emb, (c2_rearranged_emb.shape[0] // 4, c2_rearranged_emb.shape[1] * 4))
+            c2_rearranged_emb = torch.reshape(c2_rearranged_emb, (c2_rearranged_emb.shape[0], c2_rearranged_emb.shape[1] // 4, c2_rearranged_emb.shape[2] * 4))
             c2_composed_emb = self.composition_head(c2_rearranged_emb)
             # Perform decomposition on C1 embeddings
             c1_decomposed_emb = self.decomposition_head(c1_emb)
-            c1_decomposed_emb = torch.reshape(c1_decomposed_emb, (c1_decomposed_emb.shape[0] * 4, c1_decomposed_emb.shape[1] // 4))
+            c1_decomposed_emb = torch.reshape(c1_decomposed_emb, (c1_decomposed_emb.shape[0], c1_decomposed_emb.shape[1] * 4, c1_decomposed_emb.shape[2] // 4))
             if isinstance(_out, tuple):
                 _out = _out[0]
             # accumulate outputs
@@ -584,6 +585,7 @@ class MultiCropWrapper(nn.Module):
             start_idx = end_idx
             # if mask_turn:
             #     loss_mask=self.head2( image_origin_input,_middle_features,mask_origin_input)
+            # ipdb.set_trace()
         # Run the head forward on the concatenated features.
         return self.head(output),(c2_composed_emb.detach(), c1_decomposed_emb.detach()), (self.projector_(c2_composed_emb), self.projector_(c1_decomposed_emb)), spatial_features, self.projector_(spatial_features)# global embedding, local embeddings of teacher, local embeddings of student
 
