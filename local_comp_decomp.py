@@ -259,7 +259,7 @@ def get_comp_decomp_barlow_labels(c1_decomp_gt : torch.Tensor,
                                     c1_locations : torch.Tensor,
                                     c2_locations : torch.Tensor,
                                     crop_size=14):
-    # Input : c1_decomp_gt : (784, 1) , c2_comp_gt : (49, 1)
+    # Input : c1_decomp_gt : (784, 1) , c2_comp_gt : (49, 1), c1_locations : (196, 1), c2_locations : (196, 1)\
     # Output : comp_barlow_labels : (196, 49) , decomp_barlow_labels : (196, 784)
 
     def process_comp_barlow_labels(c2_comp_gt : torch.Tensor,
@@ -267,9 +267,11 @@ def get_comp_decomp_barlow_labels(c1_decomp_gt : torch.Tensor,
                                     crop_size = crop_size):
         # Input : c2_comp_gt : (49, 1)
         # Input : c2_locations : (196, 1)
+        # Output : comp_barlow_labels : (196, 49)
         '''
         We will see which of the 196 embeddings in C1 ground truths correspond to the positive embeddings in composition embeddings
         '''
+        # print("In composition: ")
         comp_barlow_labels = torch.zeros((c1_locations.shape[0], c2_comp_gt.shape[0]))
         idx = torch.argmax(c1_locations).item()
         # Top indices of C1
@@ -280,16 +282,28 @@ def get_comp_decomp_barlow_labels(c1_decomp_gt : torch.Tensor,
         c2_comp_col_min = torch.argmax(c2_comp_gt).item() % (crop_size / 2)
         # print(c2_comp_row_min, c2_comp_col_min)
         # Number of steps
+        # print("c1_row_min: ", c1_row_min, "c1_col_min: ", c1_col_min)
+        # print("c2_comp_row_min: ", c2_comp_row_min, "c2_comp_col_min: ", c2_comp_col_min)
         num_row = torch.sum(torch.any(c1_locations.reshape(14,14), dim=1)).item()
         num_col = torch.sum(c1_locations.reshape(14,14)[c1_row_min]).item()
+        # print("num_row: ", num_row, "num_col: ", num_col)
+       
         for r in range(num_row):
             for c in range(num_col):
+                # print(r,c)
                 c1_idx = (c1_row_min + r) * crop_size + (c1_col_min + c)
                 c2_comp_idx = int((c2_comp_row_min + r) * (crop_size // 2) + (c2_comp_col_min + c))
                 comp_barlow_labels[c1_idx][c2_comp_idx] = True
         return comp_barlow_labels
 
     def process_decomp_barlow_labels(c1_decomp_gt, c2_locations, decomposition_factor=4, crop_size=crop_size):
+        # Input : c1_decomp_gt : (784, 1)
+        # Input : c2_locations : (196, 1)
+        # Output : decomp_barlow_labels : (196, 784)
+        '''
+        We will see which of the 196 embeddings in C2 ground truths correspond to the positive embeddings in decomposition embeddings
+        '''
+        # print("In decomposition: ")
         decomp_barlow_labels = torch.zeros((c2_locations.shape[0], c1_decomp_gt.shape[0]))
         c2_locations_rearr = rearrange_embeddings(c2_locations)
         idx = torch.argmax(c2_locations_rearr).item()
@@ -297,12 +311,15 @@ def get_comp_decomp_barlow_labels(c1_decomp_gt : torch.Tensor,
         c2_row_min = idx // crop_size
         c2_col_min = idx % crop_size
         # Top indices of C1 decomposition
-        c1_decomp_row_min = torch.argmax(c1_decomp_gt).item() // crop_size
+        c1_decomp_row_min = torch.argmax(c1_decomp_gt).item() // (decomposition_factor * crop_size)
         c1_decomp_col_min = torch.argmax(c1_decomp_gt).item() % (decomposition_factor * crop_size)
         # Number of steps
+        # print("c2_row_min: ", c2_row_min, "c2_col_min: ", c2_col_min)
+        # print("c1_decomp_row_min: ", c1_decomp_row_min, "c1_decomp_col_min: ", c1_decomp_col_min)
         num_row = torch.sum(torch.any(c2_locations_rearr.reshape(14,14), dim=1)).item()
         num_col = torch.sum(c2_locations_rearr.reshape(14,14)[c2_row_min]).item()
-        # print(num_row, num_col)
+        # print("num_row: ", num_row, "num_col: ", num_col)
+        # print("")
         for r in range(num_row):
             for c in range(num_col):
                 # print(r, c)
