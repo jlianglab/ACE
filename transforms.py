@@ -23,6 +23,7 @@ import cv2
 from crop import img_transforms,get_index, get_corresponding_indices
 from einops import rearrange
 import albumentations as A
+import ipdb
 class GaussianBlur(object):
     def __init__(self):
         pass
@@ -439,7 +440,9 @@ class DataAugmentationDINO(object):
             transform = A.Compose([
                 A.RandomBrightnessContrast(p=0.5),
                 A.GaussianBlur(p=0.5),
-                A.ElasticTransform(p=0.5, alpha=30, sigma=6,alpha_affine=20)
+                # A.ElasticTransform(p=0.5, alpha=30, sigma=6,alpha_affine=20) # the position will be moved after elastic transform
+                A.Sharpen(p=0.3),
+                A.CLAHE(p=0.3),
             ])
             self.augmentations_albu.append(transform)
         # Apply the transformations
@@ -501,6 +504,7 @@ class DataAugmentationDINO(object):
 
         patch, patch_local, (idx_x1, idx_y1), (idx_x2, idx_y2), (k, l) = self.img_transforms(image) # get the two crops, the top left corner indexed of two crops, the size rate of the bigger crop1
         sample_index1, sample_index2 = get_index((idx_x1, idx_y1), (idx_x2, idx_y2), (k, l)) # the overlap mask of two crops (all 14*14)
+        # ipdb.set_trace()
         # print(patch.shape)
         patch1 = patch[:,:,0:3]
         patch2 = patch[:,:,3:6]
@@ -523,4 +527,4 @@ class DataAugmentationDINO(object):
             local_crops.append(self.augmentations_glo[0](image))
 
 
-        return crops,local_crops,grids, s2lmapping,l2smapping
+        return crops, local_crops, grids, s2lmapping, l2smapping, sample_index1, sample_index2

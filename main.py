@@ -1,6 +1,6 @@
 
 
-# CUDA_VISIBLE_DEVICES="0" python -m torch.distributed.launch --nproc_per_node=1 --master_port 28301 main.py --arch swin_base --batch_size_per_gpu 8
+# CUDA_VISIBLE_DEVICES="0" python -m torch.distributed.launch --nproc_per_node=1 --master_port 28300 main.py --arch swin_base --batch_size_per_gpu 8
 
 
 import argparse
@@ -39,6 +39,7 @@ from einops import rearrange
 from torchvision.ops import sigmoid_focal_loss
 from sklearn.metrics import recall_score
 from torch import autograd
+import ipdb
 torchvision_archs = sorted(name for name in torchvision_models.__dict__
     if name.islower() and not name.startswith("__")
     and callable(torchvision_models.__dict__[name]))
@@ -67,6 +68,11 @@ def get_args_parser():
         We recommend setting a higher value with small batches: for example use 0.9995 with batch size of 256.""")
     parser.add_argument('--use_bn_in_head', default=False, type=utils.bool_flag,
         help="Whether to use batch normalizations in projection head (Default: False)")
+
+    # optional training components
+    parser.add_argument('--global_loss', default=False, type=utils.bool_flag, help="Whether to use global loss")
+    parser.add_argument('--matrix_matching', default=True, type=utils.bool_flag, help="Whether to use matrix matching loss")
+    parser.add_argument('--comp', default=False, type=utils.bool_flag, help="Whether to composition and decomposition loss")
 
     # Temperature teacher parameters
     parser.add_argument('--warmup_teacher_temp', default=0.04, type=float,
@@ -124,8 +130,8 @@ def get_args_parser():
     # Misc
     parser.add_argument('--data_path', default='/data1/zhouziyu/liang/NIHChestXray/images/images_all/', type=str,
         help='Please specify path to the ImageNet training data.')
-    parser.add_argument('--output_dir', default="/ssd2/zhouziyu/ssl/github/ACE/pretrained_weight/ACE_v2", type=str, help='Path to save logs and checkpoints.')
-    parser.add_argument('--saveckp_freq', default=100, type=int, help='Save checkpoint every x epochs.')
+    parser.add_argument('--output_dir', default="/ssd2/zhouziyu/ssl/github/ACE/pretrained_weight/from_imagenet_weighted_matrix", type=str, help='Path to save logs and checkpoints.')
+    parser.add_argument('--saveckp_freq', default=50, type=int, help='Save checkpoint every x epochs.')
     parser.add_argument('--seed', default=0, type=int, help='Random seed.')
     parser.add_argument('--num_workers', default=4, type=int, help='Number of data loading workers per GPU.')
     parser.add_argument("--dist_url", default="env://", type=str, help="""url used to set up
@@ -206,7 +212,7 @@ def train_dino(args):
     teacher = utils.MultiCropWrapper_teacher(
         teacher,
         DINOHead(embed_dim, args.out_dim, args.use_bn_in_head),
-        DenseHead(),
+        DenseHead(), args
     )
 
 
@@ -233,14 +239,15 @@ def train_dino(args):
     log_writer.flush()
     # ============ preparing loss ... ============
     barlow_loss = AttentionMLPModel(512,512,1).cuda()#BarlowLoss(
-    dino_loss = DINOLoss(
-        args.out_dim,
-        2,  # total number of crops
-        args.warmup_teacher_temp,
-        args.teacher_temp,
-        args.warmup_teacher_temp_epochs,
-        args.epochs,
-    ).cuda()
+    # dino_loss = DINOLoss(
+    #     args.out_dim,
+    #     2,  # total number of crops
+    #     args.warmup_teacher_temp,
+    #     args.teacher_temp,
+    #     args.warmup_teacher_temp_epochs,
+    #     args.epochs,
+    # ).cuda()
+    dino_loss = ContrastiveLoss().cuda()
 
     # ============ preparing optimizer ... ============
     params_groups = utils.get_params_groups(student)
@@ -274,7 +281,7 @@ def train_dino(args):
     log_writer.flush()
 
     # ============ optionally resume training ... ============
-    # utils.init_from_imagenet('pretrained_weight/ldpolyp/swin_base_patch4_window7_224_imagenet1k.pth',student, teacher)
+    utils.init_from_imagenet('/ssd2/zhouziyu/ssl/contrast_12N/pretrained_weight/ldpolyp/swin_base_patch4_window7_224_imagenet1k.pth',student, teacher)
 
     to_restore = {"epoch": 0}
 
@@ -339,9 +346,9 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
     # triplet_loss =barlow_loss.cuda()
     local_loss = TripletLoss()
     #torch.autograd.set_detect_anomaly(True)
-    for it, ((images,local_crops,locations,s2lmapping,l2smapping), _) in enumerate(metric_logger.log_every(data_loader, 50, header, log_writer)):
+    for it, ((images,local_crops,locations,s2lmapping,l2smapping, sample_index1, sample_index2), _) in enumerate(metric_logger.log_every(data_loader, 50, header, log_writer)):
         # locations:the overlap mask of two crops(14*14), s2lmapping:matrix matching target(196*196)
-
+        # ipdb.set_trace()
         # update weight decay and learning rate according to their schedule
         it = len(data_loader) * epoch + it  # global training iteration
         for i, param_group in enumerate(optimizer.param_groups):
@@ -352,36 +359,43 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
         # move images to gpu
         images = [im.cuda(non_blocking=True).float() for im in images]
         local_crops = [im.cuda(non_blocking=True).float() for im in local_crops]
-
+        sample_index = torch.cat([sample_index1.cuda(non_blocking=True), sample_index2.cuda(non_blocking=True)])
 
         # locations=[location.cuda(non_blocking=True) for location in locations]
         # teacher and student forward passes + compute dino loss
         with torch.cuda.amp.autocast(fp16_scaler is not None):
             # with autograd.detect_anomaly():
-            teacher_cls, teacher_spatial, teacher_comp, teacher_decomp = teacher(images, local_crops)  
-            student_cls, student_spatial, student_spatial_pred, student_comp, student_decomp = student(images, local_crops) # global embedding of student, local embeddings of teacher, local embeddings of student
+            teacher_cls, teacher_spatial, teacher_comp, teacher_decomp = teacher(images, local_crops, sample_index)  
+            student_cls, student_spatial, student_spatial_pred, student_comp, student_decomp = student(images, local_crops, sample_index) # global embedding of student, local embeddings of teacher, local embeddings of student
 
             student_spatials_pred = student_spatial_pred.chunk(2)
-            student_spatials = student_spatial.chunk(2)
+            teacher_spatials = teacher_spatial.chunk(2)
 
 
             loss_vic=0
             loss_decomp=0
+            loss = 0
             
-            global_loss = dino_loss(student_cls, teacher_cls, epoch)
-            loss1, loss2 = barlow_loss(student_spatials,student_spatials_pred,locations[0],locations[1],s2lmapping.cuda(),l2smapping.cuda())
-            loss_vic += (loss1+loss2)/2 # matrix matching loss
+            # global_loss = dino_loss(student_cls, teacher_cls, epoch)
+
+            if args.global_loss:
+                global_loss = dino_loss(teacher_cls, student_cls)
+            if args.matrix_matching:
+                loss1, loss2 = barlow_loss(teacher_spatials,student_spatials_pred,locations[0],locations[1],s2lmapping.cuda(),l2smapping.cuda())
+                loss_vic += (loss1+loss2)/2 # matrix matching loss
+                loss = loss+loss_vic
 
             # loss_local =  local_loss(student_spatials[0], student_spatials_pred[1], l2smapping.cuda(),s2lmapping.cuda()) + local_loss(student_spatials_pred[0], student_spatials[1], l2smapping.cuda(),s2lmapping.cuda()) #contrastive learning loss
+            if args.comp:
+                loss_comp = F.smooth_l1_loss(student_comp, teacher_comp)
+                
+                # # ipdb.set_trace()
+                for i in range(4):
+                    loss_decomp+=F.smooth_l1_loss(student_decomp[i], teacher_decomp[i])
+                loss_decomp = loss_decomp/4
 
-            loss_comp = F.smooth_l1_loss(student_comp, teacher_comp)
-            
-            # # ipdb.set_trace()
-            for i in range(4):
-                loss_decomp+=F.smooth_l1_loss(student_decomp[i], teacher_decomp[i])
-            loss_decomp = loss_decomp/4
-
-            loss = (loss_vic+global_loss+loss_comp+loss_decomp)/4 # 
+            # loss = (loss_vic+global_loss+loss_comp+loss_decomp)/4 # 
+            # loss = global_loss
             # loss = loss_local
 
             # student update
@@ -414,11 +428,14 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
         # logging
         torch.cuda.synchronize()
         metric_logger.update(loss=loss.item())
-        # metric_logger.update(order_loss=order_loss.item())\
-        metric_logger.update(global_loss=global_loss.item())
-        metric_logger.update(loss_matrix=loss_vic.item())
-        metric_logger.update(loss_comp=loss_comp.item())
-        metric_logger.update(loss_decomp=loss_decomp.item())
+        # metric_logger.update(order_loss=order_loss.item())
+        if args.global_loss:
+            metric_logger.update(global_loss=global_loss.item())
+        if args.matrix_matching:
+            metric_logger.update(loss_matrix=loss_vic.item())
+        if args.comp:
+            metric_logger.update(loss_comp=loss_comp.item())
+            metric_logger.update(loss_decomp=loss_decomp.item())
         metric_logger.update(lr=optimizer.param_groups[0]["lr"])
         metric_logger.update(wd=optimizer.param_groups[0]["weight_decay"])
     # gather the stats from all processes
@@ -506,8 +523,8 @@ class AttentionMLPModel(nn.Module): # compute matrix matching loss
         # print(logits_A.shape,logits_B.shape)
         # logits_A = self.nonlinear(logits_A)
         # logits_A_ = self.nonlinear(logits_A_)
-        loss1 = ( sigmoid_focal_loss(logits_A,l2smapping.cuda(),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_A_,l2smapping.cuda(),alpha=0.99,gamma=0).mean())/2
-        loss2 = ( sigmoid_focal_loss(logits_B,s2lmapping.cuda(),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_B_,s2lmapping.cuda(),alpha=0.99,gamma=0).mean())/2
+        loss1 = ( sigmoid_focal_loss(logits_A,l2smapping.cuda(),alpha=0.9,gamma=0).mean()+ sigmoid_focal_loss(logits_A_,l2smapping.cuda(),alpha=0.9,gamma=0).mean())/2
+        loss2 = ( sigmoid_focal_loss(logits_B,s2lmapping.cuda(),alpha=0.9,gamma=0).mean()+ sigmoid_focal_loss(logits_B_,s2lmapping.cuda(),alpha=0.9,gamma=0).mean())/2
 
 
         # # Get predicted labels
@@ -613,6 +630,31 @@ class TripletLoss(nn.Module):
 
 
         return self.compute_loss(crop1, crop2, bce_labelsl2s, bce_labelss2l)
+
+
+class ContrastiveLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.contrastive_loss = InfoNCE(temperature=0.1,negative_mode='paired')
+
+    def forward(self, teacher_cls, student_cls):
+        teacher_cls = teacher_cls.chunk(4)
+        student_cls = student_cls.chunk(4)
+
+        teacher_overlap_crop1 = teacher_cls[0] # [B,1024]
+        teacher_overlap_crop2 = teacher_cls[1] # [B,1024]
+        teacher_nonoverlap_crop1 = teacher_cls[2] # [B,1024]
+        teacher_nonoverlap_crop2 = teacher_cls[3] # [B,1024]
+
+        student_overlap_crop1 = student_cls[0]
+        student_overlap_crop2 = student_cls[1]
+        student_nonoverlap_crop1 = student_cls[2]
+        student_nonoverlap_crop2 = student_cls[3]
+
+        loss1 = self.contrastive_loss(teacher_overlap_crop1, student_overlap_crop2, torch.cat((teacher_nonoverlap_crop1.unsqueeze(1), student_nonoverlap_crop2.unsqueeze(1)), dim=1)) # negatives [B,2,1024]
+        loss2 = self.contrastive_loss(teacher_overlap_crop2, student_overlap_crop1, torch.cat((teacher_nonoverlap_crop2.unsqueeze(1), student_nonoverlap_crop1.unsqueeze(1)), dim=1))
+
+        return (loss1+loss2)/2
 
 class DINOLoss(nn.Module):
     def __init__(self, out_dim, ncrops, warmup_teacher_temp, teacher_temp,

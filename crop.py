@@ -206,6 +206,34 @@ def get_index(a, b, c):
 
     return overlap_mask_1.bool(), overlap_mask_2.bool()
 
+
+def gaussian_kernel_normalized(size, sigma=1):
+    """Generates a (size x size) Gaussian kernel with mean 0 and standard deviation sigma,
+    normalized so that the center value is 1."""
+    x, y = np.mgrid[-size//2 + 1:size//2 + 1, -size//2 + 1:size//2 + 1]
+    g = np.exp(-((x**2 + y**2) / (2.0 * sigma**2)))
+    g = g / g.sum()  # Normalize to sum to 1
+    g = g / g[size//2, size//2]  # Normalize so the center value is 1
+    return g
+
+
+def apply_gaussian_kernel(kernel, point, matrix_size=14):
+    half_k = kernel.shape[0] // 2
+    matrix = np.ones((matrix_size, matrix_size))
+    
+    x, y = point
+    result_coords = []
+    result_weights = []
+    
+    for i in range(-half_k, half_k + 1):
+        for j in range(-half_k, half_k + 1):
+            if 0 <= x + i < matrix_size and 0 <= y + j < matrix_size:
+                result_coords.append((x + i, y + j))
+                result_weights.append(kernel[half_k + i, half_k + j])
+    
+    return result_coords, result_weights
+
+
 def get_corresponding_indices(overlap_mask_1, overlap_mask_2, idx1_pair, idx2_pair, kl):
     """
     input: 
@@ -236,6 +264,9 @@ def get_corresponding_indices(overlap_mask_1, overlap_mask_2, idx1_pair, idx2_pa
     bce_labelsl2s = torch.zeros(196, 196)
     bce_labelss2l = torch.zeros(196, 196)
 
+    # get 5*5 gaussian kernel
+    kernal = gaussian_kernel_normalized(size=5)
+
     if true_indices_2.dim() != 0:
     # 如果是0维张量（标量），则跳过循环
         for idx in true_indices_2:
@@ -245,14 +276,17 @@ def get_corresponding_indices(overlap_mask_1, overlap_mask_2, idx1_pair, idx2_pa
             # 计算对应的位置在 overlap_mask_1 中的索引
             corresponding_row = (row + offset_y) // k
             corresponding_col = (col + offset_x) // l
-            corresponding_idx = corresponding_row * 14 + corresponding_col
+            coords, weights = apply_gaussian_kernel(kernal, (corresponding_row, corresponding_col)) # apply 5*5 gaussion weights to the matrx matching target
 
-            # 更新映射数组
-            mapping_array_2_to_1[idx] = corresponding_idx if overlap_mask_1[corresponding_idx] else -1
-            bce_labelss2l[idx,corresponding_idx] = 1 
+            for i in range(len(coords)):
+                corresponding_idx = coords[i][0] * 14 + coords[i][1]
 
-            # if overlap_mask_1[corresponding_idx]:
-            bce_labelsl2s[corresponding_idx,idx] = 1 
+                # 更新映射数组
+                # mapping_array_2_to_1[idx] = corresponding_idx if overlap_mask_1[corresponding_idx] else -1
+                bce_labelss2l[idx,corresponding_idx] = weights[i]
+
+                # if overlap_mask_1[corresponding_idx]:
+                bce_labelsl2s[corresponding_idx,idx] = weights[i]
     else:
         pass
     
@@ -332,18 +366,22 @@ class PatchCrop():
         elif k==2 and l==1: # 竖着的矩形
             x1 = randint(0,18)
             y1 = randint(0,4)
-            x2 = randrange(max(x1-7,0), min(19, x1+7), 1)
+            # x2 = randrange(max(x1-7,0), min(19, x1+7), 1) # overlap for crop2>50%
+            x2 = randrange(max(x1-13,0), min(19, x1+13), 1)
             y2 = randrange(y1%2, 19, 2)
         elif k==1 and l==2: # 横着的矩形
             x1 = randint(0,4)
             y1 = randint(0,18)
             x2 = randrange(x1%2, 19, 2)
-            y2 = randrange(max(y1-7,0), min(19, y1+7), 1)
+            # y2 = randrange(max(y1-7,0), min(19, y1+7), 1) # overlap for crop2>50%
+            y2 = randrange(max(y1-13,0), min(19, y1+13), 1)
         elif k==1 and l==1:
             x1 = randint(0,18)
             y1 = randint(0,18)
-            x2 = randrange(max(x1-7,0), min(19, x1+7), 1)
+            x2 = randrange(max(x1-7,0), min(19, x1+7), 1) # overlap for crop2>50%
             y2 = randrange(max(y1-7,0), min(19, y1+7), 1)
+            # x2 = randrange(max(x1-13,0), min(19, x1+13), 1)
+            # y2 = randrange(max(y1-13,0), min(19, y1+13), 1)
         
 
         patch1 = image[x1*grid:(14*l+x1)*grid, y1*grid:(14*k+y1)*grid, :]
