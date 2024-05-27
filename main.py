@@ -341,7 +341,7 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
     barlow_loss.to(device)
     # criterion = nn.CosineSimilarity(dim=1).to(device)
     # triplet_loss =barlow_loss.to(device)
-    local_loss = TripletLoss()
+    # local_loss = TripletLoss()
     #torch.autograd.set_detect_anomaly(True)
     # for it, ((images,locations,s2lmapping,l2smapping), _) in enumerate(metric_logger.log_every(data_loader, 50, header, log_writer)):
     for it, ((images,locations), _) in enumerate(metric_logger.log_every(data_loader, 50, header, log_writer)):    
