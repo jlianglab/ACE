@@ -213,13 +213,13 @@ def get_comp_decomp_barlow_labels(c1_decomp_gt : torch.Tensor,
             c1_locations = c1_locations_batch[batch_idx]
             
             comp_barlow_labels = torch.zeros((c1_locations.shape[0], c2_comp_gt.shape[0]))
-            idx = torch.argmax(c1_locations).item()
+            idx = torch.argmax(c1_locations.int()).item()
             # Top indices of C1
             c1_row_min = idx // crop_size
             c1_col_min = idx % crop_size
             # Top indices of C2 composition
-            c2_comp_row_min = torch.argmax(c2_comp_gt).item() // (crop_size // 2)
-            c2_comp_col_min = torch.argmax(c2_comp_gt).item() % (crop_size // 2)
+            c2_comp_row_min = torch.argmax(c2_comp_gt.int()).item() // (crop_size // 2)
+            c2_comp_col_min = torch.argmax(c2_comp_gt.int()).item() % (crop_size // 2)
             # Number of steps
             num_row = torch.sum(torch.any(c1_locations.reshape(14, 14), dim=1)).item()
             num_col = torch.sum(c1_locations.reshape(14, 14)[c1_row_min]).item()
@@ -251,15 +251,15 @@ def get_comp_decomp_barlow_labels(c1_decomp_gt : torch.Tensor,
             c1_decomp_gt = c1_decomp_gt_batch[i]
             c2_locations_rearr = c2_locations_rearr_batch[i]
 
-            idx = torch.argmax(c2_locations_rearr).item()
+            idx = torch.argmax(c2_locations_rearr.int()).item()
 
             # Top indices of C2
             c2_row_min = idx // crop_size
             c2_col_min = idx % crop_size
 
             # Top indices of C1 decomposition
-            c1_decomp_row_min = torch.argmax(c1_decomp_gt).item() // (decomposition_factor * crop_size)
-            c1_decomp_col_min = torch.argmax(c1_decomp_gt).item() % (decomposition_factor * crop_size)
+            c1_decomp_row_min = torch.argmax(c1_decomp_gt.int()).item() // (decomposition_factor * crop_size)
+            c1_decomp_col_min = torch.argmax(c1_decomp_gt.int()).item() % (decomposition_factor * crop_size)
 
             # Number of steps
             num_row = torch.sum(torch.any(c2_locations_rearr.reshape(crop_size, crop_size), dim=1)).item()

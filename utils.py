@@ -773,40 +773,28 @@ class MultiCropWrapper_teacher(nn.Module):
         self.head = head
         self.DenseHead = DenseHead
 
-
     def forward(self, x):
-        local_embd = []
         # convert to list
         spatial_features = []
         if not isinstance(x, list):
             x = [x]
-
-        global_out, _middle_features = self.backbone(x[0]) # input global crop
-        spatial_features = self.DenseHead(_middle_features)
-
-        local_input = torch.cat(x[1:])
-        local_out, _ = self.backbone(local_input)
-        local_embd += local_out.chunk(4) # divide the 4 local crops
-
-        
-        # idx_crops = torch.cumsum(torch.unique_consecutive(
-        #     torch.tensor([inp.shape[-1] for inp in x]),
-        #     return_counts=True,
-        # )[1], 0)
-        # start_idx, output = 0, torch.empty(0).to(x[0].device)
-        # for end_idx in idx_crops:
-        #     _out,_middle_features = self.backbone(torch.cat(x[start_idx: end_idx]),perm=None)
-        #     spatial_features =self.DenseHead(_middle_features)
-        #     # The output is a tuple with XCiT model. See:
-        #     # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
-        #     if isinstance(_out, tuple):
-        #         _out = _out[0]
-        #     # accumulate outputs
-        #     output = torch.cat((output, _out))
-        #     start_idx = end_idx
+        idx_crops = torch.cumsum(torch.unique_consecutive(
+            torch.tensor([inp.shape[-1] for inp in x]),
+            return_counts=True,
+        )[1], 0)
+        start_idx, output = 0, torch.empty(0).to(x[0].device)
+        for end_idx in idx_crops:
+            _out,_middle_features = self.backbone(torch.cat(x[start_idx: end_idx]),perm=None)
+            spatial_features =self.DenseHead(_middle_features)
+            # The output is a tuple with XCiT model. See:
+            # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
+            if isinstance(_out, tuple):
+                _out = _out[0]
+            # accumulate outputs
+            output = torch.cat((output, _out))
+            start_idx = end_idx
         # Run the head forward on the concatenated features.
-        return   self.head(global_out),spatial_features,global_out, local_embd# 
-        # return   self.head(output),spatial_features,output, local_embd# 
+        return   self.head(output),spatial_features # 
 
 
 
