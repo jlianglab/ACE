@@ -759,6 +759,8 @@ class MultiCropWrapper(nn.Module):
                                                 nn.ReLU(inplace=True),)
 
     def forward(self, x):
+        print("input shape")
+        print(len(x), x[0].shape)
         spatial_features = []
         # convert to list
         if not isinstance(x, list):
@@ -768,7 +770,24 @@ class MultiCropWrapper(nn.Module):
             return_counts=True,
         )[1], 0)
         start_idx, output = 0, torch.empty(0).to(x[0].device)
+<<<<<<< Updated upstream
         loss_mask=0
+=======
+        loss_mask = 0
+
+        for end_idx in idx_crops:  # idx_crops=[2]
+            image_origin_input = torch.cat(x[start_idx:end_idx])
+            if end_idx == 2:  # will go to this branch
+                # print(perm[0].shape,perm[1].shape)
+                print("image_origin_input")
+                print(image_origin_input.shape)
+                _out, _middle_features = self.backbone(image_origin_input)
+                print("after backbone in multicrop")
+                print(_out.shape, _middle_features.shape)
+                spatial_features = self.DenseHead(_middle_features)  # )
+                print("after dense head in multicrop")
+                print(spatial_features.shape)
+>>>>>>> Stashed changes
 
         for end_idx in idx_crops: # idx_crops=[2]
             image_origin_input=torch.cat(x[start_idx: end_idx])
@@ -777,9 +796,19 @@ class MultiCropWrapper(nn.Module):
                 _out,_middle_features = self.backbone( image_origin_input)
                 spatial_features = self.DenseHead(_middle_features)#)
             else:
+<<<<<<< Updated upstream
                 _out,_middle_features = self.backbone( image_origin_input)
                 spatial_features+= self.DenseHead(_middle_features).chunk(self.args.local_crops_number)
                 # ipdb.set_trace()
+=======
+                print(image_origin_input.shape)
+                _out, _middle_features = self.backbone(image_origin_input)
+                print(_out.shape, _middle_features.shape)
+                spatial_features += self.DenseHead(_middle_features).chunk(
+                    self.args.local_crops_number
+                )
+                print(spatial_features.shape)
+>>>>>>> Stashed changes
             # The output is a tuple with XCiT model. See:
             # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
             

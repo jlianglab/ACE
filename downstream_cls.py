@@ -61,7 +61,7 @@ def get_model(pretrained_model_path, num_classes, device):
     state_dict = checkpoint["student"]
     state_dict = {k.replace("module.backbone.", ""): v for k, v in state_dict.items()}
     msg = model.load_state_dict(state_dict, strict=False)
-    print("Loaded with message:", msg)
+    # print("Loaded with message:", msg)
     model.head = nn.Linear(model.head.in_features, num_classes)
     model.to(device)
     if torch.cuda.device_count() > 1:

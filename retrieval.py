@@ -261,7 +261,7 @@ def train_dino(args):
             print("Key {} is not found".format(updated_key))
     msg = model.load_state_dict(state_dict, strict=False)
     print("=> loaded pretrained model '{}'".format(config.MODEL.PRETRAINED))
-    print("missing keys:", msg.missing_keys)
+    # print("missing keys:", msg.missing_keys)
 
     student = model
     student.cuda()

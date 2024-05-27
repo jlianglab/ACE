@@ -18,4 +18,8 @@
 module load mamba/latest
 source activate ml10_lat
 cd /scratch/ssiingh/JLiangLab/ACE
+<<<<<<< Updated upstream
 CUDA_VISIBLE_DEVICES="0,1,2,3" python -m torch.distributed.launch --nproc_per_node=4 --master_port 28301 main.py --arch swin_base --batch_size_per_gpu 8 --data_path /data/jliang12/shared/dataset/NIHCXR14/full_images/images --output_dir /scratch/ssiingh/JLiangLab/ACE/outputs --saveckp_freq 1 --cfg /scratch/ssiingh/JLiangLab/ACE/swin_configs/swinv2_base_patch4_window16_256.yaml
+=======
+CUDA_VISIBLE_DEVICES=2 torchrun --nproc_per_node=1 main.py --arch swin_base --batch_size_per_gpu 1 --data_path /data/jliang12/shared/dataset/NIHCXR14/full_images/images --output_dir /scratch/ssiingh/JLiangLab/ACE/outputs --saveckp_freq 1 --cfg /scratch/ssiingh/JLiangLab/ACE/swin_configs/swinv2_base_patch4_window16_256.yaml
+>>>>>>> Stashed changes
