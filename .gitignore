@@ -2,3 +2,6 @@
 pretrained_weight/
 runs/
 *.ipynb
+*.pth
+*.err
+*.out

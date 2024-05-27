@@ -23,7 +23,6 @@ import cv2
 from crop import img_transforms,get_index, get_corresponding_indices
 from einops import rearrange
 import albumentations as A
-import ipdb
 class GaussianBlur(object):
     def __init__(self):
         pass
@@ -395,10 +394,11 @@ class DataAugmentationDINO(object):
                 global_crops_scale=(0.4, 1.0),
                 local_crops_scale=(0.08, 0.4),
                 local_crops_number=8,
+                patchsize=4,
                 standard_patchsize=32,
                 grid_factor=10,
                 grid_select_inital=9,
-                input_size=448):
+                input_size=224):
 
         self.standard_patchsize = standard_patchsize
         self.standard_grid_factor = grid_factor
@@ -410,7 +410,7 @@ class DataAugmentationDINO(object):
         self.input_size = input_size
 
         #region consistency part
-        self.overlap_initial_crop=transforms.RandomResizedCrop(1024, scale=(0.9,1.0),interpolation=Image.BICUBIC)
+        self.overlap_initial_crop=transforms.RandomResizedCrop(1024, scale=(0.85,1.0),interpolation=Image.BICUBIC)
 
         # transformation for the local small crops
         self.local_crops_number = local_crops_number
@@ -432,7 +432,7 @@ class DataAugmentationDINO(object):
         self.augmentations_glo = []
         self.augmentations_glo_noise = []
         self.augmentations_albu = []
-        self.img_transforms = img_transforms(img_size=self.input_size)
+        self.img_transforms = img_transforms()
 
 
         for i in range(2):
@@ -490,39 +490,33 @@ class DataAugmentationDINO(object):
 
 
     def __call__(self, image):
-        crop1 = []
-        crop2 = []
-
+        crops = []
+        grids=[]
+        randperms=[]
         
         # global embedding consistency data
         image = self.overlap_initial_crop(image) # random resize and crop, (0.85,1) of initial image
         image = np.asarray(image)
 
-        patch, patch1_local, patch2_local, (idx_x1, idx_y1), (idx_x2, idx_y2) = self.img_transforms(image) # get the two crops, the top left corner indexed of two crops, the size rate of the bigger crop1
-        # patch, (idx_x1, idx_y1), (idx_x2, idx_y2),(k,l) = self.img_transforms(image) # get the two crops, the top left corner indexed of two crops, the size rate of the bigger crop1
-        sample_index1, sample_index2 = get_index((idx_x1, idx_y1), (idx_x2, idx_y2), (1, 1)) # the overlap mask of two crops (all 14*14)
+        patch, (idx_x1, idx_y1), (idx_x2, idx_y2), (k, l) = self.img_transforms(image) # get the two crops, the top left corner indexed of two crops, the size rate of the bigger crop1
+        sample_index1, sample_index2 = get_index((idx_x1, idx_y1), (idx_x2, idx_y2), (k, l)) # the overlap mask of two crops (all 14*14)
         # print(patch.shape)
         patch1 = patch[:,:,0:3]
         patch2 = patch[:,:,3:6]
     
-        # grids.append(sample_index1)
-        # grids.append(sample_index2)
-        mapping2to1,mapping1to2 = get_corresponding_indices(sample_index1, sample_index2,(idx_x1, idx_y1), (idx_x2, idx_y2),(1,1)) # two target matrices of matrix matching, size 196*196
+        grids.append(sample_index1)
+        grids.append(sample_index2)
+        # s2lmapping,l2smapping = get_corresponding_indices(sample_index1, sample_index2,(idx_x1, idx_y1), (idx_x2, idx_y2),(k, l)) # two target matrices of matrix matching, size 196*196
+
+
 
         #aug_whole = self.augment[0](imageData)
         patch1 = self.augmentations_albu[0](image=patch1)['image']
         patch2 = self.augmentations_albu[1](image=patch2)['image']
 
-        crop1.append(self.augmentations_glo[0](patch1))
-        crop2.append(self.augmentations_glo[1](patch2))
+        crops.append(self.augmentations_glo[0](patch1))
+        crops.append(self.augmentations_glo[1](patch2))
 
-        
-        for i in patch1_local:
-            image = self.augmentations_albu[0](image=i)['image']
-            crop2.append(self.augmentations_glo[0](image))
-        for i in patch2_local:
-            image = self.augmentations_albu[1](image=i)['image']
-            crop1.append(self.augmentations_glo[1](image))
 
-        
-        return crop1, crop2, mapping2to1, mapping1to2
+        return crops,grids
+        # return crops,grids, s2lmapping,l2smapping
