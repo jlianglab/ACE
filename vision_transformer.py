@@ -677,6 +677,7 @@ class DenseHead(nn.Module):
     def __init__(self, in_dim=1024, out_dim=512, num_layers=3):
         super().__init__()
         self.layers = nn.ModuleList()
+        self.out_dim = out_dim
 
         for _ in range(num_layers):
             self.layers.append(

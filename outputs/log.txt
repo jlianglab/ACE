@@ -5231,3 +5231,4 @@ Student and Teacher are built: they are both swin_base network.
 Loss, optimizer and schedulers ready.
 Starting DINO training !
 Epoch: [22/302]  [    0/86524]  eta: 1 day, 15:34:48  loss: 3.066066 (3.066066)  loss_vic: 0.020384 (0.020384)  global_loss: 1.560591 (1.560591)  lr: 0.000002 (0.000002)  wd: 0.044693 (0.044693)  time: 1.646813  data: 0.848498  max mem: 7684
+Data loaded: there are 86524 images.
