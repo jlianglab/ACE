@@ -485,3 +485,5 @@ Student and Teacher are built: they are both swin_base network.
 Loss, optimizer and schedulers ready.
 Starting DINO training !
 Epoch: [0/302]  [    0/10815]  eta: 1 day, 15:10:53  loss: 5.298991 (5.298991)  loss_vic: 0.024475 (0.024475)  global_loss: 10.573507 (10.573507)  lr: 0.000000 (0.000000)  wd: 0.040000 (0.040000)  time: 13.042358  data: 8.726105
+Epoch: [0/302]  [   50/10815]  eta: 9:29:41  loss: 5.604414 (5.552495)  loss_vic: 0.023932 (0.024035)  global_loss: 11.183018 (11.080955)  lr: 0.000000 (0.000000)  wd: 0.040000 (0.040000)  time: 3.151135  data: 0.000382
+Epoch: [0/302]  [  100/10815]  eta: 12:30:55  loss: 5.600984 (5.581654)  loss_vic: 0.024230 (0.024027)  global_loss: 11.175859 (11.139280)  lr: 0.000000 (0.000000)  wd: 0.040000 (0.040000)  time: 6.448339  data: 0.000341
