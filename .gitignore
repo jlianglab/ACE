@@ -5,3 +5,4 @@ runs/
 *.pth
 *.err
 *.out
+/log.txt
