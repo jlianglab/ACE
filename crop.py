@@ -366,15 +366,15 @@ class PatchCrop():
         elif k==2 and l==1: # 竖着的矩形
             x1 = randint(0,18)
             y1 = randint(0,4)
-            # x2 = randrange(max(x1-7,0), min(19, x1+7), 1) # overlap for crop2>50%
-            x2 = randrange(max(x1-13,0), min(19, x1+13), 1)
+            x2 = randrange(max(x1-7,0), min(19, x1+7), 1) # overlap for crop2>50%
+            # x2 = randrange(max(x1-13,0), min(19, x1+13), 1)
             y2 = randrange(y1%2, 19, 2)
         elif k==1 and l==2: # 横着的矩形
             x1 = randint(0,4)
             y1 = randint(0,18)
             x2 = randrange(x1%2, 19, 2)
-            # y2 = randrange(max(y1-7,0), min(19, y1+7), 1) # overlap for crop2>50%
-            y2 = randrange(max(y1-13,0), min(19, y1+13), 1)
+            y2 = randrange(max(y1-7,0), min(19, y1+7), 1) # overlap for crop2>50%
+            # y2 = randrange(max(y1-13,0), min(19, y1+13), 1)
         elif k==1 and l==1:
             x1 = randint(0,18)
             y1 = randint(0,18)

@@ -767,7 +767,8 @@ class MultiCropWrapper(nn.Module):
 
 
         # Run the head forward on the concatenated features.
-        return self.head(output),spatial_features.detach(),self.predictor_(spatial_features),local_comp,global_decomp# global embedding, local embeddings of teacher, local embeddings of student, composition embeddings, decomposition embeddings
+        return self.head(output),self.predictor_(spatial_features),local_comp,global_decomp# global embedding, local embeddings of student, composition embeddings, decomposition embeddings
+        # return local_comp,global_decomp # only comp
 
 
 class MultiCropWrapper_teacher(nn.Module):
@@ -803,8 +804,8 @@ class MultiCropWrapper_teacher(nn.Module):
             _out,_middle_features = self.backbone(torch.cat(x[start_idx: end_idx]),perm=None)
             true_avg_features, false_avg_features = compute_average_features(_middle_features, sample_index) # return overlap average feature and non-overlap average feature
             output = torch.cat((true_avg_features, false_avg_features))
-
             spatial_features =self.DenseHead(_middle_features)
+
             # The output is a tuple with XCiT model. See:
             # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
             # if isinstance(_out, tuple):
@@ -826,6 +827,7 @@ class MultiCropWrapper_teacher(nn.Module):
 
         # Run the head forward on the concatenated features.
         return   self.head(output),spatial_features, _out, local_embd # 
+        # return    _out, local_embd # only comp
 
 
 
