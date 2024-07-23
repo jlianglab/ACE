@@ -476,3 +476,73 @@ def resize_padding(image,new_size=(1024,1024)):
     # image = np.pad(image,((3,2),(2,3)),'constant',constant_values = (0,0))
     image = cv2.copyMakeBorder(image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0) 
     return image
+
+
+class EyePACS(Dataset):
+
+  def __init__(self, augment):
+    trainpath = '/sda1/zhouziyu/ssl/dataset/EyePACS/train/train'
+    testpath = '/sda1/zhouziyu/ssl/dataset/EyePACS/test/test'
+    official_test_txt = './data/EyePACS/official_test.txt'
+    downstream_train_txt = './data/EyePACS/downstream_train.txt'
+    downstream_val_txt = './data/EyePACS/downstream_val.txt'
+    
+    self.img_list = []
+
+    with open(official_test_txt, 'r', encoding='utf-8') as file:
+       for line in file:
+          line = line.strip()
+          self.img_list.append(os.path.join(testpath, line))
+    
+    with open(downstream_train_txt, 'r', encoding='utf-8') as file:
+       for line in file:
+          line = line.strip()
+          self.img_list.append(os.path.join(trainpath, line))
+
+    with open(downstream_val_txt, 'r', encoding='utf-8') as file:
+       for line in file:
+          line = line.strip()
+          self.img_list.append(os.path.join(trainpath, line))
+
+    self.augment = augment
+
+  def __getitem__(self, index):
+
+    imagePath = self.img_list[index]
+
+    # imageData = Image.open(imagePath).convert('RGB')
+    imageData = cv2.imread(imagePath)
+    imageData = cv2.cvtColor(imageData, cv2.COLOR_BGR2RGB)
+    imageData, mask = crop_image_from_gray(imageData)
+    imageData = resize_padding(imageData)
+    # print(imageData.shape)
+    imageData = Image.fromarray(imageData)
+
+    if self.augment != None: imageData = self.augment(imageData)
+
+    return imageData
+
+  def __len__(self):
+
+    return len(self.img_list)
+  
+
+def crop_image_from_gray(img,tol=7):
+    if img.ndim ==2:
+        mask = img>tol
+        return img[np.ix_(mask.any(1),mask.any(0))]
+    elif img.ndim==3:
+        gray_img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        mask = gray_img>tol
+        
+        check_shape = img[:,:,0][np.ix_(mask.any(1),mask.any(0))].shape[0]
+        if (check_shape == 0): # image is too dark so that we crop out everything,
+            return img # return original image
+        else:
+            img1=img[:,:,0][np.ix_(mask.any(1),mask.any(0))]
+            img2=img[:,:,1][np.ix_(mask.any(1),mask.any(0))]
+            img3=img[:,:,2][np.ix_(mask.any(1),mask.any(0))]
+    #         print(img1.shape,img2.shape,img3.shape)
+            img = np.stack([img1,img2,img3],axis=-1)
+    #         print(img.shape)
+        return img, mask

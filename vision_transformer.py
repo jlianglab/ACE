@@ -214,7 +214,7 @@ class VisionTransformer(nn.Module):
         for blk in self.blocks:
             x = blk(x)
         x = self.norm(x)
-        return x[:, 0]
+        return x[:, 0], x[:, 1:]
 
     def get_last_selfattention(self, x):
         x = self.prepare_tokens(x)
@@ -510,7 +510,7 @@ class DINOHead(nn.Module):
 #         return x
 
 class DenseHead(nn.Module):
-    def __init__(self, in_dim=1024, out_dim=512, num_layers=3):
+    def __init__(self, in_dim=1024, out_dim=1024, num_layers=3):
         super().__init__()
         self.layers = nn.ModuleList()
         

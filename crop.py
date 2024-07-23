@@ -8,6 +8,7 @@ import albumentations
 import cv2
 import numpy as np
 import torch
+import torch.nn.functional as F
 import torch.distributed as dist
 import torchvision.transforms.functional as tf
 from einops import rearrange
@@ -115,13 +116,13 @@ class NIHchest_dataset(Dataset):
         return len(self.datalist)
 
 
-def img_transforms():
+def img_transforms(multi_scale=False):
     size = 1024
     img_transforms = transforms.Compose([
                         # KeepRatioResize(size),
                         # CenterCrop(size),
                         # GridRandomCrop(size),
-                        PatchCrop(size)
+                        PatchCrop(size, multi_scale)
     ])
     return img_transforms
 
@@ -204,7 +205,7 @@ def get_index(a, b, c):
     # print(index2)
     
 
-    return overlap_mask_1.bool(), overlap_mask_2.bool()
+    return overlap_mask_1.bool(), overlap_mask_2.bool() # [196,]
 
 
 def gaussian_kernel_normalized(size, sigma=1):
@@ -237,8 +238,8 @@ def apply_gaussian_kernel(kernel, point, matrix_size=14):
 def get_corresponding_indices(overlap_mask_1, overlap_mask_2, idx1_pair, idx2_pair, kl):
     """
     input: 
-     overlap_mask_1: overlap index of crop1 (bool, 14*14)
-     overlap_mask_2: overlap index of crop2 (bool, 14*14)
+     overlap_mask_1: overlap index of crop1 (bool, [196,])
+     overlap_mask_2: overlap index of crop2 (bool, [196,])
      idx1_pair: top left grid index of crop1
      idx2_pair: top left grid index of crop2
      kl: the size rate of crop1
@@ -263,6 +264,8 @@ def get_corresponding_indices(overlap_mask_1, overlap_mask_2, idx1_pair, idx2_pa
     # initialize the target of matching matrix
     bce_labelsl2s = torch.zeros(196, 196)
     bce_labelss2l = torch.zeros(196, 196)
+    # bce_labelsl2s = torch.zeros(196, 784)
+    # bce_labelss2l = torch.zeros(196, 49)
 
     # get 5*5 gaussian kernel
     kernal = gaussian_kernel_normalized(size=5)
@@ -291,6 +294,95 @@ def get_corresponding_indices(overlap_mask_1, overlap_mask_2, idx1_pair, idx2_pa
         pass
     
     return  bce_labelss2l, bce_labelsl2s
+
+def upsample(input_bool): # [196,]
+    input = input_bool.reshape(14,14).float()
+    output_float = F.interpolate(input.unsqueeze(0).unsqueeze(0), size=(28, 28), mode='nearest')
+    output_float = output_float.squeeze(0).squeeze(0).reshape(-1) # [784,]
+    output_float = torch.nonzero(output_float)
+    return output_float
+
+def downsample(input_bool): # [196,]
+    input = input_bool.reshape(14,14).float()
+    output_float = F.max_pool2d(input.unsqueeze(0).unsqueeze(0), kernel_size=2)
+    output_float = output_float.squeeze(0).squeeze(0).reshape(-1) # [49,]
+    output_float = torch.nonzero(output_float)
+    return output_float
+
+
+
+def get_corresponding_indices_comp(overlap_mask_1, overlap_mask_2, idx1_pair, idx2_pair, kl):
+    """
+    input: 
+     overlap_mask_1: overlap index of crop1 (bool, [196,])
+     overlap_mask_2: overlap index of crop2 (bool, [196,])
+     idx1_pair: top left grid index of crop1
+     idx2_pair: top left grid index of crop2
+     kl: the size rate of crop1
+    output: two target matrices of matrix matching, size 196*196
+
+    """
+    # idx_x1, idx_y1 = idx1_pair
+    # idx_x2, idx_y2 = idx2_pair
+    # k, l = kl
+    
+    # initialize the mapping array as -1
+    # mapping_array_2_to_1 = np.full(overlap_mask_2.numel(), -1, dtype=int) # shape: (196,)
+    # mapping_array_1_to_2 = np.full(overlap_mask_1.numel(), -1, dtype=int)
+
+    # compute the offsets
+    # offset_x = idx_x2 - idx_x1
+    # offset_y = idx_y2 - idx_y1
+
+    # find True in overlap_mask_2
+    true_indices_2 = torch.nonzero(overlap_mask_2).squeeze() # crop2:small crop  overlap patches:4n
+    true_indices_1 = torch.nonzero(overlap_mask_1).squeeze() # crop1:big crop  overlap patches:n
+    upsample_indices_1 = upsample(overlap_mask_1) # overlap patches:4n
+    downsample_indices_2 = downsample(overlap_mask_2) # overlap patches:n
+
+
+    # initialize the target of matching matrix
+    # bce_labelsl2s = torch.zeros(196, 196)
+    # bce_labelss2l = torch.zeros(196, 196)
+    bce_labelsl2s = torch.zeros(196, 784)
+    bce_labelss2l = torch.zeros(196, 49)
+
+    # get 5*5 gaussian kernel
+    kernal1 = gaussian_kernel_normalized(size=5)
+    kernal2 = gaussian_kernel_normalized(size=3)
+
+    # decomposition
+    for i in range(len(true_indices_2)): 
+        idx2 = true_indices_2[i] # index in crop2 0~195
+        idx1 = upsample_indices_1[i] # index in upsample crop1 0~783
+
+        row, col = divmod(idx1.item(), 28)
+
+        coords, weights = apply_gaussian_kernel(kernal1, (row, col), matrix_size=28) # apply 5*5 gaussion weights to the matrx matching target
+
+        for i in range(len(coords)):
+            corresponding_idx = coords[i][0] * 28 + coords[i][1]
+
+            bce_labelsl2s[idx2,corresponding_idx] = weights[i]
+
+    # composition
+    for i in range(len(true_indices_1)):
+        idx1 = true_indices_1[i] # index in crop1 0~195
+        idx2 = downsample_indices_2[i] # index in downsample crop2 0~49
+
+        row, col = divmod(idx2.item(), 7)
+
+        coords, weights = apply_gaussian_kernel(kernal2, (row, col), matrix_size=7) # apply 5*5 gaussion weights to the matrx matching target
+
+        for i in range(len(coords)):
+            corresponding_idx = coords[i][0] * 7 + coords[i][1]
+
+            bce_labelss2l[idx1,corresponding_idx] = weights[i]
+
+    
+    return  bce_labelss2l, bce_labelsl2s # [196,49], [196,784]
+
+
 
 
 class Rearrange_and_Norm():
@@ -353,11 +445,15 @@ class PatchCrop():
     (x2, y2): the grid index of crop2's top left corner, the size of crop2 is fixed in 14*14 patches
     (k,l): the h, w rate of crop1
     """
-    def __init__(self, size):
+    def __init__(self, size, multi_scale=False):
         self.size = size
+        self.multi_scale = multi_scale
     def __call__(self, image):
         grid = int(self.size/32)
-        k, l = choices([(1,1), (1,2), (2,1), (2,2)], [3, 1, 1, 1])[0]
+        if self.multi_scale:
+            k, l = choices([(1,1), (1,2), (2,1), (2,2)], [3, 1, 1, 1])[0]
+        else:
+            k, l = 2,2
         if k==2 and l==2:
             x1 = randint(0,4)
             y1 = randint(0,4)

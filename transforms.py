@@ -20,7 +20,7 @@ from torchvision.transforms.functional import _interpolation_modes_from_int
 import torchvision.transforms.functional as FT
 from md_aug import paint, local_pixel_shuffling,local_pixel_shuffling_500, nonlinear_transformation
 import cv2
-from crop import img_transforms,get_index, get_corresponding_indices
+from crop import img_transforms,get_index, get_corresponding_indices, get_corresponding_indices_comp
 from einops import rearrange
 import albumentations as A
 import ipdb
@@ -391,7 +391,7 @@ class Rearrange_and_Norm():
         return image
 
 class DataAugmentationDINO(object):
-    def __init__(self,
+    def __init__(self, args,
                 global_crops_scale=(0.4, 1.0),
                 local_crops_scale=(0.08, 0.4),
                 local_crops_number=8,
@@ -401,6 +401,7 @@ class DataAugmentationDINO(object):
                 grid_select_inital=9,
                 input_size=224):
 
+        self.args = args
         self.standard_patchsize = standard_patchsize
         self.standard_grid_factor = grid_factor
         self.standard_grid_select_inital = grid_select_inital
@@ -433,7 +434,7 @@ class DataAugmentationDINO(object):
         self.augmentations_glo = []
         self.augmentations_glo_noise = []
         self.augmentations_albu = []
-        self.img_transforms = img_transforms()
+        self.img_transforms = img_transforms(multi_scale=self.args.multi_scale)
 
 
         for i in range(2):
@@ -511,7 +512,11 @@ class DataAugmentationDINO(object):
     
         grids.append(sample_index1)
         grids.append(sample_index2)
-        s2lmapping,l2smapping = get_corresponding_indices(sample_index1, sample_index2,(idx_x1, idx_y1), (idx_x2, idx_y2),(k, l)) # two target matrices of matrix matching, size 196*196
+
+        if self.args.matrix_matching:
+            s2lmapping,l2smapping = get_corresponding_indices_comp(sample_index1, sample_index2,(idx_x1, idx_y1), (idx_x2, idx_y2),(k, l)) # two target matrices of matrix matching, size [196,49], [196,784]
+        else:
+            s2lmapping,l2smapping = get_corresponding_indices(sample_index1, sample_index2,(idx_x1, idx_y1), (idx_x2, idx_y2),(k, l)) # two target matrices of matrix matching, size [196,196], [196,196]
 
 
 
@@ -527,4 +532,4 @@ class DataAugmentationDINO(object):
             local_crops.append(self.augmentations_glo[0](image))
 
 
-        return crops, local_crops, grids, s2lmapping, l2smapping, sample_index1, sample_index2
+        return crops, local_crops, s2lmapping, l2smapping, sample_index1, sample_index2
