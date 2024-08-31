@@ -1,0 +1,138 @@
+here
+done
+done2
+done3
+| distributed init (rank 0): env://
+Initialized
+git:
+  sha: fe9805f27d3e735b6eb31130ba3864446b7df0b9, status: has uncommited changes, branch: ssiingh
+
+arch: swin_base
+batch_size_per_gpu: 32
+cfg: ./swin_configs/swin_base_img224_window7.yaml
+clip_grad: 0.8
+data_path: /data/jliang12/shared/dataset/NIHCXR14/full_images/images
+dist_url: env://
+drop_path_rate: 0.1
+epochs: 302
+freeze_last_layer: 1
+global_crops_scale: (0.4, 1.0)
+gpu: 0
+local_crops_number: 8
+local_crops_scale: (0.05, 0.4)
+lr: 0.0005
+min_lr: 1e-06
+momentum_teacher: 0.996
+norm_last_layer: True
+num_workers: 5
+optimizer: adamw
+opts: []
+out_dim: 65536
+output_dir: /scratch/ssiingh/JLiangLab/ACE/outputs
+patch_size: 4
+rank: 0
+saveckp_freq: 1
+seed: 0
+teacher_temp: 0.04
+use_bn_in_head: False
+use_dense_prediction: False
+use_fp16: True
+warmup_epochs: 10
+warmup_teacher_temp: 0.04
+warmup_teacher_temp_epochs: 0
+weight_decay: 0.04
+weight_decay_end: 0.4
+world_size: 1
+=> merge config from ./swin_configs/swin_base_img224_window7.yaml
+Found checkpoint at /scratch/ssiingh/JLiangLab/ACE/outputs/checkpoint.pth
+=> loaded 'student' from checkpoint '/scratch/ssiingh/JLiangLab/ACE/outputs/checkpoint.pth' with msg <All keys matched successfully>
+=> loaded 'teacher' from checkpoint '/scratch/ssiingh/JLiangLab/ACE/outputs/checkpoint.pth' with msg <All keys matched successfully>
+=> loaded 'optimizer' from checkpoint: '/scratch/ssiingh/JLiangLab/ACE/outputs/checkpoint.pth'
+=> loaded 'fp16_scaler' from checkpoint: '/scratch/ssiingh/JLiangLab/ACE/outputs/checkpoint.pth'
+=> loaded 'barlow_loss' from checkpoint '/scratch/ssiingh/JLiangLab/ACE/outputs/checkpoint.pth' with msg <All keys matched successfully>
+=> loaded 'dino_loss' from checkpoint '/scratch/ssiingh/JLiangLab/ACE/outputs/checkpoint.pth' with msg <All keys matched successfully>
+Averaged stats: loss: 3.532769 (3.532516)  loss_vic: 0.022896 (0.023182)  global_loss: 1.323645 (1.343596)  lr: 0.000058 (0.000058)  wd: 0.075036 (0.074488)
+Averaged stats: loss: 3.472847 (3.530529)  loss_vic: 0.022096 (0.022426)  global_loss: 1.270103 (1.330391)  lr: 0.000058 (0.000058)  wd: 0.076153 (0.075598)
+Averaged stats: loss: 3.536510 (3.522436)  loss_vic: 0.021945 (0.021812)  global_loss: 1.378061 (1.323515)  lr: 0.000058 (0.000058)  wd: 0.077287 (0.076723)
+Averaged stats: loss: 3.470047 (3.514552)  loss_vic: 0.020862 (0.021356)  global_loss: 1.241083 (1.306989)  lr: 0.000057 (0.000058)  wd: 0.078436 (0.077864)
+Averaged stats: loss: 3.476422 (3.503867)  loss_vic: 0.020481 (0.020863)  global_loss: 1.244152 (1.300475)  lr: 0.000057 (0.000057)  wd: 0.079600 (0.079021)
+Averaged stats: loss: 3.458797 (3.495943)  loss_vic: 0.020071 (0.020457)  global_loss: 1.303645 (1.287396)  lr: 0.000057 (0.000057)  wd: 0.080779 (0.080193)
+Averaged stats: loss: 3.413994 (3.490787)  loss_vic: 0.019680 (0.020056)  global_loss: 1.306220 (1.275138)  lr: 0.000057 (0.000057)  wd: 0.081973 (0.081380)
+Averaged stats: loss: 3.454176 (3.476115)  loss_vic: 0.019290 (0.019733)  global_loss: 1.208250 (1.254294)  lr: 0.000057 (0.000057)  wd: 0.083183 (0.082582)
+Averaged stats: loss: 3.542282 (3.468363)  loss_vic: 0.019189 (0.019464)  global_loss: 1.189964 (1.247315)  lr: 0.000057 (0.000057)  wd: 0.084407 (0.083798)
+Averaged stats: loss: 3.504088 (3.468440)  loss_vic: 0.019111 (0.019161)  global_loss: 1.311456 (1.236909)  lr: 0.000056 (0.000056)  wd: 0.085646 (0.085030)
+Averaged stats: loss: 3.470412 (3.456460)  loss_vic: 0.018902 (0.018896)  global_loss: 1.207408 (1.226559)  lr: 0.000056 (0.000056)  wd: 0.086899 (0.086276)
+Averaged stats: loss: 3.404214 (3.453247)  loss_vic: 0.018512 (0.018671)  global_loss: 1.143507 (1.218294)  lr: 0.000056 (0.000056)  wd: 0.088167 (0.087537)
+Averaged stats: loss: 3.445570 (3.445805)  loss_vic: 0.018451 (0.018523)  global_loss: 1.197446 (1.208586)  lr: 0.000056 (0.000056)  wd: 0.089449 (0.088812)
+Averaged stats: loss: 3.430804 (3.437714)  loss_vic: 0.018142 (0.018345)  global_loss: 1.167445 (1.200035)  lr: 0.000055 (0.000056)  wd: 0.090745 (0.090101)
+Averaged stats: loss: 3.421872 (3.432210)  loss_vic: 0.018235 (0.018185)  global_loss: 1.138838 (1.191977)  lr: 0.000055 (0.000055)  wd: 0.092055 (0.091404)
+Averaged stats: loss: 3.504480 (3.430057)  loss_vic: 0.018151 (0.018011)  global_loss: 1.258381 (1.187787)  lr: 0.000055 (0.000055)  wd: 0.093379 (0.092721)
+Averaged stats: loss: 3.368614 (3.420081)  loss_vic: 0.017883 (0.017867)  global_loss: 1.195843 (1.174372)  lr: 0.000055 (0.000055)  wd: 0.094717 (0.094052)
+Averaged stats: loss: 3.423990 (3.412027)  loss_vic: 0.017714 (0.017743)  global_loss: 1.133653 (1.161312)  lr: 0.000055 (0.000055)  wd: 0.096068 (0.095397)
+Averaged stats: loss: 3.447636 (3.413758)  loss_vic: 0.017483 (0.017674)  global_loss: 1.202568 (1.161438)  lr: 0.000054 (0.000055)  wd: 0.097433 (0.096755)
+Averaged stats: loss: 3.449335 (3.402950)  loss_vic: 0.017501 (0.017548)  global_loss: 1.158826 (1.154304)  lr: 0.000054 (0.000054)  wd: 0.098811 (0.098126)
+Averaged stats: loss: 3.371889 (3.392805)  loss_vic: 0.017302 (0.017408)  global_loss: 1.068994 (1.152495)  lr: 0.000054 (0.000054)  wd: 0.100202 (0.099510)
+Averaged stats: loss: 3.447321 (3.389409)  loss_vic: 0.017008 (0.017305)  global_loss: 1.120951 (1.141659)  lr: 0.000054 (0.000054)  wd: 0.101606 (0.100908)
+Averaged stats: loss: 3.398714 (3.378949)  loss_vic: 0.017254 (0.017250)  global_loss: 1.092265 (1.131621)  lr: 0.000053 (0.000054)  wd: 0.103022 (0.102318)
+Averaged stats: loss: 3.310940 (3.370718)  loss_vic: 0.017320 (0.017161)  global_loss: 1.127838 (1.118722)  lr: 0.000053 (0.000053)  wd: 0.104452 (0.103742)
+Averaged stats: loss: 3.405973 (3.369081)  loss_vic: 0.016903 (0.017057)  global_loss: 1.088246 (1.117282)  lr: 0.000053 (0.000053)  wd: 0.105894 (0.105177)
+Averaged stats: loss: 3.298882 (3.364858)  loss_vic: 0.016963 (0.016963)  global_loss: 1.058331 (1.118020)  lr: 0.000053 (0.000053)  wd: 0.107348 (0.106626)
+Averaged stats: loss: 3.343872 (3.359003)  loss_vic: 0.017078 (0.016907)  global_loss: 1.160025 (1.107635)  lr: 0.000053 (0.000053)  wd: 0.108815 (0.108086)
+Averaged stats: loss: 3.388761 (3.358410)  loss_vic: 0.016735 (0.016864)  global_loss: 1.075485 (1.102534)  lr: 0.000052 (0.000052)  wd: 0.110293 (0.109559)
+Averaged stats: loss: 3.323291 (3.349373)  loss_vic: 0.016937 (0.016795)  global_loss: 1.107788 (1.097746)  lr: 0.000052 (0.000052)  wd: 0.111784 (0.111043)
+Averaged stats: loss: 3.376847 (3.345849)  loss_vic: 0.016669 (0.016721)  global_loss: 1.103068 (1.094437)  lr: 0.000052 (0.000052)  wd: 0.113286 (0.112539)
+Averaged stats: loss: 3.300377 (3.340258)  loss_vic: 0.016561 (0.016676)  global_loss: 0.981192 (1.088004)  lr: 0.000052 (0.000052)  wd: 0.114799 (0.114047)
+Averaged stats: loss: 3.309975 (3.334577)  loss_vic: 0.016492 (0.016599)  global_loss: 1.050475 (1.086193)  lr: 0.000051 (0.000051)  wd: 0.116324 (0.115567)
+Averaged stats: loss: 3.233263 (3.326346)  loss_vic: 0.016616 (0.016553)  global_loss: 0.964858 (1.074957)  lr: 0.000051 (0.000051)  wd: 0.117861 (0.117098)
+Averaged stats: loss: 3.314313 (3.322596)  loss_vic: 0.016505 (0.016528)  global_loss: 1.069747 (1.067283)  lr: 0.000051 (0.000051)  wd: 0.119408 (0.118639)
+Averaged stats: loss: 3.324299 (3.322567)  loss_vic: 0.016361 (0.016432)  global_loss: 0.987552 (1.069372)  lr: 0.000051 (0.000051)  wd: 0.120966 (0.120192)
+Averaged stats: loss: 3.343681 (3.316983)  loss_vic: 0.016174 (0.016373)  global_loss: 1.132011 (1.066586)  lr: 0.000050 (0.000050)  wd: 0.122535 (0.121756)
+Averaged stats: loss: 3.270783 (3.306620)  loss_vic: 0.016173 (0.016338)  global_loss: 1.058109 (1.060438)  lr: 0.000050 (0.000050)  wd: 0.124115 (0.123330)
+Averaged stats: loss: 3.304869 (3.304580)  loss_vic: 0.016218 (0.016265)  global_loss: 1.063777 (1.051820)  lr: 0.000050 (0.000050)  wd: 0.125704 (0.124915)
+Averaged stats: loss: 3.315857 (3.293198)  loss_vic: 0.016177 (0.016210)  global_loss: 1.023233 (1.047365)  lr: 0.000049 (0.000050)  wd: 0.127304 (0.126510)
+Averaged stats: loss: 3.262772 (3.297867)  loss_vic: 0.016216 (0.016191)  global_loss: 0.969878 (1.049204)  lr: 0.000049 (0.000049)  wd: 0.128915 (0.128115)
+Averaged stats: loss: 3.281472 (3.286409)  loss_vic: 0.015942 (0.016116)  global_loss: 1.047809 (1.040907)  lr: 0.000049 (0.000049)  wd: 0.130534 (0.129730)
+Averaged stats: loss: 3.305815 (3.288096)  loss_vic: 0.015917 (0.016070)  global_loss: 1.050205 (1.045530)  lr: 0.000049 (0.000049)  wd: 0.132164 (0.131355)
+Averaged stats: loss: 3.254769 (3.278540)  loss_vic: 0.016094 (0.016072)  global_loss: 1.010735 (1.034221)  lr: 0.000048 (0.000048)  wd: 0.133803 (0.132989)
+Averaged stats: loss: 3.287456 (3.273372)  loss_vic: 0.015761 (0.015994)  global_loss: 0.965112 (1.034624)  lr: 0.000048 (0.000048)  wd: 0.135452 (0.134633)
+Averaged stats: loss: 3.286163 (3.265973)  loss_vic: 0.015875 (0.015933)  global_loss: 1.013052 (1.023876)  lr: 0.000048 (0.000048)  wd: 0.137109 (0.136286)
+Averaged stats: loss: 3.195227 (3.265342)  loss_vic: 0.015840 (0.015872)  global_loss: 1.008296 (1.025765)  lr: 0.000048 (0.000048)  wd: 0.138776 (0.137948)
+Averaged stats: loss: 3.279201 (3.258774)  loss_vic: 0.015803 (0.015815)  global_loss: 0.960442 (1.023053)  lr: 0.000047 (0.000047)  wd: 0.140451 (0.139619)
+Averaged stats: loss: 3.234225 (3.256685)  loss_vic: 0.015802 (0.015754)  global_loss: 1.048012 (1.020600)  lr: 0.000047 (0.000047)  wd: 0.142135 (0.141299)
+Averaged stats: loss: 3.228993 (3.250366)  loss_vic: 0.015658 (0.015688)  global_loss: 0.913381 (1.019129)  lr: 0.000047 (0.000047)  wd: 0.143828 (0.142987)
+Averaged stats: loss: 3.263260 (3.246868)  loss_vic: 0.015718 (0.015638)  global_loss: 1.125132 (1.009290)  lr: 0.000046 (0.000047)  wd: 0.145528 (0.144684)
+Averaged stats: loss: 3.223028 (3.236684)  loss_vic: 0.015632 (0.015619)  global_loss: 0.996895 (1.006584)  lr: 0.000046 (0.000046)  wd: 0.147237 (0.146388)
+Averaged stats: loss: 3.286916 (3.245803)  loss_vic: 0.015629 (0.015614)  global_loss: 1.096444 (1.013604)  lr: 0.000046 (0.000046)  wd: 0.148953 (0.148101)
+Averaged stats: loss: 3.170632 (3.233604)  loss_vic: 0.015476 (0.015571)  global_loss: 0.952418 (1.004217)  lr: 0.000045 (0.000046)  wd: 0.150678 (0.149822)
+Averaged stats: loss: 3.281847 (3.228449)  loss_vic: 0.015466 (0.015559)  global_loss: 1.065291 (0.995014)  lr: 0.000045 (0.000045)  wd: 0.152409 (0.151550)
+Averaged stats: loss: 3.237737 (3.227810)  loss_vic: 0.015464 (0.015534)  global_loss: 0.956653 (0.999135)  lr: 0.000045 (0.000045)  wd: 0.154149 (0.153285)
+Averaged stats: loss: 3.250298 (3.218334)  loss_vic: 0.015445 (0.015483)  global_loss: 0.955165 (0.989874)  lr: 0.000045 (0.000045)  wd: 0.155895 (0.155028)
+Averaged stats: loss: 3.263907 (3.218470)  loss_vic: 0.015551 (0.015445)  global_loss: 1.078992 (0.990267)  lr: 0.000044 (0.000044)  wd: 0.157648 (0.156778)
+Averaged stats: loss: 3.249252 (3.217402)  loss_vic: 0.015456 (0.015359)  global_loss: 1.055557 (0.988786)  lr: 0.000044 (0.000044)  wd: 0.159408 (0.158534)
+Averaged stats: loss: 3.252578 (3.203960)  loss_vic: 0.015234 (0.015315)  global_loss: 1.033312 (0.984593)  lr: 0.000044 (0.000044)  wd: 0.161174 (0.160297)
+Averaged stats: loss: 3.208232 (3.201843)  loss_vic: 0.015062 (0.015279)  global_loss: 1.028677 (0.979235)  lr: 0.000043 (0.000044)  wd: 0.162947 (0.162067)
+Averaged stats: loss: 3.183790 (3.206688)  loss_vic: 0.015226 (0.015275)  global_loss: 0.985938 (0.979893)  lr: 0.000043 (0.000043)  wd: 0.164726 (0.163843)
+Averaged stats: loss: 3.183939 (3.208345)  loss_vic: 0.015272 (0.015221)  global_loss: 0.919342 (0.977878)  lr: 0.000043 (0.000043)  wd: 0.166511 (0.165625)
+Averaged stats: loss: 3.199057 (3.197874)  loss_vic: 0.015238 (0.015216)  global_loss: 0.929633 (0.971620)  lr: 0.000042 (0.000043)  wd: 0.168302 (0.167413)
+Averaged stats: loss: 3.209666 (3.198488)  loss_vic: 0.015116 (0.015174)  global_loss: 0.985264 (0.971310)  lr: 0.000042 (0.000042)  wd: 0.170098 (0.169206)
+Averaged stats: loss: 3.178122 (3.200175)  loss_vic: 0.015208 (0.015153)  global_loss: 0.911247 (0.972315)  lr: 0.000042 (0.000042)  wd: 0.171900 (0.171005)
+Averaged stats: loss: 3.221066 (3.197078)  loss_vic: 0.015093 (0.015139)  global_loss: 0.971752 (0.973724)  lr: 0.000042 (0.000042)  wd: 0.173707 (0.172810)
+Averaged stats: loss: 3.143533 (3.189318)  loss_vic: 0.015155 (0.015106)  global_loss: 0.959369 (0.969292)  lr: 0.000041 (0.000041)  wd: 0.175519 (0.174619)
+Averaged stats: loss: 3.174743 (3.188933)  loss_vic: 0.015007 (0.015042)  global_loss: 0.889643 (0.968628)  lr: 0.000041 (0.000041)  wd: 0.177335 (0.176434)
+Averaged stats: loss: 3.197070 (3.178635)  loss_vic: 0.015016 (0.015032)  global_loss: 1.036298 (0.959124)  lr: 0.000041 (0.000041)  wd: 0.179157 (0.178253)
+Averaged stats: loss: 3.112553 (3.184781)  loss_vic: 0.014856 (0.014985)  global_loss: 0.869024 (0.964336)  lr: 0.000040 (0.000040)  wd: 0.180983 (0.180076)
+Averaged stats: loss: 3.180762 (3.171454)  loss_vic: 0.014893 (0.014952)  global_loss: 0.993980 (0.962613)  lr: 0.000040 (0.000040)  wd: 0.182813 (0.181904)
+Averaged stats: loss: 3.139926 (3.176748)  loss_vic: 0.014933 (0.014929)  global_loss: 0.917067 (0.963644)  lr: 0.000040 (0.000040)  wd: 0.184647 (0.183737)
+Averaged stats: loss: 3.107362 (3.170821)  loss_vic: 0.014771 (0.014879)  global_loss: 0.926849 (0.952001)  lr: 0.000039 (0.000039)  wd: 0.186485 (0.185573)
+Averaged stats: loss: 3.207912 (3.157342)  loss_vic: 0.014904 (0.014865)  global_loss: 0.956610 (0.948398)  lr: 0.000039 (0.000039)  wd: 0.188326 (0.187412)
+Averaged stats: loss: 3.174824 (3.165721)  loss_vic: 0.014795 (0.014824)  global_loss: 0.977087 (0.952587)  lr: 0.000039 (0.000039)  wd: 0.190171 (0.189255)
+Averaged stats: loss: 3.137146 (3.161968)  loss_vic: 0.014767 (0.014755)  global_loss: 0.854395 (0.948985)  lr: 0.000038 (0.000038)  wd: 0.192019 (0.191102)
+Averaged stats: loss: 3.192979 (3.149943)  loss_vic: 0.014774 (0.014720)  global_loss: 0.966054 (0.945367)  lr: 0.000038 (0.000038)  wd: 0.193870 (0.192952)
+Averaged stats: loss: 3.152613 (3.147319)  loss_vic: 0.014616 (0.014666)  global_loss: 0.929916 (0.942087)  lr: 0.000038 (0.000038)  wd: 0.195724 (0.194804)
+Averaged stats: loss: 3.066344 (3.142074)  loss_vic: 0.014661 (0.014630)  global_loss: 0.917964 (0.941608)  lr: 0.000037 (0.000038)  wd: 0.197581 (0.196660)
+Averaged stats: loss: 3.107144 (3.137006)  loss_vic: 0.014511 (0.014604)  global_loss: 0.838849 (0.940323)  lr: 0.000037 (0.000037)  wd: 0.199440 (0.198518)
+Averaged stats: loss: 3.208683 (3.139848)  loss_vic: 0.014458 (0.014559)  global_loss: 0.998944 (0.935105)  lr: 0.000037 (0.000037)  wd: 0.201301 (0.200378)
+Averaged stats: loss: 3.112751 (3.137478)  loss_vic: 0.014440 (0.014493)  global_loss: 0.947181 (0.934845)  lr: 0.000036 (0.000037)  wd: 0.203165 (0.202240)
+Averaged stats: loss: 3.089984 (3.123558)  loss_vic: 0.014387 (0.014455)  global_loss: 0.886241 (0.931611)  lr: 0.000036 (0.000036)  wd: 0.205030 (0.204104)
+Averaged stats: loss: 3.162998 (3.127197)  loss_vic: 0.014396 (0.014424)  global_loss: 1.080702 (0.931659)  lr: 0.000036 (0.000036)  wd: 0.206897 (0.205970)
+Averaged stats: loss: 3.156620 (3.114834)  loss_vic: 0.014397 (0.014403)  global_loss: 0.903549 (0.922847)  lr: 0.000035 (0.000036)  wd: 0.208765 (0.207838)

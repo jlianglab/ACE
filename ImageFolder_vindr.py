@@ -9,7 +9,10 @@ from torchvision.datasets.vision import VisionDataset
 from torch.utils.data import Dataset
 import cv2
 
-def has_file_allowed_extension(filename: str, extensions: Union[str, Tuple[str, ...]]) -> bool:
+
+def has_file_allowed_extension(
+    filename: str, extensions: Union[str, Tuple[str, ...]]
+) -> bool:
     """Checks if a file is an allowed extension.
 
     Args:
@@ -19,7 +22,9 @@ def has_file_allowed_extension(filename: str, extensions: Union[str, Tuple[str, 
     Returns:
         bool: True if the filename ends with one of given extensions
     """
-    return filename.lower().endswith(extensions if isinstance(extensions, str) else tuple(extensions))
+    return filename.lower().endswith(
+        extensions if isinstance(extensions, str) else tuple(extensions)
+    )
 
 
 def is_image_file(filename: str) -> bool:
@@ -39,7 +44,9 @@ def find_classes(directory: str) -> Tuple[List[str], Dict[str, int]]:
 
     See :class:`DatasetFolder` for details.
     """
-    classes = ['train_jpeg']#sorted('entry.name for entry in os.scandir(directory) if entry.is_dir()')
+    classes = [
+        "train_jpeg"
+    ]  # sorted('entry.name for entry in os.scandir(directory) if entry.is_dir()')
     if not classes:
         raise FileNotFoundError(f"Couldn't find any class folder in {directory}.")
 
@@ -65,12 +72,16 @@ def make_dataset(
     if class_to_idx is None:
         _, class_to_idx = find_classes(directory)
     elif not class_to_idx:
-        raise ValueError("'class_to_index' must have at least one entry to collect any samples.")
+        raise ValueError(
+            "'class_to_index' must have at least one entry to collect any samples."
+        )
 
     both_none = extensions is None and is_valid_file is None
     both_something = extensions is not None and is_valid_file is not None
     if both_none or both_something:
-        raise ValueError("Both extensions and is_valid_file cannot be None or not None at the same time")
+        raise ValueError(
+            "Both extensions and is_valid_file cannot be None or not None at the same time"
+        )
 
     if extensions is not None:
 
@@ -83,7 +94,7 @@ def make_dataset(
     available_classes = set()
     for target_class in sorted(class_to_idx.keys()):
         class_index = class_to_idx[target_class]
-        target_dir =directory #os.path.join(directory, target_class)
+        target_dir = directory  # os.path.join(directory, target_class)
         if not os.path.isdir(target_dir):
             continue
         for root, _, fnames in sorted(os.walk(target_dir, followlinks=True)):
@@ -98,7 +109,9 @@ def make_dataset(
 
     empty_classes = set(class_to_idx.keys()) - available_classes
     if empty_classes:
-        msg = f"Found no valid file for the classes {', '.join(sorted(empty_classes))}. "
+        msg = (
+            f"Found no valid file for the classes {', '.join(sorted(empty_classes))}. "
+        )
         if extensions is not None:
             msg += f"Supported extensions are: {extensions if isinstance(extensions, str) else ', '.join(extensions)}"
         raise FileNotFoundError(msg)
@@ -188,7 +201,9 @@ class DatasetFolder(VisionDataset):
             # find_classes() function, instead of using that of the find_classes() method, which
             # is potentially overridden and thus could have a different logic.
             raise ValueError("The class_to_idx parameter cannot be None.")
-        return make_dataset(directory, class_to_idx, extensions=extensions, is_valid_file=is_valid_file)
+        return make_dataset(
+            directory, class_to_idx, extensions=extensions, is_valid_file=is_valid_file
+        )
 
     def find_classes(self, directory: str) -> Tuple[List[str], Dict[str, int]]:
         """Find the class folders in a dataset structured as follows::
@@ -240,7 +255,17 @@ class DatasetFolder(VisionDataset):
         return len(self.samples)
 
 
-IMG_EXTENSIONS = (".jpg", ".jpeg", ".png", ".ppm", ".bmp", ".pgm", ".tif", ".tiff", ".webp")
+IMG_EXTENSIONS = (
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".ppm",
+    ".bmp",
+    ".pgm",
+    ".tif",
+    ".tiff",
+    ".webp",
+)
 
 
 def pil_loader(path: str) -> Image.Image:
@@ -318,154 +343,226 @@ class ImageFolder_vindr(DatasetFolder):
         )
         self.imgs = self.samples
 
+
 class ChestX_ray14(Dataset):
 
-  def __init__(self, pathImageDirectory, pathDatasetFile, augment, num_class=14, anno_percent=100):
+    def __init__(
+        self,
+        pathImageDirectory,
+        pathDatasetFile,
+        augment,
+        num_class=14,
+        anno_percent=100,
+    ):
 
-    self.img_list = []
-    self.img_label = []
-    self.augment = augment
+        self.img_list = []
+        self.img_label = []
+        self.augment = augment
 
-    with open(pathDatasetFile, "r") as fileDescriptor:
-      line = True
+        with open(pathDatasetFile, "r") as fileDescriptor:
+            line = True
 
-      while line:
-        line = fileDescriptor.readline()
+            while line:
+                line = fileDescriptor.readline()
 
-        if line:
-          lineItems = line.split()
+                if line:
+                    lineItems = line.split()
 
-          imagePath = os.path.join(pathImageDirectory, lineItems[0])
-          imageLabel = lineItems[1:num_class + 1]
-          imageLabel = [int(i) for i in imageLabel]
+                    imagePath = os.path.join(pathImageDirectory, lineItems[0])
+                    imageLabel = lineItems[1 : num_class + 1]
+                    imageLabel = [int(i) for i in imageLabel]
 
-          self.img_list.append(imagePath)
-          self.img_label.append(imageLabel)
+                    self.img_list.append(imagePath)
+                    self.img_label.append(imageLabel)
 
-    indexes = np.arange(len(self.img_list))
-    if anno_percent < 100:
-      random.Random(99).shuffle(indexes)
-      num_data = int(indexes.shape[0] * anno_percent / 100.0)
-      indexes = indexes[:num_data]
+        indexes = np.arange(len(self.img_list))
+        if anno_percent < 100:
+            random.Random(99).shuffle(indexes)
+            num_data = int(indexes.shape[0] * anno_percent / 100.0)
+            indexes = indexes[:num_data]
 
-      _img_list, _img_label = copy.deepcopy(self.img_list), copy.deepcopy(self.img_label)
-      self.img_list = []
-      self.img_label = []
+            _img_list, _img_label = copy.deepcopy(self.img_list), copy.deepcopy(
+                self.img_label
+            )
+            self.img_list = []
+            self.img_label = []
 
-      for i in indexes:
-        self.img_list.append(_img_list[i])
-        self.img_label.append(_img_label[i])
+            for i in indexes:
+                self.img_list.append(_img_list[i])
+                self.img_label.append(_img_label[i])
 
-  def __getitem__(self, index):
+    def __getitem__(self, index):
 
-    imagePath = self.img_list[index]
+        imagePath = self.img_list[index]
 
-    imageData = Image.open(imagePath).convert('RGB')
-    imageLabel = torch.FloatTensor(self.img_label[index])
+        imageData = Image.open(imagePath).convert("RGB")
+        imageLabel = torch.FloatTensor(self.img_label[index])
 
-    if self.augment != None: imageData = self.augment(imageData)
+        if self.augment != None:
+            imageData = self.augment(imageData)
 
-    return imageData, imageLabel
+        return imageData, imageLabel
 
-  def __len__(self):
+    def __len__(self):
 
-    return len(self.img_list)
+        return len(self.img_list)
+
+
+class CombinedImageFolderDataset(Dataset):
+    def __init__(self, root_dir, transform=None, augment=None):
+        self.root_dir = root_dir
+        self.transform = transform
+        self.image_paths = []
+        self.augment = augment
+
+        # Recursively collect all image paths
+        for subdir, _, files in os.walk(root_dir):
+            for file in files:
+                if file.endswith(
+                    (
+                        "jpg",
+                        "jpeg",
+                        "png",
+                        "bmp",
+                        "gif",
+                        "tiff",
+                        "tif",
+                        "JPG",
+                        "PNG",
+                        "JPEG",
+                    )
+                ):  # Include any other image formats as needed
+                    fp = os.path.join(subdir, file)
+                    # print(fp)
+                    try:
+                        Image.open(fp).convert("RGB")
+                        self.image_paths.append(fp)
+                    except:
+                        print(fp)
+
+    def __len__(self):
+        return len(self.image_paths)
+
+    def __getitem__(self, idx):
+        image_path = self.image_paths[idx]
+        # print(image_path)
+        try:
+            image = Image.open(image_path).convert("RGB")
+        except:
+            print(image_path)
+            image = Image.new("RGB", (224, 224), (0, 0, 0))
+        if self.augment != None:
+            image = self.augment(image)
+
+        if self.transform:
+            image = self.transform(image)
+
+        return image, torch.FloatTensor(1)
+
 
 class ShenzhenCXR(Dataset):
 
-  def __init__(self, images_path, file_path, augment, num_class=1, annotation_percent=100):
+    def __init__(
+        self, images_path, file_path, augment, num_class=1, annotation_percent=100
+    ):
 
-    self.img_list = []
-    self.img_label = []
-    self.augment = augment
+        self.img_list = []
+        self.img_label = []
+        self.augment = augment
 
-    with open(file_path, "r") as fileDescriptor:
-      line = True
+        with open(file_path, "r") as fileDescriptor:
+            line = True
 
-      while line:
-        line = fileDescriptor.readline()
-        if line:
-          lineItems = line.split(',')
+            while line:
+                line = fileDescriptor.readline()
+                if line:
+                    lineItems = line.split(",")
 
-          imagePath = os.path.join(images_path, lineItems[0])
-          imageLabel = lineItems[1:num_class + 1]
-          imageLabel = [int(i) for i in imageLabel]
+                    imagePath = os.path.join(images_path, lineItems[0])
+                    imageLabel = lineItems[1 : num_class + 1]
+                    imageLabel = [int(i) for i in imageLabel]
 
-          self.img_list.append(imagePath)
-          self.img_label.append(imageLabel)
+                    self.img_list.append(imagePath)
+                    self.img_label.append(imageLabel)
 
-    indexes = np.arange(len(self.img_list))
-    if annotation_percent < 100:
-      random.Random(99).shuffle(indexes)
-      num_data = int(indexes.shape[0] * annotation_percent / 100.0)
-      indexes = indexes[:num_data]
+        indexes = np.arange(len(self.img_list))
+        if annotation_percent < 100:
+            random.Random(99).shuffle(indexes)
+            num_data = int(indexes.shape[0] * annotation_percent / 100.0)
+            indexes = indexes[:num_data]
 
-      _img_list, _img_label = copy.deepcopy(self.img_list), copy.deepcopy(self.img_label)
-      self.img_list = []
-      self.img_label = []
+            _img_list, _img_label = copy.deepcopy(self.img_list), copy.deepcopy(
+                self.img_label
+            )
+            self.img_list = []
+            self.img_label = []
 
-      for i in indexes:
-        self.img_list.append(_img_list[i])
-        self.img_label.append(_img_label[i])
+            for i in indexes:
+                self.img_list.append(_img_list[i])
+                self.img_label.append(_img_label[i])
 
-  def __getitem__(self, index):
+    def __getitem__(self, index):
 
-    imagePath = self.img_list[index]
+        imagePath = self.img_list[index]
 
-    imageData = Image.open(imagePath).convert('RGB')
+        imageData = Image.open(imagePath).convert("RGB")
 
-    imageLabel = torch.FloatTensor(self.img_label[index])
+        imageLabel = torch.FloatTensor(self.img_label[index])
 
-    if self.augment != None: imageData = self.augment(imageData)
+        if self.augment != None:
+            imageData = self.augment(imageData)
 
-    return imageData, imageLabel
+        return imageData, imageLabel
 
-  def __len__(self):
+    def __len__(self):
 
-    return len(self.img_list)
-  
+        return len(self.img_list)
+
 
 class LDPolyp(Dataset):
 
-  def __init__(self, augment):
-    trainpath = '/data1/zhouziyu/renji/public_polyp/public_poly_dataset/images/train'
-    valpath = '/data1/zhouziyu/renji/public_polyp/public_poly_dataset/images/val'
+    def __init__(self, augment):
+        trainpath = (
+            "/data1/zhouziyu/renji/public_polyp/public_poly_dataset/images/train"
+        )
+        valpath = "/data1/zhouziyu/renji/public_polyp/public_poly_dataset/images/val"
 
-    
-    self.img_list = []
+        self.img_list = []
 
-    for i in os.listdir(trainpath):
-       self.img_list.append(os.path.join(trainpath, i))
-    for i in os.listdir(valpath):
-       self.img_list.append(os.path.join(valpath, i))
+        for i in os.listdir(trainpath):
+            self.img_list.append(os.path.join(trainpath, i))
+        for i in os.listdir(valpath):
+            self.img_list.append(os.path.join(valpath, i))
 
-    self.augment = augment
+        self.augment = augment
 
-  def __getitem__(self, index):
+    def __getitem__(self, index):
 
-    imagePath = self.img_list[index]
+        imagePath = self.img_list[index]
 
-    # imageData = Image.open(imagePath).convert('RGB')
-    imageData = cv2.imread(imagePath)
-    imageData = cv2.cvtColor(imageData, cv2.COLOR_BGR2RGB)
-    imageData = resize_padding(imageData)
-    # print(imageData.shape)
-    imageData = Image.fromarray(imageData)
+        # imageData = Image.open(imagePath).convert('RGB')
+        imageData = cv2.imread(imagePath)
+        imageData = cv2.cvtColor(imageData, cv2.COLOR_BGR2RGB)
+        imageData = resize_padding(imageData)
+        # print(imageData.shape)
+        imageData = Image.fromarray(imageData)
 
-    if self.augment != None: imageData = self.augment(imageData)
+        if self.augment != None:
+            imageData = self.augment(imageData)
 
-    return imageData
+        return imageData
 
-  def __len__(self):
+    def __len__(self):
 
-    return len(self.img_list)
-  
-def resize_padding(image,new_size=(1024,1024)):
-    h,w = image.shape[:2]  # current shape [height, width]
+        return len(self.img_list)
+
+
+def resize_padding(image, new_size=(1024, 1024)):
+    h, w = image.shape[:2]  # current shape [height, width]
     r = min(new_size[0] / h, new_size[1] / w)
     new_unpad = int(round(w * r)), int(round(h * r))
     # 计算需要填充的边的像素
-    dw, dh = new_size[1] - new_unpad[0], new_size[0] - new_unpad[1]  
+    dw, dh = new_size[1] - new_unpad[0], new_size[0] - new_unpad[1]
     dw /= 2  # 除以2即最终每边填充的像素
     dh /= 2
     image = cv2.resize(image, new_unpad, interpolation=cv2.INTER_LINEAR)
@@ -474,5 +571,7 @@ def resize_padding(image,new_size=(1024,1024)):
     left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
     # padding
     # image = np.pad(image,((3,2),(2,3)),'constant',constant_values = (0,0))
-    image = cv2.copyMakeBorder(image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0) 
+    image = cv2.copyMakeBorder(
+        image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0
+    )
     return image
