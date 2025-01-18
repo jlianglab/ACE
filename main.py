@@ -134,7 +134,7 @@ def get_args_parser():
     # Misc
     parser.add_argument('--data_path', default='/data1/zhouziyu/liang/NIHChestXray/images/images_all/', type=str,
         help='Please specify path to the ImageNet training data.')
-    parser.add_argument('--output_dir', default="/ssd2/zhouziyu/ssl/github/ACE/pretrained_weight/from_imagenet_matrixcompdecompmlp_clstokenglobal_vit", type=str, help='Path to save logs and checkpoints.')
+    parser.add_argument('--output_dir', default="/ssd2/zhouziyu/ssl/github/ACE/pretrained_weight/hyper10.10.1", type=str, help='Path to save logs and checkpoints.')
     parser.add_argument('--saveckp_freq', default=50, type=int, help='Save checkpoint every x epochs.')
     parser.add_argument('--seed', default=0, type=int, help='Random seed.')
     parser.add_argument('--num_workers', default=4, type=int, help='Number of data loading workers per GPU.')
@@ -306,7 +306,7 @@ def train_dino(args):
     log_writer.flush()
 
     # ============ optionally resume training ... ============
-    # utils.init_from_imagenet('/ssd2/zhouziyu/ssl/contrast_12N/pretrained_weight/ldpolyp/swin_base_patch4_window7_224_imagenet1k.pth',student, teacher)
+    utils.init_from_imagenet('/ssd2/zhouziyu/ssl/contrast_12N/pretrained_weight/ldpolyp/swin_base_patch4_window7_224_imagenet1k.pth',student, teacher)
    
     to_restore = {"epoch": 0}
 
@@ -414,10 +414,12 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
             if args.global_loss:
                 # global_loss = dino_loss(teacher_cls, student_cls)
                 global_loss = dino_loss(student_cls, teacher_cls, epoch)
-                loss = loss+global_loss*0.1
+                # loss = loss+global_loss*0.1
+                loss = loss+global_loss
             if args.matrix_matching:
                 loss1_decomp, loss2_comp = barlow_loss(teacher_spatials,upsample_features,downsample_features,s2lmapping.cuda(),l2smapping.cuda())
-                loss_vic += (loss1_decomp+loss2_comp)/2 # matrix matching loss
+                loss_vic += (loss1_decomp+loss2_comp)*0.1/2 # matrix matching loss
+                # loss_vic += (loss1_decomp+loss2_comp)/2 # matrix matching loss
                 loss = loss+loss_vic
 
             # loss_local =  local_loss(student_spatials[0], student_spatials_pred[1], l2smapping.cuda(),s2lmapping.cuda()) + local_loss(student_spatials_pred[0], student_spatials[1], l2smapping.cuda(),s2lmapping.cuda()) #contrastive learning loss
