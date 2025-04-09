@@ -20,9 +20,10 @@ from torchvision.transforms.functional import _interpolation_modes_from_int
 import torchvision.transforms.functional as FT
 from md_aug import paint, local_pixel_shuffling,local_pixel_shuffling_500, nonlinear_transformation
 import cv2
-from crop import img_transforms,get_index, get_corresponding_indices
+from crop import img_transforms,get_index, get_corresponding_indices, get_corresponding_indices_comp
 from einops import rearrange
 import albumentations as A
+import ipdb
 class GaussianBlur(object):
     def __init__(self):
         pass
@@ -390,7 +391,7 @@ class Rearrange_and_Norm():
         return image
 
 class DataAugmentationDINO(object):
-    def __init__(self,
+    def __init__(self,args,
                 global_crops_scale=(0.4, 1.0),
                 local_crops_scale=(0.08, 0.4),
                 local_crops_number=8,
@@ -400,6 +401,7 @@ class DataAugmentationDINO(object):
                 grid_select_inital=9,
                 input_size=224):
 
+        self.args = args
         self.standard_patchsize = standard_patchsize
         self.standard_grid_factor = grid_factor
         self.standard_grid_select_inital = grid_select_inital
@@ -432,14 +434,16 @@ class DataAugmentationDINO(object):
         self.augmentations_glo = []
         self.augmentations_glo_noise = []
         self.augmentations_albu = []
-        self.img_transforms = img_transforms()
+        self.img_transforms = img_transforms(multi_scale=self.args.multi_scale)
 
 
         for i in range(2):
             transform = A.Compose([
                 A.RandomBrightnessContrast(p=0.5),
                 A.GaussianBlur(p=0.5),
-                A.ElasticTransform(p=0.5, alpha=30, sigma=6,alpha_affine=20)
+                # A.ElasticTransform(p=0.5, alpha=30, sigma=6,alpha_affine=20) # the position will be moved after elastic transform
+                A.Sharpen(p=0.3),
+                A.CLAHE(p=0.3),
             ])
             self.augmentations_albu.append(transform)
         # Apply the transformations
@@ -467,30 +471,10 @@ class DataAugmentationDINO(object):
 
 
 
-        for j in range(local_crops_number):
-            random_resized_crop = transforms.RandomResizedCrop(
-                96,
-                scale=local_crops_scale,
-                interpolation=InterpolationMode.BICUBIC,
-            )
-            self.random_resized_crops.append(random_resized_crop)
-            self.augmentations.append(
-                transforms.Compose(
-                    [
-                        get_color_distortion(left=(j % 2 == 0)),
-                        transforms.ToTensor(),
-                        transforms.Normalize(
-                            mean=[0.5056, 0.5056, 0.5056], std= [0.252, 0.252, 0.252],
-                        ),
-                    ]
-                )
-            )
-
-
-
 
     def __call__(self, image):
         crops = []
+        local_crops = []
         grids=[]
         randperms=[]
         
@@ -498,15 +482,20 @@ class DataAugmentationDINO(object):
         image = self.overlap_initial_crop(image) # random resize and crop, (0.85,1) of initial image
         image = np.asarray(image)
 
-        patch, (idx_x1, idx_y1), (idx_x2, idx_y2), (k, l) = self.img_transforms(image) # get the two crops, the top left corner indexed of two crops, the size rate of the bigger crop1
+        patch, patch_local, (idx_x1, idx_y1), (idx_x2, idx_y2), (k, l) = self.img_transforms(image) # get the two crops, the top left corner indexed of two crops, the size rate of the bigger crop1
         sample_index1, sample_index2 = get_index((idx_x1, idx_y1), (idx_x2, idx_y2), (k, l)) # the overlap mask of two crops (all 14*14)
+        # ipdb.set_trace()
         # print(patch.shape)
-        patch1 = patch[:,:,0:3]
-        patch2 = patch[:,:,3:6]
+        patch1 = patch[:,:,0:3] # large patch
+        patch2 = patch[:,:,3:6] # small patch
     
         grids.append(sample_index1)
         grids.append(sample_index2)
-        s2lmapping,l2smapping = get_corresponding_indices(sample_index1, sample_index2,(idx_x1, idx_y1), (idx_x2, idx_y2),(k, l)) # two target matrices of matrix matching, size 196*196
+
+        if self.args.matrix_matching:
+            s2lmapping,l2smapping = get_corresponding_indices_comp(sample_index1, sample_index2,(idx_x1, idx_y1), (idx_x2, idx_y2),(k, l)) # two target matrices of matrix matching, size [196,49], [196,784]
+        else:
+            s2lmapping,l2smapping = torch.zeros(196, 196), torch.zeros(196, 196)
 
 
 
@@ -517,5 +506,9 @@ class DataAugmentationDINO(object):
         crops.append(self.augmentations_glo[0](patch1))
         crops.append(self.augmentations_glo[1](patch2))
 
+        # for i in patch_local:
+        #     image = self.augmentations_albu[0](image=i)['image']
+        #     local_crops.append(self.augmentations_glo[0](image))
 
-        return crops,grids, s2lmapping,l2smapping
+
+        return crops, s2lmapping, l2smapping, sample_index1, sample_index2

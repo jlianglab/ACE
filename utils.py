@@ -31,7 +31,8 @@ import torch
 from torch import nn
 import torch.distributed as dist
 from PIL import ImageFilter, ImageOps
-
+import ipdb
+import torch.nn.functional as F
 
 class GaussianBlur(object):
     """
@@ -631,6 +632,147 @@ class LARS(torch.optim.Optimizer):
                 p.add_(mu, alpha=-g['lr'])
 
 
+
+class Composer(nn.Module):
+    def __init__(self):
+        super(Composer, self).__init__()
+        self.layer = nn.Sequential(nn.Linear(1024*4, 1024, bias=False),
+                                nn.LayerNorm(1024),
+                                nn.ReLU(inplace=True), # hidden layer
+                                nn.Linear(1024, 1024),
+                                nn.LayerNorm(1024),
+                                nn.ReLU(inplace=True), # hidden layer
+                                nn.Linear(1024, 1024)) # output layer
+    
+    def forward(self,x):
+        if not isinstance(x, list):
+            x = [x]
+        x = torch.cat(x,dim=1) # concate the last dim, x [B,1024*4]
+        x = self.layer(x)
+        return x
+    
+
+class Decomposer(nn.Module):
+    def __init__(self):
+        super(Decomposer, self).__init__()
+        self.layer = nn.Sequential(nn.Linear(1024, 1024*4, bias=False),
+                                nn.LayerNorm(1024*4),
+                                nn.ReLU(inplace=True), # hidden layer
+                                nn.Linear(1024*4, 1024*4)) # output layer
+    
+    def forward(self,x): 
+        """
+        input: [B,1024]
+        output: list with each tensor [B,1024]
+        """
+        out_list = []
+        x = self.layer(x)
+        out_list+=x.chunk(4,dim=1)
+
+        return out_list
+
+
+class DownsampleLayer(nn.Module):
+    def __init__(self):
+        super(DownsampleLayer, self).__init__()
+        self.conv = nn.Conv2d(in_channels=1024, out_channels=1024, kernel_size=2, stride=2, padding=0)
+    
+    def forward(self, x): # x:[B,196,1024]
+        x = rearrange(x,'b (m1 m2) c -> b c m1 m2',m1=14,m2=14) # 196*1024 --> 1024*14*14
+        # x = x.reshape(B,1024,14,14) 
+        x = self.conv(x)
+        x = rearrange(x,'b c m1 m2 -> b (m1 m2) c') # 1024*7*7 --> 49*1024
+        return x
+    
+class UpsampleLayer(nn.Module):
+    def __init__(self):
+        super(UpsampleLayer, self).__init__()
+        self.conv_transpose = nn.ConvTranspose2d(in_channels=1024, out_channels=1024, kernel_size=2, stride=2)
+    
+    def forward(self, x):
+        x = rearrange(x,'b (m1 m2) c -> b c m1 m2', m1=14,m2=14) # 196*1024 --> 1024*14*14
+        x = self.conv_transpose(x)
+        x = rearrange(x,'b c m1 m2 -> b (m1 m2) c') # 1024*28*28 --> 1024*784
+        return x
+    
+class DownsampleLayerMLP(nn.Module):
+    def __init__(self, embed_dim=1024):
+        super(DownsampleLayerMLP, self).__init__()
+        self.layer = nn.Sequential(nn.Linear(embed_dim*4, embed_dim, bias=False),
+                                nn.LayerNorm(embed_dim),
+                                nn.ReLU(inplace=True), # hidden layer
+                                # nn.Linear(1024, 1024),
+                                # nn.LayerNorm(1024),
+                                # nn.ReLU(inplace=True), # hidden layer
+                                nn.Linear(embed_dim, embed_dim)) # output layer
+    
+    def forward(self, x): # x:[B,196,1024]
+        x = rearrange(x,'b (m1 m2) c -> b c m1 m2',m1=14,m2=14) # 196*1024 --> 1024*14*14
+        # x = x.reshape(B,1024,14,14) 
+        unfolded_tensor = F.unfold(x, kernel_size=2, stride=2) # B*4096*49
+        # ipdb.set_trace()
+        x = rearrange(unfolded_tensor,'b c m -> b m c') # B*4096*49 --> B*49*4096
+        x = self.layer(x) # B*49*1024
+        
+        return x
+
+
+def depth_to_space(input_tensor, block_size=2): # 196*4096 --> 784*1024
+    # batch_size, channels, height, width = input_tensor.size()
+    batch_size, L, channels = input_tensor.size()
+    height = width = int(math.sqrt(L))
+    new_channels = channels // (block_size * block_size)
+    new_height = height * block_size
+    new_width = width * block_size
+    # ipdb.set_trace()
+    # output_tensor = input_tensor.view(batch_size, block_size, block_size, new_channels, height, width)
+    output_tensor = input_tensor.view(batch_size, height, width, block_size, block_size, new_channels)
+    output_tensor = output_tensor.permute(0, 1, 3, 2, 4, 5).contiguous()
+    output_tensor = output_tensor.view(batch_size, new_height*new_width, new_channels)
+    return output_tensor
+
+
+class UpsampleLayerMLP(nn.Module):
+    def __init__(self, embed_dim=1024):
+        super(UpsampleLayerMLP, self).__init__()
+        self.layer = nn.Sequential(nn.Linear(embed_dim, embed_dim*4, bias=False),
+                                nn.LayerNorm(embed_dim*4),
+                                nn.ReLU(inplace=True), # hidden layer
+                                nn.Linear(embed_dim*4, embed_dim*4)) # output layer
+
+    
+    def forward(self, x):
+        # ipdb.set_trace()
+        # x = rearrange(x,'b (m1 m2) c -> b m1 m2 c', m1=14,m2=14) # 196*1024 --> 14*14*1024
+        x = self.layer(x) # B*196*4096
+        x = depth_to_space(x) # 784*1024
+        return x
+
+
+
+def compute_average_features(feature_tensor, index_tensor):
+    # Ensure index_tensor is of type bool
+    index_tensor = index_tensor.bool()
+    
+    # Calculate the number of True and False indices for each batch
+    true_counts = index_tensor.sum(dim=1, keepdim=True).float()
+    false_counts = (~index_tensor).sum(dim=1, keepdim=True).float()
+
+    # Replace zero counts with one to avoid division by zero
+    true_counts[true_counts == 0] = 1.0
+    false_counts[false_counts == 0] = 1.0
+
+    # Calculate the sum of features where index is True and False
+    true_sums = torch.sum(feature_tensor * index_tensor.unsqueeze(-1), dim=1)
+    false_sums = torch.sum(feature_tensor * (~index_tensor).unsqueeze(-1), dim=1)
+
+    # Calculate the average features
+    true_avg_features = true_sums / true_counts
+    false_avg_features = false_sums / false_counts
+
+    return true_avg_features, false_avg_features
+
+
 class MultiCropWrapper(nn.Module):
     """
     Perform forward pass separately on each resolution input.
@@ -648,12 +790,20 @@ class MultiCropWrapper(nn.Module):
         self.head = head
         self.DenseHead = DenseHead
         self.args =args
-        self.predictor_ = nn.Sequential(nn.Linear(512, 512, bias=False),
-                                nn.LayerNorm(512),
-                                nn.ReLU(inplace=True), # hidden layer
-                                nn.Linear(512, 512)) # output layer
-    def forward(self, x):
-        spatial_features = []
+        # self.predictor_ = nn.Sequential(nn.Linear(512, 512, bias=False),
+        #                         nn.LayerNorm(512),
+        #                         nn.ReLU(inplace=True), # hidden layer
+        #                         nn.Linear(512, 512)) # output layer
+        # if args.comp:
+        #     self.composer = Composer()
+        #     self.decomposer = Decomposer()
+        
+        if args.matrix_matching:
+            self.downsample = DownsampleLayerMLP()
+            self.upsample = UpsampleLayerMLP()
+
+    def forward(self, x, sample_index):
+
         # convert to list
         if not isinstance(x, list):
             x = [x]
@@ -665,28 +815,49 @@ class MultiCropWrapper(nn.Module):
         loss_mask=0
 
         for end_idx in idx_crops: # idx_crops=[2]
-            image_origin_input=torch.cat(x[start_idx: end_idx])
+            image_origin_input=torch.cat(x[start_idx: end_idx]) # concat in batchsize, [crop1,crop2]
             if end_idx==2: # will go to this branch
                 #print(perm[0].shape,perm[1].shape)
-                _out,_middle_features = self.backbone( image_origin_input)
-                spatial_features = self.DenseHead(_middle_features)#)
+                _out,_middle_features = self.backbone(image_origin_input)
+                if 'swin' in self.args.arch:
+                    true_avg_features, false_avg_features = compute_average_features(_middle_features, sample_index) # return overlap average feature and non-overlap average feature
+                    output = torch.cat((true_avg_features, false_avg_features))
+                else: # vit
+                    output = _out
+                spatial_features = self.DenseHead(_middle_features) # B*196*1024
+                # ipdb.set_trace()
 
-
-            else:
-
-                _out,_middle_features = self.backbone( image_origin_input)
-                spatial_features+= self.DenseHead(_middle_features).chunk(self.args.local_crops_number)
             # The output is a tuple with XCiT model. See:
             # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
-            if isinstance(_out, tuple):
-                _out = _out[0]
+            # if isinstance(_out, tuple):
+            #     _out = _out[0]
             # accumulate outputs
-            output = torch.cat((output, _out))
+            # output = torch.cat((output, _out))
             start_idx = end_idx
-            # if mask_turn:
-            #     loss_mask=self.head2( image_origin_input,_middle_features,mask_origin_input)
+
+        if self.args.matrix_matching:
+            upsample_features = self.upsample(spatial_features)
+            downsample_features = self.downsample(spatial_features)
+            
+        # if self.args.comp:
+        #     # concat local crops of crop1 and crop2
+        #     local_4crop_list = []
+        #     for i in range(4):
+        #         local_4crop_list.append(torch.cat([local_x[i],local_x[i+4]]))
+        #     local_4crop = torch.cat(local_4crop_list) # torch.cat[crop1_1,crop2_1,crop1_2,crop2_2,crop1_3,crop2_3,crop1_4,crop2_4]
+
+        #     # get the local embeddings for composition and decomposition
+        #     local_out, _ = self.backbone(local_4crop)
+        #     local_embd += local_out.chunk(4) # divide the 4 local crops
+        #     local_comp = self.composer(local_embd) # [B,1024] crop1|crop2
+
+        #     global_decomp = self.decomposer(_out) # list  crop1|crop2
+
+
         # Run the head forward on the concatenated features.
-        return self.head(output),spatial_features.detach(),self.predictor_(spatial_features)# global embedding, local embeddings of teacher, local embeddings of student
+        return self.head(output),upsample_features,downsample_features#, local_comp,global_decomp# global embedding, local embeddings of student, composition embeddings, decomposition embeddings
+        # return local_comp,global_decomp # only comp
+        # return self.head(output) # only global
 
 
 class MultiCropWrapper_teacher(nn.Module):
@@ -698,17 +869,19 @@ class MultiCropWrapper_teacher(nn.Module):
     concatenate all the output features and run the head forward on these
     concatenated features.
     """
-    def __init__(self, backbone, head, DenseHead):
+    def __init__(self, backbone, head, DenseHead, args):
         super(MultiCropWrapper_teacher, self).__init__()
         # disable layers dedicated to ImageNet labels classification
         backbone.fc, backbone.head = nn.Identity(), nn.Identity()
         self.backbone = backbone
         self.head = head
         self.DenseHead = DenseHead
+        self.args = args
 
-    def forward(self, x):
+    def forward(self, x, sample_index):
         # convert to list
         spatial_features = []
+        local_embd = []
         if not isinstance(x, list):
             x = [x]
         idx_crops = torch.cumsum(torch.unique_consecutive(
@@ -717,17 +890,37 @@ class MultiCropWrapper_teacher(nn.Module):
         )[1], 0)
         start_idx, output = 0, torch.empty(0).to(x[0].device)
         for end_idx in idx_crops:
-            _out,_middle_features = self.backbone(torch.cat(x[start_idx: end_idx]),perm=None)
+            _out,_middle_features = self.backbone(torch.cat(x[start_idx: end_idx]))
+            if 'swin' in self.args.arch:
+                    true_avg_features, false_avg_features = compute_average_features(_middle_features, sample_index) # return overlap average feature and non-overlap average feature
+                    output = torch.cat((true_avg_features, false_avg_features))
+            else: # vit
+                output = _out
             spatial_features =self.DenseHead(_middle_features)
+
             # The output is a tuple with XCiT model. See:
             # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
-            if isinstance(_out, tuple):
-                _out = _out[0]
+            # if isinstance(_out, tuple):
+            #     _out = _out[0]
             # accumulate outputs
-            output = torch.cat((output, _out))
+            # output = torch.cat((output, _out))
             start_idx = end_idx
+
+        # if self.args.comp:
+        #     # concat local crops of crop1 and crop2
+        #     local_4crop_list = []
+        #     for i in range(4):
+        #         local_4crop_list.append(torch.cat([local_x[i],local_x[i+4]]))
+        #     local_4crop = torch.cat(local_4crop_list) # torch.cat[crop1_1,crop2_1,crop1_2,crop2_2,crop1_3,crop2_3,crop1_4,crop2_4]
+
+            
+        #     local_out, _ = self.backbone(local_4crop)
+        #     local_embd += local_out.chunk(4) # divide the 4 local crops
+
         # Run the head forward on the concatenated features.
-        return   self.head(output),spatial_features # 
+        return   self.head(output),spatial_features#, _out, local_embd
+        # return    _out, local_embd # only comp
+        # return self.head(output) # only global
 
 
 

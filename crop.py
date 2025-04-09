@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 import torch
 import torch.distributed as dist
+import torch.nn.functional as F
 import torchvision.transforms.functional as tf
 from einops import rearrange
 from torch.utils.data import DataLoader, Dataset
@@ -206,6 +207,51 @@ def get_index(a, b, c):
 
     return overlap_mask_1.bool(), overlap_mask_2.bool()
 
+
+def gaussian_kernel_normalized(size, sigma=1):
+    """Generates a (size x size) Gaussian kernel with mean 0 and standard deviation sigma,
+    normalized so that the center value is 1."""
+    x, y = np.mgrid[-size//2 + 1:size//2 + 1, -size//2 + 1:size//2 + 1]
+    g = np.exp(-((x**2 + y**2) / (2.0 * sigma**2)))
+    g = g / g.sum()  # Normalize to sum to 1
+    g = g / g[size//2, size//2]  # Normalize so the center value is 1
+    return g
+
+
+def apply_gaussian_kernel(kernel, point, matrix_size=14):
+    half_k = kernel.shape[0] // 2
+    matrix = np.ones((matrix_size, matrix_size))
+    
+    x, y = point
+    result_coords = []
+    result_weights = []
+    
+    for i in range(-half_k, half_k + 1):
+        for j in range(-half_k, half_k + 1):
+            if 0 <= x + i < matrix_size and 0 <= y + j < matrix_size:
+                result_coords.append((x + i, y + j))
+                result_weights.append(kernel[half_k + i, half_k + j])
+    
+    return result_coords, result_weights
+
+
+
+def upsample(input_bool): # [196,]
+    input = input_bool.reshape(14,14).float()
+    output_float = F.interpolate(input.unsqueeze(0).unsqueeze(0), size=(28, 28), mode='nearest')
+    output_float = output_float.squeeze(0).squeeze(0).reshape(-1) # [784,]
+    output_float = torch.nonzero(output_float)
+    return output_float
+
+def downsample(input_bool): # [196,]
+    input = input_bool.reshape(14,14).float()
+    output_float = F.max_pool2d(input.unsqueeze(0).unsqueeze(0), kernel_size=2)
+    output_float = output_float.squeeze(0).squeeze(0).reshape(-1) # [49,]
+    output_float = torch.nonzero(output_float)
+    return output_float
+
+
+
 def get_corresponding_indices(overlap_mask_1, overlap_mask_2, idx1_pair, idx2_pair, kl):
     """
     input: 
@@ -257,6 +303,78 @@ def get_corresponding_indices(overlap_mask_1, overlap_mask_2, idx1_pair, idx2_pa
         pass
     
     return  bce_labelss2l, bce_labelsl2s
+
+
+def get_corresponding_indices_comp(overlap_mask_1, overlap_mask_2, idx1_pair, idx2_pair, kl):
+    """
+    input: 
+     overlap_mask_1: overlap index of crop1 (bool, [196,])
+     overlap_mask_2: overlap index of crop2 (bool, [196,])
+     idx1_pair: top left grid index of crop1
+     idx2_pair: top left grid index of crop2
+     kl: the size rate of crop1
+    output: two target matrices of matrix matching, size 196*196
+
+    """
+    # idx_x1, idx_y1 = idx1_pair
+    # idx_x2, idx_y2 = idx2_pair
+    # k, l = kl
+    
+    # initialize the mapping array as -1
+    # mapping_array_2_to_1 = np.full(overlap_mask_2.numel(), -1, dtype=int) # shape: (196,)
+    # mapping_array_1_to_2 = np.full(overlap_mask_1.numel(), -1, dtype=int)
+
+    # compute the offsets
+    # offset_x = idx_x2 - idx_x1
+    # offset_y = idx_y2 - idx_y1
+
+    # find True in overlap_mask_2
+    true_indices_2 = torch.nonzero(overlap_mask_2).squeeze() # crop2:small crop  overlap patches:4n
+    true_indices_1 = torch.nonzero(overlap_mask_1).squeeze() # crop1:big crop  overlap patches:n
+    upsample_indices_1 = upsample(overlap_mask_1) # overlap patches:4n
+    downsample_indices_2 = downsample(overlap_mask_2) # overlap patches:n
+
+
+    # initialize the target of matching matrix
+    # bce_labelsl2s = torch.zeros(196, 196)
+    # bce_labelss2l = torch.zeros(196, 196)
+    bce_labelsl2s = torch.zeros(196, 784)
+    bce_labelss2l = torch.zeros(196, 49)
+
+    # get 5*5 gaussian kernel
+    kernal1 = gaussian_kernel_normalized(size=5)
+    kernal2 = gaussian_kernel_normalized(size=3)
+
+    # decomposition
+    for i in range(len(true_indices_2)): 
+        idx2 = true_indices_2[i] # index in crop2 0~195
+        idx1 = upsample_indices_1[i] # index in upsample crop1 0~783
+
+        row, col = divmod(idx1.item(), 28)
+
+        coords, weights = apply_gaussian_kernel(kernal1, (row, col), matrix_size=28) # apply 5*5 gaussion weights to the matrx matching target
+
+        for i in range(len(coords)):
+            corresponding_idx = coords[i][0] * 28 + coords[i][1]
+
+            bce_labelsl2s[idx2,corresponding_idx] = weights[i]
+
+    # composition
+    for i in range(len(true_indices_1)):
+        idx1 = true_indices_1[i] # index in crop1 0~195
+        idx2 = downsample_indices_2[i] # index in downsample crop2 0~49
+
+        row, col = divmod(idx2.item(), 7)
+
+        coords, weights = apply_gaussian_kernel(kernal2, (row, col), matrix_size=7) # apply 5*5 gaussion weights to the matrx matching target
+
+        for i in range(len(coords)):
+            corresponding_idx = coords[i][0] * 7 + coords[i][1]
+
+            bce_labelss2l[idx1,corresponding_idx] = weights[i]
+
+    
+    return  bce_labelss2l, bce_labelsl2s # [196,49], [196,784]
 
 
 class Rearrange_and_Norm():
@@ -323,7 +441,8 @@ class PatchCrop():
         self.size = size
     def __call__(self, image):
         grid = int(self.size/32)
-        k, l = choices([(1,1), (1,2), (2,1), (2,2)], [3, 1, 1, 1])[0]
+        # k, l = choices([(1,1), (1,2), (2,1), (2,2)], [3, 1, 1, 1])[0]
+        k, l = 1,1
         if k==2 and l==2:
             x1 = randint(0,4)
             y1 = randint(0,4)
@@ -342,8 +461,8 @@ class PatchCrop():
         elif k==1 and l==1:
             x1 = randint(0,18)
             y1 = randint(0,18)
-            x2 = randrange(max(x1-7,0), min(19, x1+7), 1)
-            y2 = randrange(max(y1-7,0), min(19, y1+7), 1)
+            x2 = randrange(max(x1-14,0), min(19, x1+14), 1)
+            y2 = randrange(max(y1-14,0), min(19, y1+14), 1)
         
 
         patch1 = image[x1*grid:(14*l+x1)*grid, y1*grid:(14*k+y1)*grid, :]

@@ -1,7 +1,10 @@
+# Official implement of ACE. 
+# ACE learns anatomically consistent embedding with two key branches: (1) global consistency and (2) local consistency via composition decomposition. 
 
 
+# CUDA_VISIBLE_DEVICES="4,5,6,7" python -m torch.distributed.launch --nproc_per_node=4 --master_port 28301 main.py --arch swin_base --batch_size_per_gpu 8
+# CUDA_VISIBLE_DEVICES="1,2" python -m torch.distributed.launch --nproc_per_node=2 --master_port 28300 main.py --arch vit_base --batch_size_per_gpu 8
 # CUDA_VISIBLE_DEVICES="0" python -m torch.distributed.launch --nproc_per_node=1 --master_port 28301 main.py --arch swin_base --batch_size_per_gpu 8
-
 
 import argparse
 import os
@@ -28,7 +31,7 @@ import utils
 import vision_transformer as vits
 import models.swin_transformer as swins
 from vision_transformer import DINOHead,SimMIM_head,SimMIM_head_SWIN, DenseHead
-from ImageFolder_vindr import ImageFolder_vindr,ChestX_ray14,ShenzhenCXR,LDPolyp
+from ImageFolder_vindr import ChestX_ray14, EyePACS
 from config import config
 from config import update_config
 from config import save_config
@@ -39,6 +42,7 @@ from einops import rearrange
 from torchvision.ops import sigmoid_focal_loss
 from sklearn.metrics import recall_score
 from torch import autograd
+import ipdb
 torchvision_archs = sorted(name for name in torchvision_models.__dict__
     if name.islower() and not name.startswith("__")
     and callable(torchvision_models.__dict__[name]))
@@ -68,6 +72,11 @@ def get_args_parser():
     parser.add_argument('--use_bn_in_head', default=False, type=utils.bool_flag,
         help="Whether to use batch normalizations in projection head (Default: False)")
 
+    # optional training components
+    parser.add_argument('--global_loss', default=True, type=utils.bool_flag, help="Whether to use global loss")
+    parser.add_argument('--matrix_matching', default=True, type=utils.bool_flag, help="Whether to use matrix matching loss")
+
+
     # Temperature teacher parameters
     parser.add_argument('--warmup_teacher_temp', default=0.04, type=float,
         help="""Initial value for the teacher temperature: 0.04 works well in most cases.
@@ -79,6 +88,8 @@ def get_args_parser():
         help='Number of warmup epochs for the teacher temperature (Default: 30).')
 
     # Training/Optimization parameters
+    parser.add_argument('--multi_scale', type=utils.bool_flag, default=False, help="""Whether or not
+    to use multi-scale input crop augmentation. If True, the input image will be 14*14/14*28/28*28 patches""")
     parser.add_argument('--use_fp16', type=utils.bool_flag, default=True, help="""Whether or not
         to use half precision for training. Improves training time and memory requirements,
         but can provoke instability and slight decay of performance. We recommend disabling
@@ -122,15 +133,17 @@ def get_args_parser():
     parser.add_argument('--use_dense_prediction', default=False, type=utils.bool_flag,
         help="Whether to use dense prediction in projection head (Default: False)")
     # Misc
-    parser.add_argument('--data_path', default='/data1/zhouziyu/liang/NIHChestXray/images/images_all/', type=str,
+    parser.add_argument('--data_path', default='/mnt/sdb1/zhouziyu/ssl/dataset/NIHChestXray/images/images_all', type=str,
         help='Please specify path to the ImageNet training data.')
-    parser.add_argument('--output_dir', default="/ssd2/zhouziyu/ssl/github/ACE/pretrained_weight/from_imagenet_global_12N", type=str, help='Path to save logs and checkpoints.')
-    parser.add_argument('--saveckp_freq', default=100, type=int, help='Save checkpoint every x epochs.')
+    parser.add_argument('--pretrained_weights', default=None, 
+                        type=str,help='Path to pre-trained weights to load, e.g., imagenet pretrained models.')
+    parser.add_argument('--output_dir', default="./pretrained_weight/", type=str, help='Path to save logs and checkpoints.')
+    parser.add_argument('--saveckp_freq', default=50, type=int, help='Save checkpoint every x epochs.')
     parser.add_argument('--seed', default=0, type=int, help='Random seed.')
-    parser.add_argument('--num_workers', default=5, type=int, help='Number of data loading workers per GPU.')
+    parser.add_argument('--num_workers', default=4, type=int, help='Number of data loading workers per GPU.')
     parser.add_argument("--dist_url", default="env://", type=str, help="""url used to set up
         distributed training; see https://pytorch.org/docs/stable/distributed.html""")
-    parser.add_argument("--local_rank", default=0, type=int, help="Please ignore and do not set this argument.")
+    parser.add_argument("--local-rank", default=0, type=int, help="Please ignore and do not set this argument.")
     parser.add_argument('--cfg',default='./swin_configs/swin_base_img224_window7.yaml', type=str, metavar="FILE", help='path to config file', )
     parser.add_argument('opts',
                         help="Modify config options using the command-line",
@@ -145,6 +158,7 @@ def train_dino(args):
     print("git:\n  {}\n".format(utils.get_sha()))
     print("\n".join("%s: %s" % (k, str(v)) for k, v in sorted(dict(vars(args)).items())))
     cudnn.benchmark = True
+    
 
     if os.path.exists(os.path.join(args.output_dir, "log.txt")):
         log_writer = open(os.path.join(args.output_dir, "log.txt"), 'a')
@@ -152,12 +166,13 @@ def train_dino(args):
         log_writer = open(os.path.join(args.output_dir, "log.txt"), 'w')
 
     # ============ preparing data ... ============
-    transform = DataAugmentationDINO()
+    transform = DataAugmentationDINO(args=args)
     #transform =DataAugmentationDINO()
     #dataset = datasets.ImageFolder(args.data_path, transform=transform)
     #dataset = ImageFolder_vindr(args.data_path, transform=transform)
     # dataset = LDPolyp(augment=transform)
     dataset = ChestX_ray14(args.data_path,'./data/xray14/official/train_val.txt', augment=transform)
+    # dataset = EyePACS(augment=transform)
     sampler = torch.utils.data.DistributedSampler(dataset, shuffle=True)
     data_loader = torch.utils.data.DataLoader(
         dataset,
@@ -194,19 +209,31 @@ def train_dino(args):
             )
             teacher.head_dense = DINOHead(teacher.num_features, args.out_dim, args.use_bn_in_head)
     
-    student = build_model(config, use_dense_prediction=args.use_dense_prediction)
-    teacher = build_model(config, is_teacher=True, use_dense_prediction=args.use_dense_prediction)
-    embed_dim = student.num_features
+        student = build_model(config, use_dense_prediction=args.use_dense_prediction)
+        teacher = build_model(config, is_teacher=True, use_dense_prediction=args.use_dense_prediction)
+        embed_dim = student.num_features
+
+    if args.arch in vits.__dict__.keys():
+        student = vits.__dict__[args.arch](
+            img_size = [448],
+            patch_size=32,
+            drop_path_rate=args.drop_path_rate,  # stochastic depth
+        )
+        teacher = vits.__dict__[args.arch](img_size = [448], patch_size=32)
+        embed_dim = student.embed_dim
+
+
+
     student = utils.MultiCropWrapper(student, DINOHead(
         embed_dim,
         args.out_dim,
         use_bn=args.use_bn_in_head,
         norm_last_layer=args.norm_last_layer,
-    ),DenseHead(),args)
+    ),DenseHead(in_dim=embed_dim, out_dim=embed_dim),args)
     teacher = utils.MultiCropWrapper_teacher(
         teacher,
         DINOHead(embed_dim, args.out_dim, args.use_bn_in_head),
-        DenseHead(),
+        DenseHead(in_dim=embed_dim, out_dim=embed_dim), args
     )
 
 
@@ -233,7 +260,18 @@ def train_dino(args):
     log_writer.flush()
     # ============ preparing loss ... ============
     barlow_loss = AttentionMLPModel(512,512,1).cuda()#BarlowLoss(
-    dino_loss = DINOLoss(
+    # dino_loss = DINOLoss(
+    #     args.out_dim,
+    #     2,  # total number of crops
+    #     args.warmup_teacher_temp,
+    #     args.teacher_temp,
+    #     args.warmup_teacher_temp_epochs,
+    #     args.epochs,
+    # ).cuda()
+    # dino_loss = ContrastiveLoss().cuda()
+    # dino_loss = DINOLoss_Contrastive(
+    dino_loss = DINOLoss_Overlap(
+    # dino_loss = DINOLoss_Triplet(
         args.out_dim,
         2,  # total number of crops
         args.warmup_teacher_temp,
@@ -274,11 +312,13 @@ def train_dino(args):
     log_writer.flush()
 
     # ============ optionally resume training ... ============
-    utils.init_from_imagenet('pretrained_weight/ldpolyp/swin_base_patch4_window7_224_imagenet1k.pth',student, teacher)
+    if args.pretrained_weights is not None:
+        utils.init_from_imagenet(args.pretrained_weights,student, teacher)
 
     to_restore = {"epoch": 0}
 
     utils.restart_from_checkpoint(
+        # os.path.join(args.output_dir, "checkpoint.pth"),
         os.path.join(args.output_dir, "checkpoint.pth"),
         run_variables=to_restore,
         student=student,
@@ -339,9 +379,8 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
     # triplet_loss =barlow_loss.cuda()
     local_loss = TripletLoss()
     #torch.autograd.set_detect_anomaly(True)
-    for it, ((images,locations,s2lmapping,l2smapping), _) in enumerate(metric_logger.log_every(data_loader, 50, header, log_writer)):
-        # locations:the overlap mask of two crops(14*14), s2lmapping:matrix matching target(196*196)
-
+    for it, ((images,s2lmapping,l2smapping, sample_index1, sample_index2), _) in enumerate(metric_logger.log_every(data_loader, 50, header, log_writer)):
+        # ipdb.set_trace()
         # update weight decay and learning rate according to their schedule
         it = len(data_loader) * epoch + it  # global training iteration
         for i, param_group in enumerate(optimizer.param_groups):
@@ -351,30 +390,48 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
 
         # move images to gpu
         images = [im.cuda(non_blocking=True).float() for im in images]
+        # local_crops = [im.cuda(non_blocking=True).float() for im in local_crops]
+        sample_index = torch.cat([sample_index1.cuda(non_blocking=True), sample_index2.cuda(non_blocking=True)])
 
 
-        locations=[location.cuda(non_blocking=True) for location in locations]
-        # teacher and student forward passes + compute dino loss
         with torch.cuda.amp.autocast(fp16_scaler is not None):
-            # with autograd.detect_anomaly():
-            teacher_cls, teacher_spatial = teacher(images)  
-            student_cls, student_spatial, student_spatial_pred = student(images) # global embedding of student, local embeddings of teacher, local embeddings of student
 
-            student_spatials_pred = student_spatial_pred.chunk(2)
-            student_spatials = student_spatial.chunk(2)
+            teacher_cls, teacher_spatial, = teacher(images, sample_index)  
+            student_cls, upsample_features,downsample_features = student(images, sample_index) # global embedding of student, local embeddings of teacher, local embeddings of student
+
+            teacher_spatials = teacher_spatial.chunk(2)
+            upsample_features = upsample_features.chunk(2)
+            downsample_features = downsample_features.chunk(2)
+
+            # # only comp
+            # teacher_comp, teacher_decomp = teacher(images, local_crops, sample_index)  
+            # student_comp, student_decomp = student(images, local_crops, sample_index) # global embedding of student, local embeddings of teacher, local embeddings of student
+
+
+            # only global
+            # teacher_cls = teacher(images, local_crops, sample_index)  
+            # student_cls = student(images, local_crops, sample_index) # global embedding of student, local embeddings of teacher, local embeddings of student
+
 
 
             loss_vic=0
-            loss_local=0
+            loss_decomp=0
+            loss = 0
+            global_loss = 0
             
-            global_loss = dino_loss(student_cls, teacher_cls, epoch)
-            loss1, loss2 = barlow_loss(student_spatials,student_spatials_pred,locations[0],locations[1],s2lmapping.cuda(),l2smapping.cuda())
-            loss_vic += (loss1+loss2)/2 # matrix matching loss
+            # global_loss = dino_loss(student_cls, teacher_cls, epoch)
 
-            loss_local =  local_loss(student_spatials[0], student_spatials_pred[1], l2smapping.cuda(),s2lmapping.cuda()) + local_loss(student_spatials_pred[0], student_spatials[1], l2smapping.cuda(),s2lmapping.cuda()) #contrastive learning loss
+            if args.global_loss:
+                # global_loss = dino_loss(teacher_cls, student_cls)
+                global_loss = dino_loss(student_cls, teacher_cls, epoch)
+                loss = loss+global_loss*0.1
+            if args.matrix_matching:
+                loss1_decomp, loss2_comp = barlow_loss(teacher_spatials,upsample_features,downsample_features,s2lmapping.cuda(),l2smapping.cuda())
+                loss_vic += (loss1_decomp+loss2_comp)/2 # matrix matching loss
+                # loss_vic += loss1_decomp # matrix matching loss
+                loss = loss+loss_vic
 
-            loss = (loss_vic+loss_local+global_loss)/2# loss_local#loss_local #loss_vic#(+loss_local)/2#(loss_dino + order_loss+ loss_vic+restor_loss)/4
-            # loss = loss_local
+
 
             # student update
             optimizer.zero_grad()
@@ -403,14 +460,16 @@ def train_one_epoch(student, teacher, teacher_without_ddp,dino_loss, barlow_loss
                     #print(f"Updating parameter: {name_q} in student, {name_k} in teacher")
                     param_k.data.mul_(m).add_((1 - m) * param_q.detach().data)
 
+        # print(it, loss)
         # logging
         torch.cuda.synchronize()
         metric_logger.update(loss=loss.item())
-        # metric_logger.update(order_loss=order_loss.item())
-        metric_logger.update(loss_vic=loss_vic.item())
-        metric_logger.update(global_loss=global_loss.item())
-        # metric_logger.update(loss_local=loss_local.item())
-        # metric_logger.update(restor_loss=restor_loss.item())
+        if args.global_loss:
+            metric_logger.update(global_loss=global_loss.item())
+        if args.matrix_matching:
+            metric_logger.update(loss_matrix_decomp=loss1_decomp.item())
+            metric_logger.update(loss_matrix_comp=loss2_comp.item())
+
         metric_logger.update(lr=optimizer.param_groups[0]["lr"])
         metric_logger.update(wd=optimizer.param_groups[0]["weight_decay"])
     # gather the stats from all processes
@@ -424,11 +483,11 @@ class NonLinearConv(nn.Module):
     def __init__(self, in_channels, hidden_channels):
         super(NonLinearConv, self).__init__()
         self.expand_conv = nn.Conv2d(in_channels=1, out_channels=hidden_channels, kernel_size=1)
-        self.batchnorm_expand = nn.BatchNorm2d(hidden_channels)  # 添加BatchNorm层
-        self.activation_expand = nn.ReLU()  # 添加ReLU激活函数
+        self.batchnorm_expand = nn.BatchNorm2d(hidden_channels)  
+        self.activation_expand = nn.ReLU()  
         self.reduce_conv = nn.Conv2d(in_channels=hidden_channels, out_channels=1, kernel_size=1)
-        self.batchnorm_reduce = nn.BatchNorm2d(1)  # 添加BatchNorm层
-        self.activation_reduce = nn.ReLU()  # 添加ReLU激活函数
+        self.batchnorm_reduce = nn.BatchNorm2d(1)  
+        self.activation_reduce = nn.ReLU()  
 
     def forward(self, x):
         x = x.unsqueeze(1)
@@ -444,7 +503,6 @@ class NonLinearConv(nn.Module):
         return x
 
 def MLP(mlp, embedding, norm_layer):
-    # 修改这里以设置 196 -> 512 -> 196 的结构
     mlp_spec = f"{embedding}-512-{embedding}"
     layers = []
     f = list(map(int, mlp_spec.split("-")))
@@ -452,7 +510,7 @@ def MLP(mlp, embedding, norm_layer):
     for i in range(len(f) - 1):
         layers.append(nn.Linear(f[i], f[i + 1]))
         
-        # 如果这不是最后一个线性层，添加规范化和激活
+
         if i < len(f) - 2:
             if norm_layer == "batch_norm":
                 layers.append(nn.BatchNorm1d(f[i + 1]))
@@ -488,18 +546,23 @@ class AttentionMLPModel(nn.Module): # compute matrix matching loss
 
 
         
-    def forward(self, student_out, student_out_proj, locations0,locations1,s2lmapping,l2smapping):
+    def forward(self, teacher_out, upsample_features,downsample_features,s2lmapping,l2smapping):
 
 
-        ZA,ZB = student_out
-        PA,PB =  student_out_proj
-        logits_A, logits_B = self.attention['attention_layer'](ZA, PB)
-        logits_A_, logits_B_ = self.attention['attention_layer'](PA, ZB)
+        C1_t,C2_t = teacher_out
+        C1_s_up, C2_s_up= upsample_features
+        C1_s_down, C2_s_down= downsample_features
+        # ZA,ZB = teacher_out
+        # PA,PB =  student_out_proj
+        # logits_A, logits_B = self.attention['attention_layer'](ZA, PB)
+        # logits_A_, logits_B_ = self.attention['attention_layer'](PA, ZB)
+        logits_A, logits_B = self.attention['attention_layer'](C2_t, C1_s_up) # logits_A:[B,196,784], logits_B:[B,784,196]
+        logits_A_, logits_B_ = self.attention['attention_layer'](C1_t, C2_s_down) # logits_A_:[B,196,49]
         # print(logits_A.shape,logits_B.shape)
         # logits_A = self.nonlinear(logits_A)
         # logits_A_ = self.nonlinear(logits_A_)
-        loss1 = ( sigmoid_focal_loss(logits_A,l2smapping.cuda(),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_A_,l2smapping.cuda(),alpha=0.99,gamma=0).mean())/2
-        loss2 = ( sigmoid_focal_loss(logits_B,s2lmapping.cuda(),alpha=0.99,gamma=0).mean()+ sigmoid_focal_loss(logits_B_,s2lmapping.cuda(),alpha=0.99,gamma=0).mean())/2
+        loss_decomp = sigmoid_focal_loss(logits_A,l2smapping.cuda(),alpha=0.99,gamma=0).mean()
+        loss_comp = sigmoid_focal_loss(logits_A_,s2lmapping.cuda(),alpha=0.9,gamma=0).mean()
 
 
         # # Get predicted labels
@@ -510,7 +573,7 @@ class AttentionMLPModel(nn.Module): # compute matrix matching loss
 
 
 
-        return loss1,loss2
+        return loss_decomp,loss_comp 
 
 # Define the Attention Layer
 class AttentionLayer(nn.Module):
@@ -605,6 +668,242 @@ class TripletLoss(nn.Module):
 
 
         return self.compute_loss(crop1, crop2, bce_labelsl2s, bce_labelss2l)
+
+
+class ContrastiveLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.contrastive_loss = InfoNCE(temperature=0.1,negative_mode='paired')
+
+    def forward(self, teacher_cls, student_cls):
+        teacher_cls = teacher_cls.chunk(4)
+        student_cls = student_cls.chunk(4)
+
+        teacher_overlap_crop1 = teacher_cls[0] # [B,1024]
+        teacher_overlap_crop2 = teacher_cls[1] # [B,1024]
+        teacher_nonoverlap_crop1 = teacher_cls[2] # [B,1024]
+        teacher_nonoverlap_crop2 = teacher_cls[3] # [B,1024]
+
+        student_overlap_crop1 = student_cls[0]
+        student_overlap_crop2 = student_cls[1]
+        student_nonoverlap_crop1 = student_cls[2]
+        student_nonoverlap_crop2 = student_cls[3]
+
+        loss1 = self.contrastive_loss(teacher_overlap_crop1, student_overlap_crop2, torch.cat((teacher_nonoverlap_crop1.unsqueeze(1), student_nonoverlap_crop2.unsqueeze(1)), dim=1)) # negatives [B,2,1024]
+        loss2 = self.contrastive_loss(teacher_overlap_crop2, student_overlap_crop1, torch.cat((teacher_nonoverlap_crop2.unsqueeze(1), student_nonoverlap_crop1.unsqueeze(1)), dim=1))
+
+        return (loss1+loss2)/2
+    
+
+class DINOLoss_Contrastive(nn.Module):
+    def __init__(self, out_dim, ncrops, warmup_teacher_temp, teacher_temp,
+                 warmup_teacher_temp_epochs, nepochs, student_temp=0.1,
+                 center_momentum=0.9):
+        super().__init__()
+        self.student_temp = student_temp
+        self.center_momentum = center_momentum
+        self.register_buffer("center", torch.zeros(1, out_dim))
+        # we apply a warm up for the teacher temperature because
+        # a too high temperature makes the training instable at the beginning
+        self.teacher_temp_schedule = np.concatenate((
+            np.linspace(warmup_teacher_temp,
+                        teacher_temp, warmup_teacher_temp_epochs),
+            np.ones(nepochs - warmup_teacher_temp_epochs) * teacher_temp
+        ))
+        self.contrastive_loss = InfoNCE(temperature=0.1,negative_mode='paired')
+
+    def forward(self, student_output, teacher_output, epoch):
+        """
+        Cross-entropy between softmax outputs of the teacher and student networks.
+        """
+        student_out = F.softmax(student_output / self.student_temp, dim=-1)
+        student_out = student_out.chunk(4)
+
+        # teacher centering and sharpening
+        temp = self.teacher_temp_schedule[epoch]
+        teacher_out = F.softmax((teacher_output - self.center) / temp, dim=-1)
+        teacher_out = teacher_out.detach().chunk(4)
+
+        # total_loss = 0
+        # n_loss_terms = 0
+        # for iq, q in enumerate(teacher_out):
+        #     for v in range(len(student_out)):
+        #         if v == iq:
+        #             # we skip cases where student and teacher operate on the same view
+        #             continue
+        #         loss = torch.sum(-q * F.log_softmax(student_out[v], dim=-1), dim=-1)
+        #         total_loss += loss.mean()
+        #         n_loss_terms += 1
+        # total_loss /= n_loss_terms
+
+
+        teacher_overlap_crop1 = teacher_out[0] # [B,1024]
+        teacher_overlap_crop2 = teacher_out[1] # [B,1024]
+        teacher_nonoverlap_crop1 = teacher_out[2] # [B,1024]
+        teacher_nonoverlap_crop2 = teacher_out[3] # [B,1024]
+
+        student_overlap_crop1 = student_out[0]
+        student_overlap_crop2 = student_out[1]
+        student_nonoverlap_crop1 = student_out[2]
+        student_nonoverlap_crop2 = student_out[3]
+
+        loss1 = self.contrastive_loss(teacher_overlap_crop1, student_overlap_crop2, torch.cat((teacher_nonoverlap_crop1.unsqueeze(1), student_nonoverlap_crop2.unsqueeze(1)), dim=1)) # negatives [B,2,1024]
+        loss2 = self.contrastive_loss(teacher_overlap_crop2, student_overlap_crop1, torch.cat((teacher_nonoverlap_crop2.unsqueeze(1), student_nonoverlap_crop1.unsqueeze(1)), dim=1))
+        # ipdb.set_trace()
+        self.update_center(teacher_output)
+        return (loss1+loss2)/2
+    
+    @torch.no_grad()
+    def update_center(self, teacher_output):
+        """
+        Update center used for teacher output.
+        """
+        batch_center = torch.sum(teacher_output, dim=0, keepdim=True)
+        dist.all_reduce(batch_center)
+        batch_center = batch_center / (len(teacher_output) * dist.get_world_size())
+
+        # ema update
+        self.center = self.center * self.center_momentum + batch_center * (1 - self.center_momentum)
+
+
+
+
+class DINOLoss_Overlap(nn.Module):
+    def __init__(self, out_dim, ncrops, warmup_teacher_temp, teacher_temp,
+                 warmup_teacher_temp_epochs, nepochs, student_temp=0.1,
+                 center_momentum=0.9):
+        super().__init__()
+        self.student_temp = student_temp
+        self.center_momentum = center_momentum
+        self.register_buffer("center", torch.zeros(1, out_dim))
+        # we apply a warm up for the teacher temperature because
+        # a too high temperature makes the training instable at the beginning
+        self.teacher_temp_schedule = np.concatenate((
+            np.linspace(warmup_teacher_temp,
+                        teacher_temp, warmup_teacher_temp_epochs),
+            np.ones(nepochs - warmup_teacher_temp_epochs) * teacher_temp
+        ))
+        self.contrastive_loss = InfoNCE(temperature=0.1,negative_mode='paired')
+
+    def forward(self, student_output, teacher_output, epoch):
+        """
+        Cross-entropy between softmax outputs of the teacher and student networks.
+        """
+        # student_out = F.softmax(student_output / self.student_temp, dim=-1)
+        student_out = student_output / self.student_temp
+        student_out = student_out.chunk(4)
+
+        # teacher centering and sharpening
+        temp = self.teacher_temp_schedule[epoch]
+        teacher_out = F.softmax((teacher_output - self.center) / temp, dim=-1)
+        teacher_out = teacher_out.detach().chunk(4)
+
+
+
+        teacher_overlap_crop1 = teacher_out[0] # [B,1024]
+        teacher_overlap_crop2 = teacher_out[1] # [B,1024]
+        # teacher_nonoverlap_crop1 = teacher_out[2] # [B,1024]
+        # teacher_nonoverlap_crop2 = teacher_out[3] # [B,1024]
+
+        student_overlap_crop1 = student_out[0]
+        student_overlap_crop2 = student_out[1]
+        # student_nonoverlap_crop1 = student_out[2]
+        # student_nonoverlap_crop2 = student_out[3]
+
+        # loss1 = self.contrastive_loss(teacher_overlap_crop1, student_overlap_crop2, torch.cat((teacher_nonoverlap_crop1.unsqueeze(1), student_nonoverlap_crop2.unsqueeze(1)), dim=1)) # negatives [B,2,1024]
+        # loss2 = self.contrastive_loss(teacher_overlap_crop2, student_overlap_crop1, torch.cat((teacher_nonoverlap_crop2.unsqueeze(1), student_nonoverlap_crop1.unsqueeze(1)), dim=1))
+        loss1 = torch.sum(-teacher_overlap_crop2 * F.log_softmax(student_overlap_crop1, dim=-1), dim=-1).mean()
+        loss2 = torch.sum(-teacher_overlap_crop1 * F.log_softmax(student_overlap_crop2, dim=-1), dim=-1).mean()
+        
+        # ipdb.set_trace()
+        self.update_center(teacher_output)
+        return (loss1+loss2)/2
+    
+    @torch.no_grad()
+    def update_center(self, teacher_output):
+        """
+        Update center used for teacher output.
+        """
+        batch_center = torch.sum(teacher_output, dim=0, keepdim=True)
+        dist.all_reduce(batch_center)
+        batch_center = batch_center / (len(teacher_output) * dist.get_world_size())
+
+        # ema update
+        self.center = self.center * self.center_momentum + batch_center * (1 - self.center_momentum)
+
+
+
+
+class DINOLoss_Triplet(nn.Module):
+    def __init__(self, out_dim, ncrops, warmup_teacher_temp, teacher_temp,
+                 warmup_teacher_temp_epochs, nepochs, student_temp=0.1,
+                 center_momentum=0.9):
+        super().__init__()
+        self.student_temp = student_temp
+        self.center_momentum = center_momentum
+        self.register_buffer("center", torch.zeros(1, out_dim))
+        # we apply a warm up for the teacher temperature because
+        # a too high temperature makes the training instable at the beginning
+        self.teacher_temp_schedule = np.concatenate((
+            np.linspace(warmup_teacher_temp,
+                        teacher_temp, warmup_teacher_temp_epochs),
+            np.ones(nepochs - warmup_teacher_temp_epochs) * teacher_temp
+        ))
+        self.contrastive_loss = InfoNCE(temperature=0.1,negative_mode='paired')
+        self.eps = sys.float_info.epsilon
+        self.mse_loss =nn.MSELoss(reduction='none')
+
+    def forward(self, student_output, teacher_output, epoch):
+        """
+        Cross-entropy between softmax outputs of the teacher and student networks.
+        """
+        # student_out = F.softmax(student_output / self.student_temp, dim=-1)
+        student_out = F.log_softmax(student_output / self.student_temp, dim=-1)
+        student_out = student_out.chunk(4)
+
+        # teacher centering and sharpening
+        temp = self.teacher_temp_schedule[epoch]
+        teacher_out = F.softmax((teacher_output - self.center) / temp, dim=-1)
+        teacher_out = teacher_out.detach().chunk(4)
+
+
+
+        teacher_overlap_crop1 = teacher_out[0] # [B,1024]
+        teacher_overlap_crop2 = teacher_out[1] # [B,1024]
+        teacher_nonoverlap_crop1 = teacher_out[2] # [B,1024]
+        teacher_nonoverlap_crop2 = teacher_out[3] # [B,1024]
+
+        student_overlap_crop1 = student_out[0]
+        student_overlap_crop2 = student_out[1]
+        student_nonoverlap_crop1 = student_out[2]
+        student_nonoverlap_crop2 = student_out[3]
+
+        # loss1 = self.contrastive_loss(teacher_overlap_crop1, student_overlap_crop2, torch.cat((teacher_nonoverlap_crop1.unsqueeze(1), student_nonoverlap_crop2.unsqueeze(1)), dim=1)) # negatives [B,2,1024]
+        # loss2 = self.contrastive_loss(teacher_overlap_crop2, student_overlap_crop1, torch.cat((teacher_nonoverlap_crop2.unsqueeze(1), student_nonoverlap_crop1.unsqueeze(1)), dim=1))
+        # loss1 = torch.sum(-teacher_overlap_crop2 * F.log_softmax(student_overlap_crop1, dim=-1), dim=-1).mean()
+        # loss2 = torch.sum(-teacher_overlap_crop1 * F.log_softmax(student_overlap_crop2, dim=-1), dim=-1).mean()
+        loss1 = ((torch.norm(teacher_overlap_crop1 - student_overlap_crop2, p=2, dim=1)+self.eps)/(torch.norm(teacher_nonoverlap_crop1 - student_nonoverlap_crop2, p=2, dim=1)+self.eps)).mean() # triplet loss
+        loss2 = ((torch.norm(teacher_overlap_crop2 - student_overlap_crop1, p=2, dim=1)+self.eps)/(torch.norm(teacher_nonoverlap_crop2 - student_nonoverlap_crop1, p=2, dim=1)+self.eps)).mean()
+
+
+        # ipdb.set_trace()
+        self.update_center(teacher_output)
+        return (loss1+loss2)/2
+    
+    @torch.no_grad()
+    def update_center(self, teacher_output):
+        """
+        Update center used for teacher output.
+        """
+        batch_center = torch.sum(teacher_output, dim=0, keepdim=True)
+        dist.all_reduce(batch_center)
+        batch_center = batch_center / (len(teacher_output) * dist.get_world_size())
+
+        # ema update
+        self.center = self.center * self.center_momentum + batch_center * (1 - self.center_momentum)
+
+
+
 
 class DINOLoss(nn.Module):
     def __init__(self, out_dim, ncrops, warmup_teacher_temp, teacher_temp,
