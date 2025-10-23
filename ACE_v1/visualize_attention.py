@@ -31,8 +31,8 @@ from torchvision import transforms as pth_transforms
 import numpy as np
 from PIL import Image
 
-import utils
-import vision_transformer as vits
+import ssl.github.ACE.ACE_v1.utils as utils
+import ssl.github.ACE.ACE_v1.vision_transformer as vits
 
 
 def apply_mask(image, mask, color, alpha=0.5):

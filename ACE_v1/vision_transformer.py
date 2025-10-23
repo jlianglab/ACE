@@ -21,7 +21,7 @@ import torch.nn.functional as F
 import torch
 import torch.nn as nn
 from einops import rearrange
-from utils import trunc_normal_
+from ssl.github.ACE.ACE_v1.utils import trunc_normal_
 
 
 def drop_path(x, drop_prob: float = 0., training: bool = False):

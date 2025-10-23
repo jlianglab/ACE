@@ -2,7 +2,7 @@
 import torch
 import numpy as np
 import torch.nn.functional as F
-import utils
+import ssl.github.ACE.ACE_v1.utils as utils
 def _vicreg_loss(x, y, args):
     repr_loss = args.inv_coeff * F.mse_loss(x, y)
 

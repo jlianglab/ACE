@@ -18,9 +18,9 @@ import torchvision.transforms as transforms
 from torchvision.transforms import InterpolationMode
 from torchvision.transforms.functional import _interpolation_modes_from_int
 import torchvision.transforms.functional as FT
-from md_aug import paint, local_pixel_shuffling,local_pixel_shuffling_500, nonlinear_transformation
+from ssl.github.ACE.ACE_v1.md_aug import paint, local_pixel_shuffling,local_pixel_shuffling_500, nonlinear_transformation
 import cv2
-from crop import img_transforms,get_index, get_corresponding_indices, get_corresponding_indices_comp
+from ssl.github.ACE.ACE_v1.crop import img_transforms,get_index, get_corresponding_indices, get_corresponding_indices_comp
 from einops import rearrange
 import albumentations as A
 import ipdb

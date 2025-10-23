@@ -26,18 +26,18 @@ import torch.backends.cudnn as cudnn
 import torch.nn.functional as F
 from torchvision import datasets, transforms
 from torchvision import models as torchvision_models
-from infonce import *
-import utils
-import vision_transformer as vits
+from ssl.github.ACE.ACE_v1.infonce import *
+import ssl.github.ACE.ACE_v1.utils as utils
+import ssl.github.ACE.ACE_v1.vision_transformer as vits
 import models.swin_transformer as swins
-from vision_transformer import DINOHead,SimMIM_head,SimMIM_head_SWIN, DenseHead
-from ImageFolder_vindr import ChestX_ray14, EyePACS
+from ssl.github.ACE.ACE_v1.vision_transformer import DINOHead,SimMIM_head,SimMIM_head_SWIN, DenseHead
+from ssl.github.ACE.ACE_v1.ImageFolder_vindr import ChestX_ray14, EyePACS
 from config import config
 from config import update_config
 from config import save_config
 from models import build_model
-from transforms import MultiCropTrainDataTransform, DataAugmentationDINO
-from losses import globalconsis_loss
+from ssl.github.ACE.ACE_v1.transforms import MultiCropTrainDataTransform, DataAugmentationDINO
+from ssl.github.ACE.ACE_v1.losses import globalconsis_loss
 from einops import rearrange
 from torchvision.ops import sigmoid_focal_loss
 from sklearn.metrics import recall_score
