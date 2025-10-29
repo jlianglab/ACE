@@ -83,7 +83,7 @@ CUDA_VISIBLE_DEVICES="0,1,2,3" python -m torch.distributed.launch --nproc_per_no
 
 ### Evaluate ACE-v2 pretrained model
 
-#### Load the model
+1. Load the model
 
 Load the SwinV1-base code in [swin_transformer.py](./models/swin_transformer.py):
 ```
@@ -98,7 +98,7 @@ model = SwinTransformerV2(img_size= 512, patch_size=4, window_size=16, embed_dim
 ```
 
 
-#### Load the pretrained weights
+2. Load the pretrained weights
 
 ```
 checkpoint = torch.load(model_path, map_location='cpu')
@@ -109,17 +109,17 @@ print(msg)
 ```
 
 
-#### Finetune the pretrained model on target tasks
+3. Finetune the pretrained model on target tasks
 Refer the finetuning codes in [Finetune](../downstream/Finetune/).
 
-#### Evaluate the learned and emergent properties of the pretrained model
+4. Evaluate the learned and emergent properties of the pretrained model
 Refer the evaluation codes in [Property](../downstream/Property/).
 
 
-### Citation
+## Citation
 If you use this code or use our pre-trained weights for your research, please cite our paper:
 
 
 
-### Acknowledgement
+## Acknowledgement
 This research has been supported in part by ASU and Mayo Clinic through a Seed Grant and an Innovation Grant, and in part by the NIH under Award Number R01HL128785. The content is solely the responsibility of the authors and does not necessarily represent the official views of the NIH. This work has utilized the GPUs provided in part by the ASU Research Computing and in part by Sol and Bridges-2 at Pittsburgh Supercomputing Center through allocation BCS190015 and the Anvil at Purdue University through allocation MED220025 from the Advanced Cyberinfrastructure Coordination Ecosystem: Services \& Support (ACCESS) program, which is supported by National Science Foundation grants \#2138259, \#2138286, \#2138307, \#2137603, and \#2138296. The content of this paper is covered by patents pending.
