@@ -1,0 +1,3 @@
+0 normal
+1 No Lung Opacity/Not normal
+2 Lung Opacity

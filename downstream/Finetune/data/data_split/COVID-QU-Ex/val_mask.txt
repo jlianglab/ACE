@@ -1,0 +1,932 @@
+Val/Normal/images/Normal (644).png,Val/Normal/infection masks/Normal (644).png
+Val/Normal/images/Normal (719).png,Val/Normal/infection masks/Normal (719).png
+Val/Normal/images/Normal (10285).png,Val/Normal/infection masks/Normal (10285).png
+Val/Normal/images/Normal (716).png,Val/Normal/infection masks/Normal (716).png
+Val/Normal/images/Normal (10264).png,Val/Normal/infection masks/Normal (10264).png
+Val/Normal/images/Normal (10269).png,Val/Normal/infection masks/Normal (10269).png
+Val/Normal/images/Normal (774).png,Val/Normal/infection masks/Normal (774).png
+Val/Normal/images/Normal (631).png,Val/Normal/infection masks/Normal (631).png
+Val/Normal/images/Normal (677).png,Val/Normal/infection masks/Normal (677).png
+Val/Normal/images/Normal (711).png,Val/Normal/infection masks/Normal (711).png
+Val/Normal/images/Normal (651).png,Val/Normal/infection masks/Normal (651).png
+Val/Normal/images/Normal (622).png,Val/Normal/infection masks/Normal (622).png
+Val/Normal/images/Normal (689).png,Val/Normal/infection masks/Normal (689).png
+Val/Normal/images/Normal (781).png,Val/Normal/infection masks/Normal (781).png
+Val/Normal/images/Normal (665).png,Val/Normal/infection masks/Normal (665).png
+Val/Normal/images/Normal (669).png,Val/Normal/infection masks/Normal (669).png
+Val/Normal/images/Normal (681).png,Val/Normal/infection masks/Normal (681).png
+Val/Normal/images/Normal (10267).png,Val/Normal/infection masks/Normal (10267).png
+Val/Normal/images/Normal (10288).png,Val/Normal/infection masks/Normal (10288).png
+Val/Normal/images/Normal (10277).png,Val/Normal/infection masks/Normal (10277).png
+Val/Normal/images/Normal (752).png,Val/Normal/infection masks/Normal (752).png
+Val/Normal/images/Normal (636).png,Val/Normal/infection masks/Normal (636).png
+Val/Normal/images/Normal (784).png,Val/Normal/infection masks/Normal (784).png
+Val/Normal/images/Normal (667).png,Val/Normal/infection masks/Normal (667).png
+Val/Normal/images/Normal (10272).png,Val/Normal/infection masks/Normal (10272).png
+Val/Normal/images/Normal (731).png,Val/Normal/infection masks/Normal (731).png
+Val/Normal/images/Normal (620).png,Val/Normal/infection masks/Normal (620).png
+Val/Normal/images/Normal (638).png,Val/Normal/infection masks/Normal (638).png
+Val/Normal/images/Normal (690).png,Val/Normal/infection masks/Normal (690).png
+Val/Normal/images/Normal (757).png,Val/Normal/infection masks/Normal (757).png
+Val/Normal/images/Normal (714).png,Val/Normal/infection masks/Normal (714).png
+Val/Normal/images/Normal (709).png,Val/Normal/infection masks/Normal (709).png
+Val/Normal/images/Normal (10258).png,Val/Normal/infection masks/Normal (10258).png
+Val/Normal/images/Normal (666).png,Val/Normal/infection masks/Normal (666).png
+Val/Normal/images/Normal (10281).png,Val/Normal/infection masks/Normal (10281).png
+Val/Normal/images/Normal (694).png,Val/Normal/infection masks/Normal (694).png
+Val/Normal/images/Normal (627).png,Val/Normal/infection masks/Normal (627).png
+Val/Normal/images/Normal (675).png,Val/Normal/infection masks/Normal (675).png
+Val/Normal/images/Normal (691).png,Val/Normal/infection masks/Normal (691).png
+Val/Normal/images/Normal (628).png,Val/Normal/infection masks/Normal (628).png
+Val/Normal/images/Normal (742).png,Val/Normal/infection masks/Normal (742).png
+Val/Normal/images/Normal (643).png,Val/Normal/infection masks/Normal (643).png
+Val/Normal/images/Normal (679).png,Val/Normal/infection masks/Normal (679).png
+Val/Normal/images/Normal (670).png,Val/Normal/infection masks/Normal (670).png
+Val/Normal/images/Normal (748).png,Val/Normal/infection masks/Normal (748).png
+Val/Normal/images/Normal (662).png,Val/Normal/infection masks/Normal (662).png
+Val/Normal/images/Normal (678).png,Val/Normal/infection masks/Normal (678).png
+Val/Normal/images/Normal (10248).png,Val/Normal/infection masks/Normal (10248).png
+Val/Normal/images/Normal (769).png,Val/Normal/infection masks/Normal (769).png
+Val/Normal/images/Normal (686).png,Val/Normal/infection masks/Normal (686).png
+Val/Normal/images/Normal (768).png,Val/Normal/infection masks/Normal (768).png
+Val/Normal/images/Normal (635).png,Val/Normal/infection masks/Normal (635).png
+Val/Normal/images/Normal (682).png,Val/Normal/infection masks/Normal (682).png
+Val/Normal/images/Normal (10247).png,Val/Normal/infection masks/Normal (10247).png
+Val/Normal/images/Normal (10251).png,Val/Normal/infection masks/Normal (10251).png
+Val/Normal/images/Normal (754).png,Val/Normal/infection masks/Normal (754).png
+Val/Normal/images/Normal (756).png,Val/Normal/infection masks/Normal (756).png
+Val/Normal/images/Normal (726).png,Val/Normal/infection masks/Normal (726).png
+Val/Normal/images/Normal (633).png,Val/Normal/infection masks/Normal (633).png
+Val/Normal/images/Normal (659).png,Val/Normal/infection masks/Normal (659).png
+Val/Normal/images/Normal (735).png,Val/Normal/infection masks/Normal (735).png
+Val/Normal/images/Normal (713).png,Val/Normal/infection masks/Normal (713).png
+Val/Normal/images/Normal (699).png,Val/Normal/infection masks/Normal (699).png
+Val/Normal/images/Normal (10236).png,Val/Normal/infection masks/Normal (10236).png
+Val/Normal/images/Normal (749).png,Val/Normal/infection masks/Normal (749).png
+Val/Normal/images/Normal (683).png,Val/Normal/infection masks/Normal (683).png
+Val/Normal/images/Normal (740).png,Val/Normal/infection masks/Normal (740).png
+Val/Normal/images/Normal (671).png,Val/Normal/infection masks/Normal (671).png
+Val/Normal/images/Normal (10263).png,Val/Normal/infection masks/Normal (10263).png
+Val/Normal/images/Normal (649).png,Val/Normal/infection masks/Normal (649).png
+Val/Normal/images/Normal (746).png,Val/Normal/infection masks/Normal (746).png
+Val/Normal/images/Normal (641).png,Val/Normal/infection masks/Normal (641).png
+Val/Normal/images/Normal (619).png,Val/Normal/infection masks/Normal (619).png
+Val/Normal/images/Normal (10284).png,Val/Normal/infection masks/Normal (10284).png
+Val/Normal/images/Normal (778).png,Val/Normal/infection masks/Normal (778).png
+Val/Normal/images/Normal (645).png,Val/Normal/infection masks/Normal (645).png
+Val/Normal/images/Normal (765).png,Val/Normal/infection masks/Normal (765).png
+Val/Normal/images/Normal (684).png,Val/Normal/infection masks/Normal (684).png
+Val/Normal/images/Normal (10291).png,Val/Normal/infection masks/Normal (10291).png
+Val/Normal/images/Normal (727).png,Val/Normal/infection masks/Normal (727).png
+Val/Normal/images/Normal (629).png,Val/Normal/infection masks/Normal (629).png
+Val/Normal/images/Normal (664).png,Val/Normal/infection masks/Normal (664).png
+Val/Normal/images/Normal (654).png,Val/Normal/infection masks/Normal (654).png
+Val/Normal/images/Normal (648).png,Val/Normal/infection masks/Normal (648).png
+Val/Normal/images/Normal (738).png,Val/Normal/infection masks/Normal (738).png
+Val/Normal/images/Normal (698).png,Val/Normal/infection masks/Normal (698).png
+Val/Normal/images/Normal (10268).png,Val/Normal/infection masks/Normal (10268).png
+Val/Normal/images/Normal (779).png,Val/Normal/infection masks/Normal (779).png
+Val/Normal/images/Normal (707).png,Val/Normal/infection masks/Normal (707).png
+Val/Normal/images/Normal (10292).png,Val/Normal/infection masks/Normal (10292).png
+Val/Normal/images/Normal (616).png,Val/Normal/infection masks/Normal (616).png
+Val/Normal/images/Normal (788).png,Val/Normal/infection masks/Normal (788).png
+Val/Normal/images/Normal (640).png,Val/Normal/infection masks/Normal (640).png
+Val/Normal/images/Normal (734).png,Val/Normal/infection masks/Normal (734).png
+Val/Normal/images/Normal (673).png,Val/Normal/infection masks/Normal (673).png
+Val/Normal/images/Normal (718).png,Val/Normal/infection masks/Normal (718).png
+Val/Normal/images/Normal (715).png,Val/Normal/infection masks/Normal (715).png
+Val/Normal/images/Normal (657).png,Val/Normal/infection masks/Normal (657).png
+Val/Normal/images/Normal (10243).png,Val/Normal/infection masks/Normal (10243).png
+Val/Normal/images/Normal (10262).png,Val/Normal/infection masks/Normal (10262).png
+Val/Normal/images/Normal (10271).png,Val/Normal/infection masks/Normal (10271).png
+Val/Normal/images/Normal (10283).png,Val/Normal/infection masks/Normal (10283).png
+Val/Normal/images/Normal (10233).png,Val/Normal/infection masks/Normal (10233).png
+Val/Normal/images/Normal (773).png,Val/Normal/infection masks/Normal (773).png
+Val/Normal/images/Normal (10237).png,Val/Normal/infection masks/Normal (10237).png
+Val/Normal/images/Normal (10239).png,Val/Normal/infection masks/Normal (10239).png
+Val/Normal/images/Normal (786).png,Val/Normal/infection masks/Normal (786).png
+Val/Normal/images/Normal (639).png,Val/Normal/infection masks/Normal (639).png
+Val/Normal/images/Normal (721).png,Val/Normal/infection masks/Normal (721).png
+Val/Normal/images/Normal (10274).png,Val/Normal/infection masks/Normal (10274).png
+Val/Normal/images/Normal (695).png,Val/Normal/infection masks/Normal (695).png
+Val/Normal/images/Normal (637).png,Val/Normal/infection masks/Normal (637).png
+Val/Normal/images/Normal (10276).png,Val/Normal/infection masks/Normal (10276).png
+Val/Normal/images/Normal (653).png,Val/Normal/infection masks/Normal (653).png
+Val/Normal/images/Normal (759).png,Val/Normal/infection masks/Normal (759).png
+Val/Normal/images/Normal (621).png,Val/Normal/infection masks/Normal (621).png
+Val/Normal/images/Normal (10242).png,Val/Normal/infection masks/Normal (10242).png
+Val/Normal/images/Normal (656).png,Val/Normal/infection masks/Normal (656).png
+Val/Normal/images/Normal (692).png,Val/Normal/infection masks/Normal (692).png
+Val/Normal/images/Normal (750).png,Val/Normal/infection masks/Normal (750).png
+Val/Normal/images/Normal (10280).png,Val/Normal/infection masks/Normal (10280).png
+Val/Normal/images/Normal (652).png,Val/Normal/infection masks/Normal (652).png
+Val/Normal/images/Normal (615).png,Val/Normal/infection masks/Normal (615).png
+Val/Normal/images/Normal (706).png,Val/Normal/infection masks/Normal (706).png
+Val/Normal/images/Normal (10238).png,Val/Normal/infection masks/Normal (10238).png
+Val/Normal/images/Normal (764).png,Val/Normal/infection masks/Normal (764).png
+Val/Normal/images/Normal (10286).png,Val/Normal/infection masks/Normal (10286).png
+Val/Normal/images/Normal (663).png,Val/Normal/infection masks/Normal (663).png
+Val/Normal/images/Normal (723).png,Val/Normal/infection masks/Normal (723).png
+Val/Normal/images/Normal (710).png,Val/Normal/infection masks/Normal (710).png
+Val/Normal/images/Normal (780).png,Val/Normal/infection masks/Normal (780).png
+Val/Normal/images/Normal (688).png,Val/Normal/infection masks/Normal (688).png
+Val/Normal/images/Normal (10261).png,Val/Normal/infection masks/Normal (10261).png
+Val/Normal/images/Normal (772).png,Val/Normal/infection masks/Normal (772).png
+Val/Normal/images/Normal (614).png,Val/Normal/infection masks/Normal (614).png
+Val/Normal/images/Normal (10249).png,Val/Normal/infection masks/Normal (10249).png
+Val/Normal/images/Normal (10259).png,Val/Normal/infection masks/Normal (10259).png
+Val/Normal/images/Normal (741).png,Val/Normal/infection masks/Normal (741).png
+Val/Normal/images/Normal (701).png,Val/Normal/infection masks/Normal (701).png
+Val/Normal/images/Normal (777).png,Val/Normal/infection masks/Normal (777).png
+Val/Normal/images/Normal (625).png,Val/Normal/infection masks/Normal (625).png
+Val/Normal/images/Normal (733).png,Val/Normal/infection masks/Normal (733).png
+Val/Normal/images/Normal (760).png,Val/Normal/infection masks/Normal (760).png
+Val/Normal/images/Normal (10255).png,Val/Normal/infection masks/Normal (10255).png
+Val/Normal/images/Normal (617).png,Val/Normal/infection masks/Normal (617).png
+Val/Normal/images/Normal (630).png,Val/Normal/infection masks/Normal (630).png
+Val/Normal/images/Normal (10257).png,Val/Normal/infection masks/Normal (10257).png
+Val/Normal/images/Normal (783).png,Val/Normal/infection masks/Normal (783).png
+Val/Normal/images/Normal (775).png,Val/Normal/infection masks/Normal (775).png
+Val/Normal/images/Normal (729).png,Val/Normal/infection masks/Normal (729).png
+Val/Normal/images/Normal (758).png,Val/Normal/infection masks/Normal (758).png
+Val/Normal/images/Normal (762).png,Val/Normal/infection masks/Normal (762).png
+Val/Normal/images/Normal (10260).png,Val/Normal/infection masks/Normal (10260).png
+Val/Normal/images/Normal (623).png,Val/Normal/infection masks/Normal (623).png
+Val/Normal/images/Normal (618).png,Val/Normal/infection masks/Normal (618).png
+Val/Normal/images/Normal (10240).png,Val/Normal/infection masks/Normal (10240).png
+Val/Normal/images/Normal (755).png,Val/Normal/infection masks/Normal (755).png
+Val/Normal/images/Normal (10290).png,Val/Normal/infection masks/Normal (10290).png
+Val/Normal/images/Normal (10256).png,Val/Normal/infection masks/Normal (10256).png
+Val/Normal/images/Normal (10252).png,Val/Normal/infection masks/Normal (10252).png
+Val/Normal/images/Normal (782).png,Val/Normal/infection masks/Normal (782).png
+Val/Normal/images/Normal (732).png,Val/Normal/infection masks/Normal (732).png
+Val/Normal/images/Normal (745).png,Val/Normal/infection masks/Normal (745).png
+Val/Normal/images/Normal (702).png,Val/Normal/infection masks/Normal (702).png
+Val/Normal/images/Normal (685).png,Val/Normal/infection masks/Normal (685).png
+Val/Normal/images/Normal (708).png,Val/Normal/infection masks/Normal (708).png
+Val/Normal/images/Normal (767).png,Val/Normal/infection masks/Normal (767).png
+Val/Normal/images/Normal (10273).png,Val/Normal/infection masks/Normal (10273).png
+Val/Normal/images/Normal (10287).png,Val/Normal/infection masks/Normal (10287).png
+Val/Normal/images/Normal (647).png,Val/Normal/infection masks/Normal (647).png
+Val/Normal/images/Normal (717).png,Val/Normal/infection masks/Normal (717).png
+Val/Normal/images/Normal (10244).png,Val/Normal/infection masks/Normal (10244).png
+Val/Normal/images/Normal (655).png,Val/Normal/infection masks/Normal (655).png
+Val/Normal/images/Normal (676).png,Val/Normal/infection masks/Normal (676).png
+Val/Normal/images/Normal (10275).png,Val/Normal/infection masks/Normal (10275).png
+Val/Normal/images/Normal (712).png,Val/Normal/infection masks/Normal (712).png
+Val/Normal/images/Normal (626).png,Val/Normal/infection masks/Normal (626).png
+Val/Normal/images/Normal (10250).png,Val/Normal/infection masks/Normal (10250).png
+Val/Normal/images/Normal (697).png,Val/Normal/infection masks/Normal (697).png
+Val/Normal/images/Normal (10265).png,Val/Normal/infection masks/Normal (10265).png
+Val/Normal/images/Normal (753).png,Val/Normal/infection masks/Normal (753).png
+Val/Normal/images/Normal (674).png,Val/Normal/infection masks/Normal (674).png
+Val/Normal/images/Normal (10289).png,Val/Normal/infection masks/Normal (10289).png
+Val/Normal/images/Normal (751).png,Val/Normal/infection masks/Normal (751).png
+Val/Normal/images/Normal (10235).png,Val/Normal/infection masks/Normal (10235).png
+Val/Normal/images/Normal (728).png,Val/Normal/infection masks/Normal (728).png
+Val/Normal/images/Normal (736).png,Val/Normal/infection masks/Normal (736).png
+Val/Normal/images/Normal (687).png,Val/Normal/infection masks/Normal (687).png
+Val/Normal/images/Normal (693).png,Val/Normal/infection masks/Normal (693).png
+Val/Normal/images/Normal (696).png,Val/Normal/infection masks/Normal (696).png
+Val/Normal/images/Normal (634).png,Val/Normal/infection masks/Normal (634).png
+Val/Normal/images/Normal (650).png,Val/Normal/infection masks/Normal (650).png
+Val/Normal/images/Normal (730).png,Val/Normal/infection masks/Normal (730).png
+Val/Normal/images/Normal (10279).png,Val/Normal/infection masks/Normal (10279).png
+Val/Normal/images/Normal (10282).png,Val/Normal/infection masks/Normal (10282).png
+Val/Normal/images/Normal (744).png,Val/Normal/infection masks/Normal (744).png
+Val/Normal/images/Normal (10253).png,Val/Normal/infection masks/Normal (10253).png
+Val/Normal/images/Normal (704).png,Val/Normal/infection masks/Normal (704).png
+Val/Normal/images/Normal (10254).png,Val/Normal/infection masks/Normal (10254).png
+Val/Normal/images/Normal (705).png,Val/Normal/infection masks/Normal (705).png
+Val/Normal/images/Normal (722).png,Val/Normal/infection masks/Normal (722).png
+Val/Normal/images/Normal (10246).png,Val/Normal/infection masks/Normal (10246).png
+Val/Normal/images/Normal (766).png,Val/Normal/infection masks/Normal (766).png
+Val/Normal/images/Normal (776).png,Val/Normal/infection masks/Normal (776).png
+Val/Normal/images/Normal (10241).png,Val/Normal/infection masks/Normal (10241).png
+Val/Normal/images/Normal (10266).png,Val/Normal/infection masks/Normal (10266).png
+Val/Normal/images/Normal (642).png,Val/Normal/infection masks/Normal (642).png
+Val/Normal/images/Normal (737).png,Val/Normal/infection masks/Normal (737).png
+Val/Normal/images/Normal (661).png,Val/Normal/infection masks/Normal (661).png
+Val/Normal/images/Normal (646).png,Val/Normal/infection masks/Normal (646).png
+Val/Normal/images/Normal (703).png,Val/Normal/infection masks/Normal (703).png
+Val/Normal/images/Normal (747).png,Val/Normal/infection masks/Normal (747).png
+Val/Normal/images/Normal (668).png,Val/Normal/infection masks/Normal (668).png
+Val/Normal/images/Normal (10234).png,Val/Normal/infection masks/Normal (10234).png
+Val/Normal/images/Normal (680).png,Val/Normal/infection masks/Normal (680).png
+Val/Normal/images/Normal (624).png,Val/Normal/infection masks/Normal (624).png
+Val/Normal/images/Normal (761).png,Val/Normal/infection masks/Normal (761).png
+Val/Normal/images/Normal (743).png,Val/Normal/infection masks/Normal (743).png
+Val/Normal/images/Normal (763).png,Val/Normal/infection masks/Normal (763).png
+Val/Normal/images/Normal (658).png,Val/Normal/infection masks/Normal (658).png
+Val/Normal/images/Normal (660).png,Val/Normal/infection masks/Normal (660).png
+Val/Normal/images/Normal (771).png,Val/Normal/infection masks/Normal (771).png
+Val/Normal/images/Normal (785).png,Val/Normal/infection masks/Normal (785).png
+Val/Normal/images/Normal (725).png,Val/Normal/infection masks/Normal (725).png
+Val/Normal/images/Normal (739).png,Val/Normal/infection masks/Normal (739).png
+Val/Normal/images/Normal (700).png,Val/Normal/infection masks/Normal (700).png
+Val/Normal/images/Normal (787).png,Val/Normal/infection masks/Normal (787).png
+Val/Normal/images/Normal (720).png,Val/Normal/infection masks/Normal (720).png
+Val/Normal/images/Normal (724).png,Val/Normal/infection masks/Normal (724).png
+Val/Normal/images/Normal (632).png,Val/Normal/infection masks/Normal (632).png
+Val/Normal/images/Normal (10245).png,Val/Normal/infection masks/Normal (10245).png
+Val/Normal/images/Normal (770).png,Val/Normal/infection masks/Normal (770).png
+Val/Normal/images/Normal (672).png,Val/Normal/infection masks/Normal (672).png
+Val/COVID-19/images/covid_2108.png,Val/COVID-19/infection masks/covid_2108.png
+Val/COVID-19/images/covid_1965.png,Val/COVID-19/infection masks/covid_1965.png
+Val/COVID-19/images/covid_2018.png,Val/COVID-19/infection masks/covid_2018.png
+Val/COVID-19/images/covid_2566.png,Val/COVID-19/infection masks/covid_2566.png
+Val/COVID-19/images/covid_2038.png,Val/COVID-19/infection masks/covid_2038.png
+Val/COVID-19/images/covid_2067.png,Val/COVID-19/infection masks/covid_2067.png
+Val/COVID-19/images/covid_2545.png,Val/COVID-19/infection masks/covid_2545.png
+Val/COVID-19/images/covid_2115.png,Val/COVID-19/infection masks/covid_2115.png
+Val/COVID-19/images/covid_2001.png,Val/COVID-19/infection masks/covid_2001.png
+Val/COVID-19/images/covid_2524.png,Val/COVID-19/infection masks/covid_2524.png
+Val/COVID-19/images/covid_2648.png,Val/COVID-19/infection masks/covid_2648.png
+Val/COVID-19/images/covid_2083.png,Val/COVID-19/infection masks/covid_2083.png
+Val/COVID-19/images/covid_2319.png,Val/COVID-19/infection masks/covid_2319.png
+Val/COVID-19/images/covid_1977.png,Val/COVID-19/infection masks/covid_1977.png
+Val/COVID-19/images/covid_2271.png,Val/COVID-19/infection masks/covid_2271.png
+Val/COVID-19/images/covid_2043.png,Val/COVID-19/infection masks/covid_2043.png
+Val/COVID-19/images/covid_2069.png,Val/COVID-19/infection masks/covid_2069.png
+Val/COVID-19/images/covid_2284.png,Val/COVID-19/infection masks/covid_2284.png
+Val/COVID-19/images/covid_2603.png,Val/COVID-19/infection masks/covid_2603.png
+Val/COVID-19/images/covid_2230.png,Val/COVID-19/infection masks/covid_2230.png
+Val/COVID-19/images/covid_2050.png,Val/COVID-19/infection masks/covid_2050.png
+Val/COVID-19/images/covid_2224.png,Val/COVID-19/infection masks/covid_2224.png
+Val/COVID-19/images/covid_2041.png,Val/COVID-19/infection masks/covid_2041.png
+Val/COVID-19/images/covid_2266.png,Val/COVID-19/infection masks/covid_2266.png
+Val/COVID-19/images/covid_2521.png,Val/COVID-19/infection masks/covid_2521.png
+Val/COVID-19/images/covid_2169.png,Val/COVID-19/infection masks/covid_2169.png
+Val/COVID-19/images/covid_2647.png,Val/COVID-19/infection masks/covid_2647.png
+Val/COVID-19/images/covid_2555.png,Val/COVID-19/infection masks/covid_2555.png
+Val/COVID-19/images/covid_2010.png,Val/COVID-19/infection masks/covid_2010.png
+Val/COVID-19/images/covid_1941.png,Val/COVID-19/infection masks/covid_1941.png
+Val/COVID-19/images/covid_2597.png,Val/COVID-19/infection masks/covid_2597.png
+Val/COVID-19/images/covid_2322.png,Val/COVID-19/infection masks/covid_2322.png
+Val/COVID-19/images/covid_2320.png,Val/COVID-19/infection masks/covid_2320.png
+Val/COVID-19/images/covid_2595.png,Val/COVID-19/infection masks/covid_2595.png
+Val/COVID-19/images/covid_2130.png,Val/COVID-19/infection masks/covid_2130.png
+Val/COVID-19/images/covid_2198.png,Val/COVID-19/infection masks/covid_2198.png
+Val/COVID-19/images/covid_2235.png,Val/COVID-19/infection masks/covid_2235.png
+Val/COVID-19/images/covid_2517.png,Val/COVID-19/infection masks/covid_2517.png
+Val/COVID-19/images/covid_2074.png,Val/COVID-19/infection masks/covid_2074.png
+Val/COVID-19/images/covid_2144.png,Val/COVID-19/infection masks/covid_2144.png
+Val/COVID-19/images/covid_2574.png,Val/COVID-19/infection masks/covid_2574.png
+Val/COVID-19/images/covid_2123.png,Val/COVID-19/infection masks/covid_2123.png
+Val/COVID-19/images/covid_2519.png,Val/COVID-19/infection masks/covid_2519.png
+Val/COVID-19/images/covid_1997.png,Val/COVID-19/infection masks/covid_1997.png
+Val/COVID-19/images/covid_1907.png,Val/COVID-19/infection masks/covid_1907.png
+Val/COVID-19/images/covid_2393.png,Val/COVID-19/infection masks/covid_2393.png
+Val/COVID-19/images/covid_2233.png,Val/COVID-19/infection masks/covid_2233.png
+Val/COVID-19/images/covid_2308.png,Val/COVID-19/infection masks/covid_2308.png
+Val/COVID-19/images/covid_2317.png,Val/COVID-19/infection masks/covid_2317.png
+Val/COVID-19/images/covid_1927.png,Val/COVID-19/infection masks/covid_1927.png
+Val/COVID-19/images/covid_2179.png,Val/COVID-19/infection masks/covid_2179.png
+Val/COVID-19/images/covid_2455.png,Val/COVID-19/infection masks/covid_2455.png
+Val/COVID-19/images/covid_1920.png,Val/COVID-19/infection masks/covid_1920.png
+Val/COVID-19/images/covid_2318.png,Val/COVID-19/infection masks/covid_2318.png
+Val/COVID-19/images/covid_2326.png,Val/COVID-19/infection masks/covid_2326.png
+Val/COVID-19/images/covid_2201.png,Val/COVID-19/infection masks/covid_2201.png
+Val/COVID-19/images/covid_2559.png,Val/COVID-19/infection masks/covid_2559.png
+Val/COVID-19/images/covid_2257.png,Val/COVID-19/infection masks/covid_2257.png
+Val/COVID-19/images/covid_2272.png,Val/COVID-19/infection masks/covid_2272.png
+Val/COVID-19/images/covid_2302.png,Val/COVID-19/infection masks/covid_2302.png
+Val/COVID-19/images/covid_2407.png,Val/COVID-19/infection masks/covid_2407.png
+Val/COVID-19/images/covid_2528.png,Val/COVID-19/infection masks/covid_2528.png
+Val/COVID-19/images/covid_1902.png,Val/COVID-19/infection masks/covid_1902.png
+Val/COVID-19/images/covid_2173.png,Val/COVID-19/infection masks/covid_2173.png
+Val/COVID-19/images/covid_2640.png,Val/COVID-19/infection masks/covid_2640.png
+Val/COVID-19/images/covid_1952.png,Val/COVID-19/infection masks/covid_1952.png
+Val/COVID-19/images/covid_2437.png,Val/COVID-19/infection masks/covid_2437.png
+Val/COVID-19/images/covid_2418.png,Val/COVID-19/infection masks/covid_2418.png
+Val/COVID-19/images/covid_2367.png,Val/COVID-19/infection masks/covid_2367.png
+Val/COVID-19/images/covid_2073.png,Val/COVID-19/infection masks/covid_2073.png
+Val/COVID-19/images/covid_1919.png,Val/COVID-19/infection masks/covid_1919.png
+Val/COVID-19/images/covid_2232.png,Val/COVID-19/infection masks/covid_2232.png
+Val/COVID-19/images/covid_2202.png,Val/COVID-19/infection masks/covid_2202.png
+Val/COVID-19/images/covid_2058.png,Val/COVID-19/infection masks/covid_2058.png
+Val/COVID-19/images/covid_2605.png,Val/COVID-19/infection masks/covid_2605.png
+Val/COVID-19/images/covid_1990.png,Val/COVID-19/infection masks/covid_1990.png
+Val/COVID-19/images/covid_1903.png,Val/COVID-19/infection masks/covid_1903.png
+Val/COVID-19/images/covid_2369.png,Val/COVID-19/infection masks/covid_2369.png
+Val/COVID-19/images/covid_2638.png,Val/COVID-19/infection masks/covid_2638.png
+Val/COVID-19/images/covid_2114.png,Val/COVID-19/infection masks/covid_2114.png
+Val/COVID-19/images/covid_2221.png,Val/COVID-19/infection masks/covid_2221.png
+Val/COVID-19/images/covid_2357.png,Val/COVID-19/infection masks/covid_2357.png
+Val/COVID-19/images/covid_2444.png,Val/COVID-19/infection masks/covid_2444.png
+Val/COVID-19/images/covid_1914.png,Val/COVID-19/infection masks/covid_1914.png
+Val/COVID-19/images/covid_2424.png,Val/COVID-19/infection masks/covid_2424.png
+Val/COVID-19/images/covid_2005.png,Val/COVID-19/infection masks/covid_2005.png
+Val/COVID-19/images/covid_2493.png,Val/COVID-19/infection masks/covid_2493.png
+Val/COVID-19/images/covid_2087.png,Val/COVID-19/infection masks/covid_2087.png
+Val/COVID-19/images/covid_2381.png,Val/COVID-19/infection masks/covid_2381.png
+Val/COVID-19/images/covid_2426.png,Val/COVID-19/infection masks/covid_2426.png
+Val/COVID-19/images/covid_2379.png,Val/COVID-19/infection masks/covid_2379.png
+Val/COVID-19/images/covid_2430.png,Val/COVID-19/infection masks/covid_2430.png
+Val/COVID-19/images/covid_2217.png,Val/COVID-19/infection masks/covid_2217.png
+Val/COVID-19/images/covid_2333.png,Val/COVID-19/infection masks/covid_2333.png
+Val/COVID-19/images/covid_2143.png,Val/COVID-19/infection masks/covid_2143.png
+Val/COVID-19/images/covid_2538.png,Val/COVID-19/infection masks/covid_2538.png
+Val/COVID-19/images/covid_2596.png,Val/COVID-19/infection masks/covid_2596.png
+Val/COVID-19/images/covid_2146.png,Val/COVID-19/infection masks/covid_2146.png
+Val/COVID-19/images/covid_2514.png,Val/COVID-19/infection masks/covid_2514.png
+Val/COVID-19/images/covid_2252.png,Val/COVID-19/infection masks/covid_2252.png
+Val/COVID-19/images/covid_2186.png,Val/COVID-19/infection masks/covid_2186.png
+Val/COVID-19/images/covid_1968.png,Val/COVID-19/infection masks/covid_1968.png
+Val/COVID-19/images/covid_2589.png,Val/COVID-19/infection masks/covid_2589.png
+Val/COVID-19/images/covid_2402.png,Val/COVID-19/infection masks/covid_2402.png
+Val/COVID-19/images/covid_1986.png,Val/COVID-19/infection masks/covid_1986.png
+Val/COVID-19/images/covid_2490.png,Val/COVID-19/infection masks/covid_2490.png
+Val/COVID-19/images/covid_2509.png,Val/COVID-19/infection masks/covid_2509.png
+Val/COVID-19/images/covid_2553.png,Val/COVID-19/infection masks/covid_2553.png
+Val/COVID-19/images/covid_1984.png,Val/COVID-19/infection masks/covid_1984.png
+Val/COVID-19/images/covid_2394.png,Val/COVID-19/infection masks/covid_2394.png
+Val/COVID-19/images/covid_2363.png,Val/COVID-19/infection masks/covid_2363.png
+Val/COVID-19/images/covid_2187.png,Val/COVID-19/infection masks/covid_2187.png
+Val/COVID-19/images/covid_2035.png,Val/COVID-19/infection masks/covid_2035.png
+Val/COVID-19/images/covid_2422.png,Val/COVID-19/infection masks/covid_2422.png
+Val/COVID-19/images/covid_2068.png,Val/COVID-19/infection masks/covid_2068.png
+Val/COVID-19/images/covid_2341.png,Val/COVID-19/infection masks/covid_2341.png
+Val/COVID-19/images/covid_2373.png,Val/COVID-19/infection masks/covid_2373.png
+Val/COVID-19/images/covid_2591.png,Val/COVID-19/infection masks/covid_2591.png
+Val/COVID-19/images/covid_2456.png,Val/COVID-19/infection masks/covid_2456.png
+Val/COVID-19/images/covid_2411.png,Val/COVID-19/infection masks/covid_2411.png
+Val/COVID-19/images/covid_2112.png,Val/COVID-19/infection masks/covid_2112.png
+Val/COVID-19/images/covid_2032.png,Val/COVID-19/infection masks/covid_2032.png
+Val/COVID-19/images/covid_2206.png,Val/COVID-19/infection masks/covid_2206.png
+Val/COVID-19/images/covid_2033.png,Val/COVID-19/infection masks/covid_2033.png
+Val/COVID-19/images/covid_2481.png,Val/COVID-19/infection masks/covid_2481.png
+Val/COVID-19/images/covid_2494.png,Val/COVID-19/infection masks/covid_2494.png
+Val/COVID-19/images/covid_1908.png,Val/COVID-19/infection masks/covid_1908.png
+Val/COVID-19/images/covid_2330.png,Val/COVID-19/infection masks/covid_2330.png
+Val/COVID-19/images/covid_2568.png,Val/COVID-19/infection masks/covid_2568.png
+Val/COVID-19/images/covid_1933.png,Val/COVID-19/infection masks/covid_1933.png
+Val/COVID-19/images/covid_2417.png,Val/COVID-19/infection masks/covid_2417.png
+Val/COVID-19/images/covid_2523.png,Val/COVID-19/infection masks/covid_2523.png
+Val/COVID-19/images/covid_2350.png,Val/COVID-19/infection masks/covid_2350.png
+Val/COVID-19/images/covid_2095.png,Val/COVID-19/infection masks/covid_2095.png
+Val/COVID-19/images/covid_2216.png,Val/COVID-19/infection masks/covid_2216.png
+Val/COVID-19/images/covid_1922.png,Val/COVID-19/infection masks/covid_1922.png
+Val/COVID-19/images/covid_2098.png,Val/COVID-19/infection masks/covid_2098.png
+Val/COVID-19/images/covid_2380.png,Val/COVID-19/infection masks/covid_2380.png
+Val/COVID-19/images/covid_2012.png,Val/COVID-19/infection masks/covid_2012.png
+Val/COVID-19/images/covid_2092.png,Val/COVID-19/infection masks/covid_2092.png
+Val/COVID-19/images/covid_2096.png,Val/COVID-19/infection masks/covid_2096.png
+Val/COVID-19/images/covid_2228.png,Val/COVID-19/infection masks/covid_2228.png
+Val/COVID-19/images/covid_2197.png,Val/COVID-19/infection masks/covid_2197.png
+Val/COVID-19/images/covid_2154.png,Val/COVID-19/infection masks/covid_2154.png
+Val/COVID-19/images/covid_2457.png,Val/COVID-19/infection masks/covid_2457.png
+Val/COVID-19/images/covid_1983.png,Val/COVID-19/infection masks/covid_1983.png
+Val/COVID-19/images/covid_1982.png,Val/COVID-19/infection masks/covid_1982.png
+Val/COVID-19/images/covid_2571.png,Val/COVID-19/infection masks/covid_2571.png
+Val/COVID-19/images/covid_1957.png,Val/COVID-19/infection masks/covid_1957.png
+Val/COVID-19/images/covid_2243.png,Val/COVID-19/infection masks/covid_2243.png
+Val/COVID-19/images/covid_2486.png,Val/COVID-19/infection masks/covid_2486.png
+Val/COVID-19/images/covid_2094.png,Val/COVID-19/infection masks/covid_2094.png
+Val/COVID-19/images/covid_2260.png,Val/COVID-19/infection masks/covid_2260.png
+Val/COVID-19/images/covid_2618.png,Val/COVID-19/infection masks/covid_2618.png
+Val/COVID-19/images/covid_2500.png,Val/COVID-19/infection masks/covid_2500.png
+Val/COVID-19/images/covid_2289.png,Val/COVID-19/infection masks/covid_2289.png
+Val/COVID-19/images/covid_1970.png,Val/COVID-19/infection masks/covid_1970.png
+Val/COVID-19/images/covid_2063.png,Val/COVID-19/infection masks/covid_2063.png
+Val/COVID-19/images/covid_2089.png,Val/COVID-19/infection masks/covid_2089.png
+Val/COVID-19/images/covid_2314.png,Val/COVID-19/infection masks/covid_2314.png
+Val/COVID-19/images/covid_2478.png,Val/COVID-19/infection masks/covid_2478.png
+Val/COVID-19/images/covid_1943.png,Val/COVID-19/infection masks/covid_1943.png
+Val/COVID-19/images/covid_2477.png,Val/COVID-19/infection masks/covid_2477.png
+Val/COVID-19/images/covid_2222.png,Val/COVID-19/infection masks/covid_2222.png
+Val/COVID-19/images/covid_2203.png,Val/COVID-19/infection masks/covid_2203.png
+Val/COVID-19/images/covid_1930.png,Val/COVID-19/infection masks/covid_1930.png
+Val/COVID-19/images/covid_1951.png,Val/COVID-19/infection masks/covid_1951.png
+Val/COVID-19/images/covid_2626.png,Val/COVID-19/infection masks/covid_2626.png
+Val/COVID-19/images/covid_2145.png,Val/COVID-19/infection masks/covid_2145.png
+Val/COVID-19/images/covid_2261.png,Val/COVID-19/infection masks/covid_2261.png
+Val/COVID-19/images/covid_2262.png,Val/COVID-19/infection masks/covid_2262.png
+Val/COVID-19/images/covid_1963.png,Val/COVID-19/infection masks/covid_1963.png
+Val/COVID-19/images/covid_2310.png,Val/COVID-19/infection masks/covid_2310.png
+Val/COVID-19/images/covid_2148.png,Val/COVID-19/infection masks/covid_2148.png
+Val/COVID-19/images/covid_2646.png,Val/COVID-19/infection masks/covid_2646.png
+Val/COVID-19/images/covid_2466.png,Val/COVID-19/infection masks/covid_2466.png
+Val/COVID-19/images/covid_2567.png,Val/COVID-19/infection masks/covid_2567.png
+Val/COVID-19/images/covid_2059.png,Val/COVID-19/infection masks/covid_2059.png
+Val/COVID-19/images/covid_2296.png,Val/COVID-19/infection masks/covid_2296.png
+Val/COVID-19/images/covid_1911.png,Val/COVID-19/infection masks/covid_1911.png
+Val/COVID-19/images/covid_2472.png,Val/COVID-19/infection masks/covid_2472.png
+Val/COVID-19/images/covid_2347.png,Val/COVID-19/infection masks/covid_2347.png
+Val/COVID-19/images/covid_2451.png,Val/COVID-19/infection masks/covid_2451.png
+Val/COVID-19/images/covid_2128.png,Val/COVID-19/infection masks/covid_2128.png
+Val/COVID-19/images/covid_2625.png,Val/COVID-19/infection masks/covid_2625.png
+Val/COVID-19/images/covid_2259.png,Val/COVID-19/infection masks/covid_2259.png
+Val/COVID-19/images/covid_2395.png,Val/COVID-19/infection masks/covid_2395.png
+Val/COVID-19/images/covid_1964.png,Val/COVID-19/infection masks/covid_1964.png
+Val/COVID-19/images/covid_2229.png,Val/COVID-19/infection masks/covid_2229.png
+Val/COVID-19/images/covid_2497.png,Val/COVID-19/infection masks/covid_2497.png
+Val/COVID-19/images/covid_1923.png,Val/COVID-19/infection masks/covid_1923.png
+Val/COVID-19/images/covid_2536.png,Val/COVID-19/infection masks/covid_2536.png
+Val/COVID-19/images/covid_2286.png,Val/COVID-19/infection masks/covid_2286.png
+Val/COVID-19/images/covid_2569.png,Val/COVID-19/infection masks/covid_2569.png
+Val/COVID-19/images/covid_2223.png,Val/COVID-19/infection masks/covid_2223.png
+Val/COVID-19/images/covid_2429.png,Val/COVID-19/infection masks/covid_2429.png
+Val/COVID-19/images/covid_2132.png,Val/COVID-19/infection masks/covid_2132.png
+Val/COVID-19/images/covid_2473.png,Val/COVID-19/infection masks/covid_2473.png
+Val/COVID-19/images/covid_2488.png,Val/COVID-19/infection masks/covid_2488.png
+Val/COVID-19/images/covid_2093.png,Val/COVID-19/infection masks/covid_2093.png
+Val/COVID-19/images/covid_2184.png,Val/COVID-19/infection masks/covid_2184.png
+Val/COVID-19/images/covid_2305.png,Val/COVID-19/infection masks/covid_2305.png
+Val/COVID-19/images/covid_2392.png,Val/COVID-19/infection masks/covid_2392.png
+Val/COVID-19/images/covid_2345.png,Val/COVID-19/infection masks/covid_2345.png
+Val/COVID-19/images/covid_1940.png,Val/COVID-19/infection masks/covid_1940.png
+Val/COVID-19/images/covid_2445.png,Val/COVID-19/infection masks/covid_2445.png
+Val/COVID-19/images/covid_2016.png,Val/COVID-19/infection masks/covid_2016.png
+Val/COVID-19/images/covid_2110.png,Val/COVID-19/infection masks/covid_2110.png
+Val/COVID-19/images/covid_1985.png,Val/COVID-19/infection masks/covid_1985.png
+Val/COVID-19/images/covid_2336.png,Val/COVID-19/infection masks/covid_2336.png
+Val/COVID-19/images/covid_1948.png,Val/COVID-19/infection masks/covid_1948.png
+Val/COVID-19/images/covid_1995.png,Val/COVID-19/infection masks/covid_1995.png
+Val/COVID-19/images/covid_2439.png,Val/COVID-19/infection masks/covid_2439.png
+Val/COVID-19/images/covid_2527.png,Val/COVID-19/infection masks/covid_2527.png
+Val/COVID-19/images/covid_2412.png,Val/COVID-19/infection masks/covid_2412.png
+Val/COVID-19/images/covid_2406.png,Val/COVID-19/infection masks/covid_2406.png
+Val/COVID-19/images/covid_2573.png,Val/COVID-19/infection masks/covid_2573.png
+Val/COVID-19/images/covid_2428.png,Val/COVID-19/infection masks/covid_2428.png
+Val/COVID-19/images/covid_2023.png,Val/COVID-19/infection masks/covid_2023.png
+Val/COVID-19/images/covid_2408.png,Val/COVID-19/infection masks/covid_2408.png
+Val/COVID-19/images/covid_2483.png,Val/COVID-19/infection masks/covid_2483.png
+Val/COVID-19/images/covid_2484.png,Val/COVID-19/infection masks/covid_2484.png
+Val/COVID-19/images/covid_2264.png,Val/COVID-19/infection masks/covid_2264.png
+Val/COVID-19/images/covid_2615.png,Val/COVID-19/infection masks/covid_2615.png
+Val/COVID-19/images/covid_1962.png,Val/COVID-19/infection masks/covid_1962.png
+Val/COVID-19/images/covid_2056.png,Val/COVID-19/infection masks/covid_2056.png
+Val/COVID-19/images/covid_2637.png,Val/COVID-19/infection masks/covid_2637.png
+Val/COVID-19/images/covid_2131.png,Val/COVID-19/infection masks/covid_2131.png
+Val/COVID-19/images/covid_2208.png,Val/COVID-19/infection masks/covid_2208.png
+Val/COVID-19/images/covid_2607.png,Val/COVID-19/infection masks/covid_2607.png
+Val/COVID-19/images/covid_2590.png,Val/COVID-19/infection masks/covid_2590.png
+Val/COVID-19/images/covid_2564.png,Val/COVID-19/infection masks/covid_2564.png
+Val/COVID-19/images/covid_2400.png,Val/COVID-19/infection masks/covid_2400.png
+Val/COVID-19/images/covid_2137.png,Val/COVID-19/infection masks/covid_2137.png
+Val/COVID-19/images/covid_2099.png,Val/COVID-19/infection masks/covid_2099.png
+Val/COVID-19/images/covid_2433.png,Val/COVID-19/infection masks/covid_2433.png
+Val/COVID-19/images/covid_2321.png,Val/COVID-19/infection masks/covid_2321.png
+Val/COVID-19/images/covid_2461.png,Val/COVID-19/infection masks/covid_2461.png
+Val/COVID-19/images/covid_2627.png,Val/COVID-19/infection masks/covid_2627.png
+Val/COVID-19/images/covid_2355.png,Val/COVID-19/infection masks/covid_2355.png
+Val/COVID-19/images/covid_2294.png,Val/COVID-19/infection masks/covid_2294.png
+Val/COVID-19/images/covid_2042.png,Val/COVID-19/infection masks/covid_2042.png
+Val/COVID-19/images/covid_2364.png,Val/COVID-19/infection masks/covid_2364.png
+Val/COVID-19/images/covid_2027.png,Val/COVID-19/infection masks/covid_2027.png
+Val/COVID-19/images/covid_2513.png,Val/COVID-19/infection masks/covid_2513.png
+Val/COVID-19/images/covid_1905.png,Val/COVID-19/infection masks/covid_1905.png
+Val/COVID-19/images/covid_2256.png,Val/COVID-19/infection masks/covid_2256.png
+Val/COVID-19/images/covid_2620.png,Val/COVID-19/infection masks/covid_2620.png
+Val/COVID-19/images/covid_2492.png,Val/COVID-19/infection masks/covid_2492.png
+Val/COVID-19/images/covid_2160.png,Val/COVID-19/infection masks/covid_2160.png
+Val/COVID-19/images/covid_2531.png,Val/COVID-19/infection masks/covid_2531.png
+Val/COVID-19/images/covid_1981.png,Val/COVID-19/infection masks/covid_1981.png
+Val/COVID-19/images/covid_2533.png,Val/COVID-19/infection masks/covid_2533.png
+Val/COVID-19/images/covid_2106.png,Val/COVID-19/infection masks/covid_2106.png
+Val/COVID-19/images/covid_2382.png,Val/COVID-19/infection masks/covid_2382.png
+Val/COVID-19/images/covid_2337.png,Val/COVID-19/infection masks/covid_2337.png
+Val/COVID-19/images/covid_2630.png,Val/COVID-19/infection masks/covid_2630.png
+Val/COVID-19/images/covid_2028.png,Val/COVID-19/infection masks/covid_2028.png
+Val/COVID-19/images/covid_2199.png,Val/COVID-19/infection masks/covid_2199.png
+Val/COVID-19/images/covid_2346.png,Val/COVID-19/infection masks/covid_2346.png
+Val/COVID-19/images/covid_2609.png,Val/COVID-19/infection masks/covid_2609.png
+Val/COVID-19/images/covid_2118.png,Val/COVID-19/infection masks/covid_2118.png
+Val/COVID-19/images/covid_2327.png,Val/COVID-19/infection masks/covid_2327.png
+Val/COVID-19/images/covid_2491.png,Val/COVID-19/infection masks/covid_2491.png
+Val/COVID-19/images/covid_2476.png,Val/COVID-19/infection masks/covid_2476.png
+Val/COVID-19/images/covid_2404.png,Val/COVID-19/infection masks/covid_2404.png
+Val/COVID-19/images/covid_2556.png,Val/COVID-19/infection masks/covid_2556.png
+Val/COVID-19/images/covid_2091.png,Val/COVID-19/infection masks/covid_2091.png
+Val/COVID-19/images/covid_2465.png,Val/COVID-19/infection masks/covid_2465.png
+Val/COVID-19/images/covid_2436.png,Val/COVID-19/infection masks/covid_2436.png
+Val/COVID-19/images/covid_2399.png,Val/COVID-19/infection masks/covid_2399.png
+Val/COVID-19/images/covid_2443.png,Val/COVID-19/infection masks/covid_2443.png
+Val/COVID-19/images/covid_2383.png,Val/COVID-19/infection masks/covid_2383.png
+Val/COVID-19/images/covid_2575.png,Val/COVID-19/infection masks/covid_2575.png
+Val/COVID-19/images/covid_2432.png,Val/COVID-19/infection masks/covid_2432.png
+Val/COVID-19/images/covid_2543.png,Val/COVID-19/infection masks/covid_2543.png
+Val/COVID-19/images/covid_2360.png,Val/COVID-19/infection masks/covid_2360.png
+Val/COVID-19/images/covid_2213.png,Val/COVID-19/infection masks/covid_2213.png
+Val/COVID-19/images/covid_2290.png,Val/COVID-19/infection masks/covid_2290.png
+Val/COVID-19/images/covid_2435.png,Val/COVID-19/infection masks/covid_2435.png
+Val/COVID-19/images/covid_2606.png,Val/COVID-19/infection masks/covid_2606.png
+Val/COVID-19/images/covid_2577.png,Val/COVID-19/infection masks/covid_2577.png
+Val/COVID-19/images/covid_2066.png,Val/COVID-19/infection masks/covid_2066.png
+Val/COVID-19/images/covid_2398.png,Val/COVID-19/infection masks/covid_2398.png
+Val/COVID-19/images/covid_2165.png,Val/COVID-19/infection masks/covid_2165.png
+Val/COVID-19/images/covid_2191.png,Val/COVID-19/infection masks/covid_2191.png
+Val/COVID-19/images/covid_2125.png,Val/COVID-19/infection masks/covid_2125.png
+Val/COVID-19/images/covid_1944.png,Val/COVID-19/infection masks/covid_1944.png
+Val/COVID-19/images/covid_2529.png,Val/COVID-19/infection masks/covid_2529.png
+Val/COVID-19/images/covid_2116.png,Val/COVID-19/infection masks/covid_2116.png
+Val/COVID-19/images/covid_2576.png,Val/COVID-19/infection masks/covid_2576.png
+Val/COVID-19/images/covid_2276.png,Val/COVID-19/infection masks/covid_2276.png
+Val/COVID-19/images/covid_2298.png,Val/COVID-19/infection masks/covid_2298.png
+Val/COVID-19/images/covid_2082.png,Val/COVID-19/infection masks/covid_2082.png
+Val/COVID-19/images/covid_2040.png,Val/COVID-19/infection masks/covid_2040.png
+Val/COVID-19/images/covid_2273.png,Val/COVID-19/infection masks/covid_2273.png
+Val/COVID-19/images/covid_2520.png,Val/COVID-19/infection masks/covid_2520.png
+Val/COVID-19/images/covid_1976.png,Val/COVID-19/infection masks/covid_1976.png
+Val/COVID-19/images/covid_2162.png,Val/COVID-19/infection masks/covid_2162.png
+Val/COVID-19/images/covid_2434.png,Val/COVID-19/infection masks/covid_2434.png
+Val/COVID-19/images/covid_2178.png,Val/COVID-19/infection masks/covid_2178.png
+Val/COVID-19/images/covid_2180.png,Val/COVID-19/infection masks/covid_2180.png
+Val/COVID-19/images/covid_2348.png,Val/COVID-19/infection masks/covid_2348.png
+Val/COVID-19/images/covid_2526.png,Val/COVID-19/infection masks/covid_2526.png
+Val/COVID-19/images/covid_2211.png,Val/COVID-19/infection masks/covid_2211.png
+Val/COVID-19/images/covid_2334.png,Val/COVID-19/infection masks/covid_2334.png
+Val/COVID-19/images/covid_2619.png,Val/COVID-19/infection masks/covid_2619.png
+Val/COVID-19/images/covid_1947.png,Val/COVID-19/infection masks/covid_1947.png
+Val/COVID-19/images/covid_2405.png,Val/COVID-19/infection masks/covid_2405.png
+Val/COVID-19/images/covid_2157.png,Val/COVID-19/infection masks/covid_2157.png
+Val/COVID-19/images/covid_2385.png,Val/COVID-19/infection masks/covid_2385.png
+Val/COVID-19/images/covid_2253.png,Val/COVID-19/infection masks/covid_2253.png
+Val/COVID-19/images/covid_2421.png,Val/COVID-19/infection masks/covid_2421.png
+Val/COVID-19/images/covid_1934.png,Val/COVID-19/infection masks/covid_1934.png
+Val/COVID-19/images/covid_2181.png,Val/COVID-19/infection masks/covid_2181.png
+Val/COVID-19/images/covid_1999.png,Val/COVID-19/infection masks/covid_1999.png
+Val/COVID-19/images/covid_2425.png,Val/COVID-19/infection masks/covid_2425.png
+Val/COVID-19/images/covid_2204.png,Val/COVID-19/infection masks/covid_2204.png
+Val/COVID-19/images/covid_1939.png,Val/COVID-19/infection masks/covid_1939.png
+Val/COVID-19/images/covid_1935.png,Val/COVID-19/infection masks/covid_1935.png
+Val/COVID-19/images/covid_2022.png,Val/COVID-19/infection masks/covid_2022.png
+Val/COVID-19/images/covid_2551.png,Val/COVID-19/infection masks/covid_2551.png
+Val/COVID-19/images/covid_1909.png,Val/COVID-19/infection masks/covid_1909.png
+Val/COVID-19/images/covid_2459.png,Val/COVID-19/infection masks/covid_2459.png
+Val/COVID-19/images/covid_2557.png,Val/COVID-19/infection masks/covid_2557.png
+Val/COVID-19/images/covid_1978.png,Val/COVID-19/infection masks/covid_1978.png
+Val/COVID-19/images/covid_2621.png,Val/COVID-19/infection masks/covid_2621.png
+Val/COVID-19/images/covid_2534.png,Val/COVID-19/infection masks/covid_2534.png
+Val/COVID-19/images/covid_2570.png,Val/COVID-19/infection masks/covid_2570.png
+Val/COVID-19/images/covid_2081.png,Val/COVID-19/infection masks/covid_2081.png
+Val/COVID-19/images/covid_2485.png,Val/COVID-19/infection masks/covid_2485.png
+Val/COVID-19/images/covid_2278.png,Val/COVID-19/infection masks/covid_2278.png
+Val/COVID-19/images/covid_2471.png,Val/COVID-19/infection masks/covid_2471.png
+Val/COVID-19/images/covid_2192.png,Val/COVID-19/infection masks/covid_2192.png
+Val/COVID-19/images/covid_2210.png,Val/COVID-19/infection masks/covid_2210.png
+Val/COVID-19/images/covid_2616.png,Val/COVID-19/infection masks/covid_2616.png
+Val/COVID-19/images/covid_2469.png,Val/COVID-19/infection masks/covid_2469.png
+Val/COVID-19/images/covid_2516.png,Val/COVID-19/infection masks/covid_2516.png
+Val/COVID-19/images/covid_2593.png,Val/COVID-19/infection masks/covid_2593.png
+Val/COVID-19/images/covid_2226.png,Val/COVID-19/infection masks/covid_2226.png
+Val/COVID-19/images/covid_2645.png,Val/COVID-19/infection masks/covid_2645.png
+Val/COVID-19/images/covid_2207.png,Val/COVID-19/infection masks/covid_2207.png
+Val/COVID-19/images/covid_2468.png,Val/COVID-19/infection masks/covid_2468.png
+Val/COVID-19/images/covid_2474.png,Val/COVID-19/infection masks/covid_2474.png
+Val/COVID-19/images/covid_1975.png,Val/COVID-19/infection masks/covid_1975.png
+Val/COVID-19/images/covid_2021.png,Val/COVID-19/infection masks/covid_2021.png
+Val/COVID-19/images/covid_2540.png,Val/COVID-19/infection masks/covid_2540.png
+Val/COVID-19/images/covid_2004.png,Val/COVID-19/infection masks/covid_2004.png
+Val/COVID-19/images/covid_2495.png,Val/COVID-19/infection masks/covid_2495.png
+Val/COVID-19/images/covid_2149.png,Val/COVID-19/infection masks/covid_2149.png
+Val/COVID-19/images/covid_2328.png,Val/COVID-19/infection masks/covid_2328.png
+Val/COVID-19/images/covid_2236.png,Val/COVID-19/infection masks/covid_2236.png
+Val/COVID-19/images/covid_2048.png,Val/COVID-19/infection masks/covid_2048.png
+Val/COVID-19/images/covid_2158.png,Val/COVID-19/infection masks/covid_2158.png
+Val/COVID-19/images/covid_2311.png,Val/COVID-19/infection masks/covid_2311.png
+Val/COVID-19/images/covid_2479.png,Val/COVID-19/infection masks/covid_2479.png
+Val/COVID-19/images/covid_1938.png,Val/COVID-19/infection masks/covid_1938.png
+Val/COVID-19/images/covid_2036.png,Val/COVID-19/infection masks/covid_2036.png
+Val/COVID-19/images/covid_2133.png,Val/COVID-19/infection masks/covid_2133.png
+Val/COVID-19/images/covid_2136.png,Val/COVID-19/infection masks/covid_2136.png
+Val/COVID-19/images/covid_2632.png,Val/COVID-19/infection masks/covid_2632.png
+Val/COVID-19/images/covid_2046.png,Val/COVID-19/infection masks/covid_2046.png
+Val/COVID-19/images/covid_2088.png,Val/COVID-19/infection masks/covid_2088.png
+Val/COVID-19/images/covid_2401.png,Val/COVID-19/infection masks/covid_2401.png
+Val/COVID-19/images/covid_2416.png,Val/COVID-19/infection masks/covid_2416.png
+Val/COVID-19/images/covid_2450.png,Val/COVID-19/infection masks/covid_2450.png
+Val/COVID-19/images/covid_2303.png,Val/COVID-19/infection masks/covid_2303.png
+Val/COVID-19/images/covid_2135.png,Val/COVID-19/infection masks/covid_2135.png
+Val/COVID-19/images/covid_2248.png,Val/COVID-19/infection masks/covid_2248.png
+Val/COVID-19/images/covid_2390.png,Val/COVID-19/infection masks/covid_2390.png
+Val/COVID-19/images/covid_2470.png,Val/COVID-19/infection masks/covid_2470.png
+Val/COVID-19/images/covid_2415.png,Val/COVID-19/infection masks/covid_2415.png
+Val/COVID-19/images/covid_1980.png,Val/COVID-19/infection masks/covid_1980.png
+Val/COVID-19/images/covid_2427.png,Val/COVID-19/infection masks/covid_2427.png
+Val/COVID-19/images/covid_2356.png,Val/COVID-19/infection masks/covid_2356.png
+Val/COVID-19/images/covid_2546.png,Val/COVID-19/infection masks/covid_2546.png
+Val/COVID-19/images/covid_1913.png,Val/COVID-19/infection masks/covid_1913.png
+Val/COVID-19/images/covid_1969.png,Val/COVID-19/infection masks/covid_1969.png
+Val/COVID-19/images/covid_2151.png,Val/COVID-19/infection masks/covid_2151.png
+Val/COVID-19/images/covid_2510.png,Val/COVID-19/infection masks/covid_2510.png
+Val/COVID-19/images/covid_2288.png,Val/COVID-19/infection masks/covid_2288.png
+Val/COVID-19/images/covid_2644.png,Val/COVID-19/infection masks/covid_2644.png
+Val/COVID-19/images/covid_2611.png,Val/COVID-19/infection masks/covid_2611.png
+Val/COVID-19/images/covid_2583.png,Val/COVID-19/infection masks/covid_2583.png
+Val/COVID-19/images/covid_2368.png,Val/COVID-19/infection masks/covid_2368.png
+Val/COVID-19/images/covid_2105.png,Val/COVID-19/infection masks/covid_2105.png
+Val/COVID-19/images/covid_2183.png,Val/COVID-19/infection masks/covid_2183.png
+Val/COVID-19/images/covid_2442.png,Val/COVID-19/infection masks/covid_2442.png
+Val/COVID-19/images/covid_1918.png,Val/COVID-19/infection masks/covid_1918.png
+Val/COVID-19/images/covid_2218.png,Val/COVID-19/infection masks/covid_2218.png
+Val/COVID-19/images/covid_2499.png,Val/COVID-19/infection masks/covid_2499.png
+Val/COVID-19/images/covid_2558.png,Val/COVID-19/infection masks/covid_2558.png
+Val/COVID-19/images/covid_2121.png,Val/COVID-19/infection masks/covid_2121.png
+Val/COVID-19/images/covid_2458.png,Val/COVID-19/infection masks/covid_2458.png
+Val/COVID-19/images/covid_2078.png,Val/COVID-19/infection masks/covid_2078.png
+Val/COVID-19/images/covid_2636.png,Val/COVID-19/infection masks/covid_2636.png
+Val/COVID-19/images/covid_2614.png,Val/COVID-19/infection masks/covid_2614.png
+Val/COVID-19/images/covid_2565.png,Val/COVID-19/infection masks/covid_2565.png
+Val/COVID-19/images/covid_2489.png,Val/COVID-19/infection masks/covid_2489.png
+Val/COVID-19/images/covid_1956.png,Val/COVID-19/infection masks/covid_1956.png
+Val/COVID-19/images/covid_2634.png,Val/COVID-19/infection masks/covid_2634.png
+Val/COVID-19/images/covid_2282.png,Val/COVID-19/infection masks/covid_2282.png
+Val/COVID-19/images/covid_2410.png,Val/COVID-19/infection masks/covid_2410.png
+Val/COVID-19/images/covid_1912.png,Val/COVID-19/infection masks/covid_1912.png
+Val/COVID-19/images/covid_2633.png,Val/COVID-19/infection masks/covid_2633.png
+Val/COVID-19/images/covid_2562.png,Val/COVID-19/infection masks/covid_2562.png
+Val/COVID-19/images/covid_2371.png,Val/COVID-19/infection masks/covid_2371.png
+Val/COVID-19/images/covid_2352.png,Val/COVID-19/infection masks/covid_2352.png
+Val/COVID-19/images/covid_2255.png,Val/COVID-19/infection masks/covid_2255.png
+Val/COVID-19/images/covid_2037.png,Val/COVID-19/infection masks/covid_2037.png
+Val/COVID-19/images/covid_2077.png,Val/COVID-19/infection masks/covid_2077.png
+Val/COVID-19/images/covid_2438.png,Val/COVID-19/infection masks/covid_2438.png
+Val/COVID-19/images/covid_2117.png,Val/COVID-19/infection masks/covid_2117.png
+Val/COVID-19/images/covid_2013.png,Val/COVID-19/infection masks/covid_2013.png
+Val/COVID-19/images/covid_2079.png,Val/COVID-19/infection masks/covid_2079.png
+Val/COVID-19/images/covid_2268.png,Val/COVID-19/infection masks/covid_2268.png
+Val/COVID-19/images/covid_2378.png,Val/COVID-19/infection masks/covid_2378.png
+Val/COVID-19/images/covid_2163.png,Val/COVID-19/infection masks/covid_2163.png
+Val/COVID-19/images/covid_2176.png,Val/COVID-19/infection masks/covid_2176.png
+Val/COVID-19/images/covid_2281.png,Val/COVID-19/infection masks/covid_2281.png
+Val/COVID-19/images/covid_2377.png,Val/COVID-19/infection masks/covid_2377.png
+Val/COVID-19/images/covid_2030.png,Val/COVID-19/infection masks/covid_2030.png
+Val/COVID-19/images/covid_2563.png,Val/COVID-19/infection masks/covid_2563.png
+Val/COVID-19/images/covid_2124.png,Val/COVID-19/infection masks/covid_2124.png
+Val/COVID-19/images/covid_1953.png,Val/COVID-19/infection masks/covid_1953.png
+Val/COVID-19/images/covid_2580.png,Val/COVID-19/infection masks/covid_2580.png
+Val/COVID-19/images/covid_2503.png,Val/COVID-19/infection masks/covid_2503.png
+Val/COVID-19/images/covid_2086.png,Val/COVID-19/infection masks/covid_2086.png
+Val/COVID-19/images/covid_2166.png,Val/COVID-19/infection masks/covid_2166.png
+Val/COVID-19/images/covid_2274.png,Val/COVID-19/infection masks/covid_2274.png
+Val/COVID-19/images/covid_2240.png,Val/COVID-19/infection masks/covid_2240.png
+Val/COVID-19/images/covid_2107.png,Val/COVID-19/infection masks/covid_2107.png
+Val/COVID-19/images/covid_2598.png,Val/COVID-19/infection masks/covid_2598.png
+Val/COVID-19/images/covid_2024.png,Val/COVID-19/infection masks/covid_2024.png
+Val/COVID-19/images/covid_2447.png,Val/COVID-19/infection masks/covid_2447.png
+Val/COVID-19/images/covid_2057.png,Val/COVID-19/infection masks/covid_2057.png
+Val/COVID-19/images/covid_1950.png,Val/COVID-19/infection masks/covid_1950.png
+Val/COVID-19/images/covid_2581.png,Val/COVID-19/infection masks/covid_2581.png
+Val/COVID-19/images/covid_1921.png,Val/COVID-19/infection masks/covid_1921.png
+Val/COVID-19/images/covid_2015.png,Val/COVID-19/infection masks/covid_2015.png
+Val/COVID-19/images/covid_2511.png,Val/COVID-19/infection masks/covid_2511.png
+Val/COVID-19/images/covid_2026.png,Val/COVID-19/infection masks/covid_2026.png
+Val/COVID-19/images/covid_2055.png,Val/COVID-19/infection masks/covid_2055.png
+Val/COVID-19/images/covid_2440.png,Val/COVID-19/infection masks/covid_2440.png
+Val/COVID-19/images/covid_2152.png,Val/COVID-19/infection masks/covid_2152.png
+Val/COVID-19/images/covid_2331.png,Val/COVID-19/infection masks/covid_2331.png
+Val/COVID-19/images/covid_1991.png,Val/COVID-19/infection masks/covid_1991.png
+Val/COVID-19/images/covid_2560.png,Val/COVID-19/infection masks/covid_2560.png
+Val/COVID-19/images/covid_2127.png,Val/COVID-19/infection masks/covid_2127.png
+Val/COVID-19/images/covid_2604.png,Val/COVID-19/infection masks/covid_2604.png
+Val/COVID-19/images/covid_2279.png,Val/COVID-19/infection masks/covid_2279.png
+Val/COVID-19/images/covid_2246.png,Val/COVID-19/infection masks/covid_2246.png
+Val/COVID-19/images/covid_2312.png,Val/COVID-19/infection masks/covid_2312.png
+Val/COVID-19/images/covid_2463.png,Val/COVID-19/infection masks/covid_2463.png
+Val/COVID-19/images/covid_2487.png,Val/COVID-19/infection masks/covid_2487.png
+Val/COVID-19/images/covid_2512.png,Val/COVID-19/infection masks/covid_2512.png
+Val/COVID-19/images/covid_2413.png,Val/COVID-19/infection masks/covid_2413.png
+Val/COVID-19/images/covid_2629.png,Val/COVID-19/infection masks/covid_2629.png
+Val/COVID-19/images/covid_2649.png,Val/COVID-19/infection masks/covid_2649.png
+Val/COVID-19/images/covid_2061.png,Val/COVID-19/infection masks/covid_2061.png
+Val/COVID-19/images/covid_2391.png,Val/COVID-19/infection masks/covid_2391.png
+Val/COVID-19/images/covid_2231.png,Val/COVID-19/infection masks/covid_2231.png
+Val/COVID-19/images/covid_2140.png,Val/COVID-19/infection masks/covid_2140.png
+Val/COVID-19/images/covid_2532.png,Val/COVID-19/infection masks/covid_2532.png
+Val/COVID-19/images/covid_2441.png,Val/COVID-19/infection masks/covid_2441.png
+Val/COVID-19/images/covid_2541.png,Val/COVID-19/infection masks/covid_2541.png
+Val/Non-COVID/images/non_COVID (5042).png,Val/Non-COVID/infection masks/non_COVID (5042).png
+Val/Non-COVID/images/non_COVID (5039).png,Val/Non-COVID/infection masks/non_COVID (5039).png
+Val/Non-COVID/images/non_COVID (4922).png,Val/Non-COVID/infection masks/non_COVID (4922).png
+Val/Non-COVID/images/non_COVID (4965).png,Val/Non-COVID/infection masks/non_COVID (4965).png
+Val/Non-COVID/images/non_COVID (11170).png,Val/Non-COVID/infection masks/non_COVID (11170).png
+Val/Non-COVID/images/non_COVID (5022).png,Val/Non-COVID/infection masks/non_COVID (5022).png
+Val/Non-COVID/images/non_COVID (5027).png,Val/Non-COVID/infection masks/non_COVID (5027).png
+Val/Non-COVID/images/non_COVID (5040).png,Val/Non-COVID/infection masks/non_COVID (5040).png
+Val/Non-COVID/images/non_COVID (4970).png,Val/Non-COVID/infection masks/non_COVID (4970).png
+Val/Non-COVID/images/non_COVID (5006).png,Val/Non-COVID/infection masks/non_COVID (5006).png
+Val/Non-COVID/images/non_COVID (4904).png,Val/Non-COVID/infection masks/non_COVID (4904).png
+Val/Non-COVID/images/non_COVID (4986).png,Val/Non-COVID/infection masks/non_COVID (4986).png
+Val/Non-COVID/images/non_COVID (11153).png,Val/Non-COVID/infection masks/non_COVID (11153).png
+Val/Non-COVID/images/non_COVID (4937).png,Val/Non-COVID/infection masks/non_COVID (4937).png
+Val/Non-COVID/images/non_COVID (11179).png,Val/Non-COVID/infection masks/non_COVID (11179).png
+Val/Non-COVID/images/non_COVID (4973).png,Val/Non-COVID/infection masks/non_COVID (4973).png
+Val/Non-COVID/images/non_COVID (11183).png,Val/Non-COVID/infection masks/non_COVID (11183).png
+Val/Non-COVID/images/non_COVID (5023).png,Val/Non-COVID/infection masks/non_COVID (5023).png
+Val/Non-COVID/images/non_COVID (4993).png,Val/Non-COVID/infection masks/non_COVID (4993).png
+Val/Non-COVID/images/non_COVID (4939).png,Val/Non-COVID/infection masks/non_COVID (4939).png
+Val/Non-COVID/images/non_COVID (11133).png,Val/Non-COVID/infection masks/non_COVID (11133).png
+Val/Non-COVID/images/non_COVID (11193).png,Val/Non-COVID/infection masks/non_COVID (11193).png
+Val/Non-COVID/images/non_COVID (5003).png,Val/Non-COVID/infection masks/non_COVID (5003).png
+Val/Non-COVID/images/non_COVID (5045).png,Val/Non-COVID/infection masks/non_COVID (5045).png
+Val/Non-COVID/images/non_COVID (4897).png,Val/Non-COVID/infection masks/non_COVID (4897).png
+Val/Non-COVID/images/non_COVID (11184).png,Val/Non-COVID/infection masks/non_COVID (11184).png
+Val/Non-COVID/images/non_COVID (4963).png,Val/Non-COVID/infection masks/non_COVID (4963).png
+Val/Non-COVID/images/non_COVID (5026).png,Val/Non-COVID/infection masks/non_COVID (5026).png
+Val/Non-COVID/images/non_COVID (4886).png,Val/Non-COVID/infection masks/non_COVID (4886).png
+Val/Non-COVID/images/non_COVID (4915).png,Val/Non-COVID/infection masks/non_COVID (4915).png
+Val/Non-COVID/images/non_COVID (11140).png,Val/Non-COVID/infection masks/non_COVID (11140).png
+Val/Non-COVID/images/non_COVID (5035).png,Val/Non-COVID/infection masks/non_COVID (5035).png
+Val/Non-COVID/images/non_COVID (4898).png,Val/Non-COVID/infection masks/non_COVID (4898).png
+Val/Non-COVID/images/non_COVID (4995).png,Val/Non-COVID/infection masks/non_COVID (4995).png
+Val/Non-COVID/images/non_COVID (5010).png,Val/Non-COVID/infection masks/non_COVID (5010).png
+Val/Non-COVID/images/non_COVID (4954).png,Val/Non-COVID/infection masks/non_COVID (4954).png
+Val/Non-COVID/images/non_COVID (4888).png,Val/Non-COVID/infection masks/non_COVID (4888).png
+Val/Non-COVID/images/non_COVID (4908).png,Val/Non-COVID/infection masks/non_COVID (4908).png
+Val/Non-COVID/images/non_COVID (4903).png,Val/Non-COVID/infection masks/non_COVID (4903).png
+Val/Non-COVID/images/non_COVID (4984).png,Val/Non-COVID/infection masks/non_COVID (4984).png
+Val/Non-COVID/images/non_COVID (11125).png,Val/Non-COVID/infection masks/non_COVID (11125).png
+Val/Non-COVID/images/non_COVID (4976).png,Val/Non-COVID/infection masks/non_COVID (4976).png
+Val/Non-COVID/images/non_COVID (4907).png,Val/Non-COVID/infection masks/non_COVID (4907).png
+Val/Non-COVID/images/non_COVID (11150).png,Val/Non-COVID/infection masks/non_COVID (11150).png
+Val/Non-COVID/images/non_COVID (4972).png,Val/Non-COVID/infection masks/non_COVID (4972).png
+Val/Non-COVID/images/non_COVID (4960).png,Val/Non-COVID/infection masks/non_COVID (4960).png
+Val/Non-COVID/images/non_COVID (11122).png,Val/Non-COVID/infection masks/non_COVID (11122).png
+Val/Non-COVID/images/non_COVID (4962).png,Val/Non-COVID/infection masks/non_COVID (4962).png
+Val/Non-COVID/images/non_COVID (4966).png,Val/Non-COVID/infection masks/non_COVID (4966).png
+Val/Non-COVID/images/non_COVID (4944).png,Val/Non-COVID/infection masks/non_COVID (4944).png
+Val/Non-COVID/images/non_COVID (11143).png,Val/Non-COVID/infection masks/non_COVID (11143).png
+Val/Non-COVID/images/non_COVID (4981).png,Val/Non-COVID/infection masks/non_COVID (4981).png
+Val/Non-COVID/images/non_COVID (11159).png,Val/Non-COVID/infection masks/non_COVID (11159).png
+Val/Non-COVID/images/non_COVID (4943).png,Val/Non-COVID/infection masks/non_COVID (4943).png
+Val/Non-COVID/images/non_COVID (11192).png,Val/Non-COVID/infection masks/non_COVID (11192).png
+Val/Non-COVID/images/non_COVID (4909).png,Val/Non-COVID/infection masks/non_COVID (4909).png
+Val/Non-COVID/images/non_COVID (4893).png,Val/Non-COVID/infection masks/non_COVID (4893).png
+Val/Non-COVID/images/non_COVID (4952).png,Val/Non-COVID/infection masks/non_COVID (4952).png
+Val/Non-COVID/images/non_COVID (11152).png,Val/Non-COVID/infection masks/non_COVID (11152).png
+Val/Non-COVID/images/non_COVID (11158).png,Val/Non-COVID/infection masks/non_COVID (11158).png
+Val/Non-COVID/images/non_COVID (4996).png,Val/Non-COVID/infection masks/non_COVID (4996).png
+Val/Non-COVID/images/non_COVID (4919).png,Val/Non-COVID/infection masks/non_COVID (4919).png
+Val/Non-COVID/images/non_COVID (4895).png,Val/Non-COVID/infection masks/non_COVID (4895).png
+Val/Non-COVID/images/non_COVID (4974).png,Val/Non-COVID/infection masks/non_COVID (4974).png
+Val/Non-COVID/images/non_COVID (5031).png,Val/Non-COVID/infection masks/non_COVID (5031).png
+Val/Non-COVID/images/non_COVID (4987).png,Val/Non-COVID/infection masks/non_COVID (4987).png
+Val/Non-COVID/images/non_COVID (4925).png,Val/Non-COVID/infection masks/non_COVID (4925).png
+Val/Non-COVID/images/non_COVID (4923).png,Val/Non-COVID/infection masks/non_COVID (4923).png
+Val/Non-COVID/images/non_COVID (4946).png,Val/Non-COVID/infection masks/non_COVID (4946).png
+Val/Non-COVID/images/non_COVID (11187).png,Val/Non-COVID/infection masks/non_COVID (11187).png
+Val/Non-COVID/images/non_COVID (11180).png,Val/Non-COVID/infection masks/non_COVID (11180).png
+Val/Non-COVID/images/non_COVID (5014).png,Val/Non-COVID/infection masks/non_COVID (5014).png
+Val/Non-COVID/images/non_COVID (11177).png,Val/Non-COVID/infection masks/non_COVID (11177).png
+Val/Non-COVID/images/non_COVID (5016).png,Val/Non-COVID/infection masks/non_COVID (5016).png
+Val/Non-COVID/images/non_COVID (4991).png,Val/Non-COVID/infection masks/non_COVID (4991).png
+Val/Non-COVID/images/non_COVID (4953).png,Val/Non-COVID/infection masks/non_COVID (4953).png
+Val/Non-COVID/images/non_COVID (4889).png,Val/Non-COVID/infection masks/non_COVID (4889).png
+Val/Non-COVID/images/non_COVID (4988).png,Val/Non-COVID/infection masks/non_COVID (4988).png
+Val/Non-COVID/images/non_COVID (4942).png,Val/Non-COVID/infection masks/non_COVID (4942).png
+Val/Non-COVID/images/non_COVID (4899).png,Val/Non-COVID/infection masks/non_COVID (4899).png
+Val/Non-COVID/images/non_COVID (4947).png,Val/Non-COVID/infection masks/non_COVID (4947).png
+Val/Non-COVID/images/non_COVID (4906).png,Val/Non-COVID/infection masks/non_COVID (4906).png
+Val/Non-COVID/images/non_COVID (11154).png,Val/Non-COVID/infection masks/non_COVID (11154).png
+Val/Non-COVID/images/non_COVID (4999).png,Val/Non-COVID/infection masks/non_COVID (4999).png
+Val/Non-COVID/images/non_COVID (11166).png,Val/Non-COVID/infection masks/non_COVID (11166).png
+Val/Non-COVID/images/non_COVID (11191).png,Val/Non-COVID/infection masks/non_COVID (11191).png
+Val/Non-COVID/images/non_COVID (4964).png,Val/Non-COVID/infection masks/non_COVID (4964).png
+Val/Non-COVID/images/non_COVID (5033).png,Val/Non-COVID/infection masks/non_COVID (5033).png
+Val/Non-COVID/images/non_COVID (4994).png,Val/Non-COVID/infection masks/non_COVID (4994).png
+Val/Non-COVID/images/non_COVID (11186).png,Val/Non-COVID/infection masks/non_COVID (11186).png
+Val/Non-COVID/images/non_COVID (11156).png,Val/Non-COVID/infection masks/non_COVID (11156).png
+Val/Non-COVID/images/non_COVID (4945).png,Val/Non-COVID/infection masks/non_COVID (4945).png
+Val/Non-COVID/images/non_COVID (4926).png,Val/Non-COVID/infection masks/non_COVID (4926).png
+Val/Non-COVID/images/non_COVID (11163).png,Val/Non-COVID/infection masks/non_COVID (11163).png
+Val/Non-COVID/images/non_COVID (11120).png,Val/Non-COVID/infection masks/non_COVID (11120).png
+Val/Non-COVID/images/non_COVID (4892).png,Val/Non-COVID/infection masks/non_COVID (4892).png
+Val/Non-COVID/images/non_COVID (5041).png,Val/Non-COVID/infection masks/non_COVID (5041).png
+Val/Non-COVID/images/non_COVID (11132).png,Val/Non-COVID/infection masks/non_COVID (11132).png
+Val/Non-COVID/images/non_COVID (5018).png,Val/Non-COVID/infection masks/non_COVID (5018).png
+Val/Non-COVID/images/non_COVID (5008).png,Val/Non-COVID/infection masks/non_COVID (5008).png
+Val/Non-COVID/images/non_COVID (5021).png,Val/Non-COVID/infection masks/non_COVID (5021).png
+Val/Non-COVID/images/non_COVID (11136).png,Val/Non-COVID/infection masks/non_COVID (11136).png
+Val/Non-COVID/images/non_COVID (4921).png,Val/Non-COVID/infection masks/non_COVID (4921).png
+Val/Non-COVID/images/non_COVID (5030).png,Val/Non-COVID/infection masks/non_COVID (5030).png
+Val/Non-COVID/images/non_COVID (5036).png,Val/Non-COVID/infection masks/non_COVID (5036).png
+Val/Non-COVID/images/non_COVID (11172).png,Val/Non-COVID/infection masks/non_COVID (11172).png
+Val/Non-COVID/images/non_COVID (4913).png,Val/Non-COVID/infection masks/non_COVID (4913).png
+Val/Non-COVID/images/non_COVID (4969).png,Val/Non-COVID/infection masks/non_COVID (4969).png
+Val/Non-COVID/images/non_COVID (5047).png,Val/Non-COVID/infection masks/non_COVID (5047).png
+Val/Non-COVID/images/non_COVID (11138).png,Val/Non-COVID/infection masks/non_COVID (11138).png
+Val/Non-COVID/images/non_COVID (11161).png,Val/Non-COVID/infection masks/non_COVID (11161).png
+Val/Non-COVID/images/non_COVID (5004).png,Val/Non-COVID/infection masks/non_COVID (5004).png
+Val/Non-COVID/images/non_COVID (4930).png,Val/Non-COVID/infection masks/non_COVID (4930).png
+Val/Non-COVID/images/non_COVID (4958).png,Val/Non-COVID/infection masks/non_COVID (4958).png
+Val/Non-COVID/images/non_COVID (4902).png,Val/Non-COVID/infection masks/non_COVID (4902).png
+Val/Non-COVID/images/non_COVID (11155).png,Val/Non-COVID/infection masks/non_COVID (11155).png
+Val/Non-COVID/images/non_COVID (4948).png,Val/Non-COVID/infection masks/non_COVID (4948).png
+Val/Non-COVID/images/non_COVID (4885).png,Val/Non-COVID/infection masks/non_COVID (4885).png
+Val/Non-COVID/images/non_COVID (11189).png,Val/Non-COVID/infection masks/non_COVID (11189).png
+Val/Non-COVID/images/non_COVID (4905).png,Val/Non-COVID/infection masks/non_COVID (4905).png
+Val/Non-COVID/images/non_COVID (4911).png,Val/Non-COVID/infection masks/non_COVID (4911).png
+Val/Non-COVID/images/non_COVID (11124).png,Val/Non-COVID/infection masks/non_COVID (11124).png
+Val/Non-COVID/images/non_COVID (11118).png,Val/Non-COVID/infection masks/non_COVID (11118).png
+Val/Non-COVID/images/non_COVID (11127).png,Val/Non-COVID/infection masks/non_COVID (11127).png
+Val/Non-COVID/images/non_COVID (4950).png,Val/Non-COVID/infection masks/non_COVID (4950).png
+Val/Non-COVID/images/non_COVID (5013).png,Val/Non-COVID/infection masks/non_COVID (5013).png
+Val/Non-COVID/images/non_COVID (4998).png,Val/Non-COVID/infection masks/non_COVID (4998).png
+Val/Non-COVID/images/non_COVID (4968).png,Val/Non-COVID/infection masks/non_COVID (4968).png
+Val/Non-COVID/images/non_COVID (4933).png,Val/Non-COVID/infection masks/non_COVID (4933).png
+Val/Non-COVID/images/non_COVID (11135).png,Val/Non-COVID/infection masks/non_COVID (11135).png
+Val/Non-COVID/images/non_COVID (11117).png,Val/Non-COVID/infection masks/non_COVID (11117).png
+Val/Non-COVID/images/non_COVID (5028).png,Val/Non-COVID/infection masks/non_COVID (5028).png
+Val/Non-COVID/images/non_COVID (5043).png,Val/Non-COVID/infection masks/non_COVID (5043).png
+Val/Non-COVID/images/non_COVID (4932).png,Val/Non-COVID/infection masks/non_COVID (4932).png
+Val/Non-COVID/images/non_COVID (4957).png,Val/Non-COVID/infection masks/non_COVID (4957).png
+Val/Non-COVID/images/non_COVID (4910).png,Val/Non-COVID/infection masks/non_COVID (4910).png
+Val/Non-COVID/images/non_COVID (5034).png,Val/Non-COVID/infection masks/non_COVID (5034).png
+Val/Non-COVID/images/non_COVID (4989).png,Val/Non-COVID/infection masks/non_COVID (4989).png
+Val/Non-COVID/images/non_COVID (11119).png,Val/Non-COVID/infection masks/non_COVID (11119).png
+Val/Non-COVID/images/non_COVID (4949).png,Val/Non-COVID/infection masks/non_COVID (4949).png
+Val/Non-COVID/images/non_COVID (4978).png,Val/Non-COVID/infection masks/non_COVID (4978).png
+Val/Non-COVID/images/non_COVID (11169).png,Val/Non-COVID/infection masks/non_COVID (11169).png
+Val/Non-COVID/images/non_COVID (4938).png,Val/Non-COVID/infection masks/non_COVID (4938).png
+Val/Non-COVID/images/non_COVID (4891).png,Val/Non-COVID/infection masks/non_COVID (4891).png
+Val/Non-COVID/images/non_COVID (4929).png,Val/Non-COVID/infection masks/non_COVID (4929).png
+Val/Non-COVID/images/non_COVID (4941).png,Val/Non-COVID/infection masks/non_COVID (4941).png
+Val/Non-COVID/images/non_COVID (11134).png,Val/Non-COVID/infection masks/non_COVID (11134).png
+Val/Non-COVID/images/non_COVID (11164).png,Val/Non-COVID/infection masks/non_COVID (11164).png
+Val/Non-COVID/images/non_COVID (11149).png,Val/Non-COVID/infection masks/non_COVID (11149).png
+Val/Non-COVID/images/non_COVID (4940).png,Val/Non-COVID/infection masks/non_COVID (4940).png
+Val/Non-COVID/images/non_COVID (5037).png,Val/Non-COVID/infection masks/non_COVID (5037).png
+Val/Non-COVID/images/non_COVID (4896).png,Val/Non-COVID/infection masks/non_COVID (4896).png
+Val/Non-COVID/images/non_COVID (11185).png,Val/Non-COVID/infection masks/non_COVID (11185).png
+Val/Non-COVID/images/non_COVID (4927).png,Val/Non-COVID/infection masks/non_COVID (4927).png
+Val/Non-COVID/images/non_COVID (5000).png,Val/Non-COVID/infection masks/non_COVID (5000).png
+Val/Non-COVID/images/non_COVID (4979).png,Val/Non-COVID/infection masks/non_COVID (4979).png
+Val/Non-COVID/images/non_COVID (5012).png,Val/Non-COVID/infection masks/non_COVID (5012).png
+Val/Non-COVID/images/non_COVID (11137).png,Val/Non-COVID/infection masks/non_COVID (11137).png
+Val/Non-COVID/images/non_COVID (11162).png,Val/Non-COVID/infection masks/non_COVID (11162).png
+Val/Non-COVID/images/non_COVID (4887).png,Val/Non-COVID/infection masks/non_COVID (4887).png
+Val/Non-COVID/images/non_COVID (4901).png,Val/Non-COVID/infection masks/non_COVID (4901).png
+Val/Non-COVID/images/non_COVID (4975).png,Val/Non-COVID/infection masks/non_COVID (4975).png
+Val/Non-COVID/images/non_COVID (11160).png,Val/Non-COVID/infection masks/non_COVID (11160).png
+Val/Non-COVID/images/non_COVID (4992).png,Val/Non-COVID/infection masks/non_COVID (4992).png
+Val/Non-COVID/images/non_COVID (4894).png,Val/Non-COVID/infection masks/non_COVID (4894).png
+Val/Non-COVID/images/non_COVID (4914).png,Val/Non-COVID/infection masks/non_COVID (4914).png
+Val/Non-COVID/images/non_COVID (4890).png,Val/Non-COVID/infection masks/non_COVID (4890).png
+Val/Non-COVID/images/non_COVID (5038).png,Val/Non-COVID/infection masks/non_COVID (5038).png
+Val/Non-COVID/images/non_COVID (11171).png,Val/Non-COVID/infection masks/non_COVID (11171).png
+Val/Non-COVID/images/non_COVID (5046).png,Val/Non-COVID/infection masks/non_COVID (5046).png
+Val/Non-COVID/images/non_COVID (4971).png,Val/Non-COVID/infection masks/non_COVID (4971).png
+Val/Non-COVID/images/non_COVID (11121).png,Val/Non-COVID/infection masks/non_COVID (11121).png
+Val/Non-COVID/images/non_COVID (5011).png,Val/Non-COVID/infection masks/non_COVID (5011).png
+Val/Non-COVID/images/non_COVID (5009).png,Val/Non-COVID/infection masks/non_COVID (5009).png
+Val/Non-COVID/images/non_COVID (5032).png,Val/Non-COVID/infection masks/non_COVID (5032).png
+Val/Non-COVID/images/non_COVID (4934).png,Val/Non-COVID/infection masks/non_COVID (4934).png
+Val/Non-COVID/images/non_COVID (11139).png,Val/Non-COVID/infection masks/non_COVID (11139).png
+Val/Non-COVID/images/non_COVID (4924).png,Val/Non-COVID/infection masks/non_COVID (4924).png
+Val/Non-COVID/images/non_COVID (11175).png,Val/Non-COVID/infection masks/non_COVID (11175).png
+Val/Non-COVID/images/non_COVID (11167).png,Val/Non-COVID/infection masks/non_COVID (11167).png
+Val/Non-COVID/images/non_COVID (11146).png,Val/Non-COVID/infection masks/non_COVID (11146).png
+Val/Non-COVID/images/non_COVID (4916).png,Val/Non-COVID/infection masks/non_COVID (4916).png
+Val/Non-COVID/images/non_COVID (4928).png,Val/Non-COVID/infection masks/non_COVID (4928).png
+Val/Non-COVID/images/non_COVID (4936).png,Val/Non-COVID/infection masks/non_COVID (4936).png
+Val/Non-COVID/images/non_COVID (11130).png,Val/Non-COVID/infection masks/non_COVID (11130).png
+Val/Non-COVID/images/non_COVID (11190).png,Val/Non-COVID/infection masks/non_COVID (11190).png
+Val/Non-COVID/images/non_COVID (5020).png,Val/Non-COVID/infection masks/non_COVID (5020).png
+Val/Non-COVID/images/non_COVID (11176).png,Val/Non-COVID/infection masks/non_COVID (11176).png
+Val/Non-COVID/images/non_COVID (5005).png,Val/Non-COVID/infection masks/non_COVID (5005).png
+Val/Non-COVID/images/non_COVID (4997).png,Val/Non-COVID/infection masks/non_COVID (4997).png
+Val/Non-COVID/images/non_COVID (11144).png,Val/Non-COVID/infection masks/non_COVID (11144).png
+Val/Non-COVID/images/non_COVID (4900).png,Val/Non-COVID/infection masks/non_COVID (4900).png
+Val/Non-COVID/images/non_COVID (11181).png,Val/Non-COVID/infection masks/non_COVID (11181).png
+Val/Non-COVID/images/non_COVID (11178).png,Val/Non-COVID/infection masks/non_COVID (11178).png
+Val/Non-COVID/images/non_COVID (4977).png,Val/Non-COVID/infection masks/non_COVID (4977).png
+Val/Non-COVID/images/non_COVID (11147).png,Val/Non-COVID/infection masks/non_COVID (11147).png
+Val/Non-COVID/images/non_COVID (5017).png,Val/Non-COVID/infection masks/non_COVID (5017).png
+Val/Non-COVID/images/non_COVID (5002).png,Val/Non-COVID/infection masks/non_COVID (5002).png
+Val/Non-COVID/images/non_COVID (11174).png,Val/Non-COVID/infection masks/non_COVID (11174).png
+Val/Non-COVID/images/non_COVID (11123).png,Val/Non-COVID/infection masks/non_COVID (11123).png
+Val/Non-COVID/images/non_COVID (4918).png,Val/Non-COVID/infection masks/non_COVID (4918).png
+Val/Non-COVID/images/non_COVID (4951).png,Val/Non-COVID/infection masks/non_COVID (4951).png
+Val/Non-COVID/images/non_COVID (11157).png,Val/Non-COVID/infection masks/non_COVID (11157).png
+Val/Non-COVID/images/non_COVID (5015).png,Val/Non-COVID/infection masks/non_COVID (5015).png
+Val/Non-COVID/images/non_COVID (4935).png,Val/Non-COVID/infection masks/non_COVID (4935).png
+Val/Non-COVID/images/non_COVID (4967).png,Val/Non-COVID/infection masks/non_COVID (4967).png
+Val/Non-COVID/images/non_COVID (11129).png,Val/Non-COVID/infection masks/non_COVID (11129).png
+Val/Non-COVID/images/non_COVID (11168).png,Val/Non-COVID/infection masks/non_COVID (11168).png
+Val/Non-COVID/images/non_COVID (11165).png,Val/Non-COVID/infection masks/non_COVID (11165).png
+Val/Non-COVID/images/non_COVID (11131).png,Val/Non-COVID/infection masks/non_COVID (11131).png
+Val/Non-COVID/images/non_COVID (11182).png,Val/Non-COVID/infection masks/non_COVID (11182).png
+Val/Non-COVID/images/non_COVID (4931).png,Val/Non-COVID/infection masks/non_COVID (4931).png
+Val/Non-COVID/images/non_COVID (11148).png,Val/Non-COVID/infection masks/non_COVID (11148).png
+Val/Non-COVID/images/non_COVID (4920).png,Val/Non-COVID/infection masks/non_COVID (4920).png
+Val/Non-COVID/images/non_COVID (5007).png,Val/Non-COVID/infection masks/non_COVID (5007).png
+Val/Non-COVID/images/non_COVID (4983).png,Val/Non-COVID/infection masks/non_COVID (4983).png
+Val/Non-COVID/images/non_COVID (11188).png,Val/Non-COVID/infection masks/non_COVID (11188).png
+Val/Non-COVID/images/non_COVID (11145).png,Val/Non-COVID/infection masks/non_COVID (11145).png
+Val/Non-COVID/images/non_COVID (5019).png,Val/Non-COVID/infection masks/non_COVID (5019).png
+Val/Non-COVID/images/non_COVID (4917).png,Val/Non-COVID/infection masks/non_COVID (4917).png
+Val/Non-COVID/images/non_COVID (4956).png,Val/Non-COVID/infection masks/non_COVID (4956).png
+Val/Non-COVID/images/non_COVID (5029).png,Val/Non-COVID/infection masks/non_COVID (5029).png
+Val/Non-COVID/images/non_COVID (11128).png,Val/Non-COVID/infection masks/non_COVID (11128).png
+Val/Non-COVID/images/non_COVID (5044).png,Val/Non-COVID/infection masks/non_COVID (5044).png
+Val/Non-COVID/images/non_COVID (11141).png,Val/Non-COVID/infection masks/non_COVID (11141).png
+Val/Non-COVID/images/non_COVID (4959).png,Val/Non-COVID/infection masks/non_COVID (4959).png
+Val/Non-COVID/images/non_COVID (11173).png,Val/Non-COVID/infection masks/non_COVID (11173).png
+Val/Non-COVID/images/non_COVID (4985).png,Val/Non-COVID/infection masks/non_COVID (4985).png
+Val/Non-COVID/images/non_COVID (4912).png,Val/Non-COVID/infection masks/non_COVID (4912).png
+Val/Non-COVID/images/non_COVID (11142).png,Val/Non-COVID/infection masks/non_COVID (11142).png
+Val/Non-COVID/images/non_COVID (4982).png,Val/Non-COVID/infection masks/non_COVID (4982).png
+Val/Non-COVID/images/non_COVID (4980).png,Val/Non-COVID/infection masks/non_COVID (4980).png
+Val/Non-COVID/images/non_COVID (4961).png,Val/Non-COVID/infection masks/non_COVID (4961).png
