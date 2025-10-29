@@ -110,9 +110,11 @@ print(msg)
 
 
 3. Finetune the pretrained model on target tasks
+
 Refer the finetuning codes in [Finetune](../downstream/Finetune/).
 
 4. Evaluate the learned and emergent properties of the pretrained model
+
 Refer the evaluation codes in [Property](../downstream/Property/).
 
 
