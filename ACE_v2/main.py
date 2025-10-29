@@ -55,7 +55,7 @@ def get_args_parser():
     parser = argparse.ArgumentParser('DINO', add_help=False)
 
     # Model parameters
-    parser.add_argument('--arch', default='deit_small', type=str,
+    parser.add_argument('--arch', default='swin_base', type=str,
         choices=['swin_base', 'vit_base','swinv2_base'] + torchvision_archs,
         help="""Name of architecture to train. For quick experiments with ViTs,
         we recommend using deit_tiny or deit_small.""")
@@ -75,7 +75,7 @@ def get_args_parser():
         We recommend setting a higher value with small batches: for example use 0.9995 with batch size of 256.""")
     parser.add_argument('--use_bn_in_head', default=False, type=utils.bool_flag,
         help="Whether to use batch normalizations in projection head (Default: False)")
-    parser.add_argument('--image_size', default=512, type=int, help="""resolution of global crops.""") # 448 for swin, 518 for vitb
+    parser.add_argument('--image_size', default=448, type=int, help="""resolution of global crops.""") # 448 for swinv1, 512 for swinv2, 518 for vitb
 
     # Temperature teacher parameters
     parser.add_argument('--warmup_teacher_temp', default=0.04, type=float,
@@ -102,7 +102,7 @@ def get_args_parser():
         help optimization for larger ViT architectures. 0 for disabling.""")
     parser.add_argument('--batch_size_per_gpu', default=20, type=int,
         help='Per-GPU batch-size : number of distinct images loaded on one GPU.')
-    parser.add_argument('--epochs', default=302, type=int, help='Number of epochs of training.')
+    parser.add_argument('--epochs', default=100, type=int, help='Number of epochs of training.')
     parser.add_argument('--freeze_last_layer', default=1, type=int, help="""Number of epochs
         during which we keep the output layer fixed. Typically doing so during
         the first epoch helps training. Try increasing this value if the loss does not decrease.""")
@@ -133,17 +133,18 @@ def get_args_parser():
     parser.add_argument('--use_dense_prediction', default=False, type=utils.bool_flag,
         help="Whether to use dense prediction in projection head (Default: False)")
     # Misc
-    parser.add_argument('--data_path', default='/mnt/sda/zhouziyu/ssl/datasets/ChestXray/NIHChestX-ray14/images/', type=str,
+    parser.add_argument('--data_path', default='/mnt/sdb1/zhouziyu/ssl/dataset/NIHChestXray/images/images_all', type=str,
         help='Please specify path to the ImageNet training data.')
-    parser.add_argument('--output_dir', default="./pretrained_weight/swinv2_fromIN_unique_multiscale_consis_compdecomp", type=str, help='Path to save logs and checkpoints.')
+    parser.add_argument('--imagenet_path', default=None, type=str, help='load imagenet pretrained weights as the initialization.')
+    parser.add_argument('--output_dir', default="./pretrained_weight/swinv1_fromIN_unique_multiscale_consis_compdecomp", type=str, help='Path to save logs and checkpoints.')
     parser.add_argument('--saveckp_freq', default=25, type=int, help='Save checkpoint every x epochs.')
     parser.add_argument('--seed', default=0, type=int, help='Random seed.')
     parser.add_argument('--num_workers', default=5, type=int, help='Number of data loading workers per GPU.')
     parser.add_argument("--dist_url", default="env://", type=str, help="""url used to set up
         distributed training; see https://pytorch.org/docs/stable/distributed.html""")
     parser.add_argument("--local-rank", default=0, type=int, help="Please ignore and do not set this argument.")
-    # parser.add_argument('--cfg',default='./swin_configs/swin_base_img224_window7.yaml', type=str, metavar="FILE", help='path to config file', )
-    parser.add_argument('--cfg',default='./swin_configs/swinv2_base_patch4_window16_512.yaml', type=str, metavar="FILE", help='path to config file', )
+    parser.add_argument('--cfg',default='./swin_configs/swin_base_img224_window7.yaml', type=str, metavar="FILE", help='path to config file', )
+    # parser.add_argument('--cfg',default='./swin_configs/swinv2_base_patch4_window16_512.yaml', type=str, metavar="FILE", help='path to config file', )
     parser.add_argument('opts',
                         help="Modify config options using the command-line",
                         default=None,
@@ -151,7 +152,7 @@ def get_args_parser():
     return parser
 
 
-def train_dino(args):
+def train(args):
     utils.init_distributed_mode(args)
     utils.fix_random_seeds(args.seed)
     print("git:\n  {}\n".format(utils.get_sha()))
@@ -165,10 +166,6 @@ def train_dino(args):
 
     # ============ preparing data ... ============
     transform = DataAugmentationDINO(args)
-    #transform =DataAugmentationDINO()
-    #dataset = datasets.ImageFolder(args.data_path, transform=transform)
-    #dataset = ImageFolder_vindr(args.data_path, transform=transform)
-    # dataset = LDPolyp(augment=transform)
     dataset = ChestX_ray14(args.data_path,'./data/xray14/official/train_val.txt', augment=transform, data_granularity=1)
     sampler = torch.utils.data.DistributedSampler(dataset, shuffle=True)
     data_loader = torch.utils.data.DataLoader(
@@ -182,16 +179,13 @@ def train_dino(args):
     print(f"Data loaded: there are {len(dataset)} images.", file=log_writer)
 
     # ============ building student and teacher networks ... ============
-    # we changed the name DeiT-S for ViT-S to avoid confusions
-    args.arch = args.arch.replace("deit", "vit")
-
     if 'swinv2_base' in args.arch:
         update_config(config_swinv2, args)
         student = build_model(config_swinv2, use_dense_prediction=args.use_dense_prediction)
         teacher = build_model(config_swinv2, is_teacher=True, use_dense_prediction=args.use_dense_prediction)
         embed_dim = student.num_features
 
-    elif 'swin' in args.arch :
+    elif 'swin_base' in args.arch :
         update_config(config, args)
 
         student = build_model(config, use_dense_prediction=args.use_dense_prediction)
@@ -283,8 +277,11 @@ def train_dino(args):
     log_writer.flush()
 
     # ============ optionally resume training ... ============
-    # utils.init_from_imagenet('/mnt/sda/zhouziyu/ssl/pretrained_model/swin_base_patch4_window7_224_imagenet1k.pth',student, teacher)
-    utils.init_from_imagenet_swinv2('/mnt/sda/zhouziyu/ssl/pretrained_model/swinv2_base_patch4_window16_256_IN1k.pth',student, teacher)
+    if args.imagenet_path is not None:
+        if args.arch == 'swin_base':
+            utils.init_from_imagenet(args.imagenet_path, student, teacher)
+        elif args.arch == 'swinv2_base':
+            utils.init_from_imagenet_swinv2(args.imagenet_path, student, teacher)
 
     to_restore = {"epoch": 0}
 
@@ -928,4 +925,4 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser('DINO', parents=[get_args_parser()])
     args = parser.parse_args()
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
-    train_dino(args)
+    train(args)
