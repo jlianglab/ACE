@@ -68,7 +68,7 @@ We investigate whether ACE-v2 can capture the intrinsic symmetry of chest X-ray 
 ```
 python tsne_symmetry.py
 ```
-<p align="center"><img width=60% alt="FrontCover" src="images/Emergent symmetry.png"></p>
+<p align="center"><img width=50% alt="FrontCover" src="images/Emergent symmetry.png"></p>
 
 
 ### Emergent property 4: ACE-v2 enabled meaningful embedding interpolation and extrapolation.
@@ -78,4 +78,4 @@ We investigate ACE-v2’s interpolation/extrapolation capability by computing em
 ```
 python interpolation.py
 ```
-<p align="center"><img width=60% alt="FrontCover" src="images/Emergent interpolation.png"></p>
+<p align="center"><img width=50% alt="FrontCover" src="images/Emergent interpolation.png"></p>
