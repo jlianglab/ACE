@@ -72,6 +72,7 @@ Clone the repository:
 ```
 $ git clone https://github.com/jlianglab/ACE.git
 $ cd ACE
+$ cd ACE_v2
 $ pip install -r requirements
 ```
 
