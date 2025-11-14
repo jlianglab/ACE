@@ -23,9 +23,8 @@ This paper introduces ACE, a novel self-supervised learning (SSL) approach for l
 
 | Model name | Backbone | Pretrained dataset | Input Resolution | model |
 |------------|----------|------------------|------------------|-------|
-| ACE-v2<sub>SwinV1-B<sub> | SwinV1-base | [ChestX-ray14](https://nihcc.app.box.com/v/ChestXray-NIHCC) | 448x448 | [Dropbox](https://www.dropbox.com/scl/fi/m3w5xg3e73di1p7ccjvig/ACE_v2_NIH_swinv2.pth?) \| [BaiduDisk](https://pan.baidu.com/s/1DBqvX6nDS8a_4XDRPP9h6A?pwd=tizf)
-|ACE-v2<sub>SwinV2-B<sub> | SwinV2-base |[ChestX-ray14](https://nihcc.app.box.com/v/ChestXray-NIHCC) | 512x512 | [Dropbox](https://www.dropbox.com/scl/fi/m3w5xg3e73di1p7ccjvig/ACE_v2_NIH_swinv2.pth?rlkey=po6yzkkyv8dt8r18mzd86t2d8&st=ogz3hbs9&dl=0) \| [BaiduDisk](https://pan.baidu.com/s/1W1RAXOMo8SzV5ZNGF6XKkw?pwd=sjnu)
-|ACE-v2 | SwinV2-base |ChestX-ray1M | 512x512 | [Dropbox](https://www.dropbox.com/scl/fi/6k48jb4x8uttijuaof476/ACE_v2_largescale_swinv2.pth?rlkey=aacc7tflvs497lxhp92xs0x77&st=467y9xbo&dl=0) \| [BaiduDisk](https://pan.baidu.com/s/1jCVtLQ5rbNzjMKn7PyqFBA?pwd=d5e8)
+| ACE | SwinV1-base | [ChestX-ray14](https://nihcc.app.box.com/v/ChestXray-NIHCC) | 448x448 | [Dropbox](https://www.dropbox.com/scl/fi/civ4cuheis4wqm0suwe68/ACE_v1_NIH_swinv1.pth?rlkey=k2hk56gc1px6pee8ua86aw8m5&st=fexvaek8&dl=0) \| [BaiduDisk](https://pan.baidu.com/s/1QdPAE7C2QGBfNN-1BYJVyA?pwd=rgaf)
+| ACE | ViT-base | [ChestX-ray14](https://nihcc.app.box.com/v/ChestXray-NIHCC) | 448x448 | [Dropbox](https://www.dropbox.com/scl/fi/vduk2d0n5qx0q6yggc7a7/ACE_vitb.pth?rlkey=v0i9w4ivht06wrkqdcsqnewij&st=q05atulw&dl=0) \| [BaiduDisk](https://pan.baidu.com/s/1iFNsVo-irZe-kowK0VEHUA?pwd=jc38)
 
 
 
